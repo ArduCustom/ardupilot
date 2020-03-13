@@ -182,6 +182,8 @@ protected:
     static const uint8_t SYM_FENCE_DISABLED = 0xF6;
     static const uint8_t SYM_RNGFD = 0xF7;
     static const uint8_t SYM_LQ = 0xF8;
+    static const uint8_t SYM_WATT = 0xAE;
+    static const uint8_t SYM_WH = 0xAB;
 
     static const uint8_t SYM_SIDEBAR_R_ARROW = 0x09;
     static const uint8_t SYM_SIDEBAR_L_ARROW = 0x0A;
@@ -288,5 +290,7 @@ protected:
         SYM_SIDEBAR_H,
         SYM_SIDEBAR_I,
         SYM_SIDEBAR_J,
+        SYM_WATT,
+        SYM_WH
     };
 };
