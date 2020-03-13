@@ -199,6 +199,14 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_W_RESTVOLT", 25, AP_OSD, warn_restvolt, 10.0f),
 
+    // @Param: _EFF_UNIT
+    // @DisplayName: Base unit for efficiency values
+    // @Description: Base unit to be used for displaying distance and vertical speed efficiency values
+    // @Values: 0: mAh
+    //          1: Wh
+    // @User: Standard
+    AP_GROUPINFO("_EFF_UNIT", 27, AP_OSD, efficiency_unit_base, AP_OSD::EFF_UNIT_BASE_MAH),
+
 #endif //osd enabled
 
 #if OSD_PARAM_ENABLED
