@@ -784,22 +784,6 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(home_dir, "HOMEDIR", 47, AP_OSD_Screen, AP_OSD_Setting),
 
-    // @Param: POWER_EN
-    // @DisplayName: POWER_EN
-    // @Description: Displays power (MSP OSD only)
-    // @Values: 0:Disabled,1:Enabled
-
-    // @Param: POWER_X
-    // @DisplayName: POWER_X
-    // @Description: Horizontal position on screen
-    // @Range: 0 29
-
-    // @Param: POWER_Y
-    // @DisplayName: POWER_Y
-    // @Description: Vertical position on screen
-    // @Range: 0 15
-    AP_SUBGROUPINFO(power, "POWER", 48, AP_OSD_Screen, AP_OSD_Setting),
-
     // @Param: CELLVOLT_EN
     // @DisplayName: CELL_VOLT_EN
     // @Description: Displays average cell voltage (MSP OSD only)
@@ -848,6 +832,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(arming, "ARMING", 51, AP_OSD_Screen, AP_OSD_Setting),
 #endif //HAL_MSP_ENABLED
+
+    // @Param: POWER_EN
+    // @DisplayName: POWER_EN
+    // @Description: Displays total power draw from all batteries
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: POWER_X
+    // @DisplayName: POWER_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: POWER_Y
+    // @DisplayName: POWER_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(power, "POWER", 48, AP_OSD_Screen, AP_OSD_Setting),
 
 #if HAL_PLUSCODE_ENABLE
     // @Param: PLUSCODE_EN
@@ -1022,6 +1022,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(link_quality, "LINK_Q", 1, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: ENERGY_EN
+    // @DisplayName: ENERGY_EN
+    // @Description: Displays total energy consumed from primary battery
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: ENERGY_X
+    // @DisplayName: ENERGY_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: ENERGY_Y
+    // @DisplayName: ENERGY_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(energy, "ENERGY", 3, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -1130,6 +1146,9 @@ uint8_t AP_OSD_AbstractScreen::symbols_lookup_table[AP_OSD_NUM_SYMBOLS];
 #define SYM_SIDEBAR_H 88
 #define SYM_SIDEBAR_I 89
 #define SYM_SIDEBAR_J 90
+
+#define SYM_WATT 91
+#define SYM_WH 92
 
 #define SYMBOL(n) AP_OSD_AbstractScreen::symbols_lookup_table[n]
 
@@ -1362,6 +1381,30 @@ void AP_OSD_Screen::draw_current(uint8_t instance, uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_current(uint8_t x, uint8_t y)
 {
     draw_current(0, x, y);
+}
+
+void AP_OSD_Screen::draw_power(uint8_t x, uint8_t y)
+{
+    AP_BattMonitor &battery = AP::battery();
+    float power_w;
+    if (battery.power_watts(power_w)) {
+        osd->avg_power_w = osd->avg_power_w + (power_w - osd->avg_power_w) * 0.33;
+        const char* const fmt = (osd->avg_power_w < 9.995 ? "%1.2f%c" : (osd->avg_power_w < 99.95 ? "%2.1f%c" : "%3.0f%c"));
+        backend->write(x, y, false, fmt, osd->avg_power_w, SYMBOL(SYM_WATT));
+    } else {
+        backend->write(x, y, false, "---%c", SYMBOL(SYM_WATT));
+    }
+}
+
+void AP_OSD_Screen::draw_energy(uint8_t x, uint8_t y)
+{
+    AP_BattMonitor &battery = AP::battery();
+    float energy_wh;
+    if (!battery.consumed_wh(energy_wh)) {
+        energy_wh = 0;
+    }
+    const char* const fmt = (energy_wh < 9.9995 ? "%1.3f%c" : (energy_wh < 99.995 ? "%2.2f%c" : "%3.1f%c"));
+    backend->write(x, y, false, fmt, energy_wh, SYMBOL(SYM_WH));
 }
 
 void AP_OSD_Screen::draw_fltmode(uint8_t x, uint8_t y)
@@ -1931,12 +1974,26 @@ void AP_OSD_Screen::draw_eff(uint8_t x, uint8_t y)
         v = ahrs.groundspeed_vector();
     }
     float speed = u_scale(SPEED,v.length());
-    float current_amps;
-    if ((speed > 2.0) && battery.current_amps(current_amps)) {
-        backend->write(x, y, false, "%c%3d%c", SYMBOL(SYM_EFF),int(1000.0f*current_amps/speed),SYMBOL(SYM_MAH));
+    int8_t eff_unit_base = osd->efficiency_unit_base;
+    if (speed < 2.0) goto invalid;
+    if (eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH) {
+        float current_amps;
+        if (!battery.current_amps(current_amps) || is_negative(current_amps)) goto invalid;
+        const uint16_t efficiency = roundf(1000.0f * current_amps / speed);
+        if (efficiency > 999) goto invalid;
+        backend->write(x, y, false, "%c%3d%c", SYMBOL(SYM_EFF), efficiency, SYMBOL(SYM_MAH));
     } else {
-        backend->write(x, y, false, "%c---%c", SYMBOL(SYM_EFF),SYMBOL(SYM_MAH));
+        float power_w;
+        if (!battery.power_watts(power_w) || is_negative(power_w)) goto invalid;
+        const float efficiency = power_w / speed;
+        if (roundf(efficiency) > 999) goto invalid;
+        const char* const fmt = (efficiency < 9.995 ? "%c%1.2f%c" : (efficiency < 99.95 ? "%c%2.1f%c" : "%c%3.0f%c"));
+        backend->write(x, y, false, fmt, SYMBOL(SYM_EFF), efficiency, SYMBOL(SYM_WH));
     }
+    return;
+invalid:
+    const uint8_t unit_symbol = SYMBOL(eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH ? SYM_MAH : SYM_WH);
+    backend->write(x, y, false, "%c---%c", SYMBOL(SYM_EFF), unit_symbol);
 }
 
 void AP_OSD_Screen::draw_climbeff(uint8_t x, uint8_t y)
@@ -1957,16 +2014,25 @@ void AP_OSD_Screen::draw_climbeff(uint8_t x, uint8_t y)
         WITH_SEMAPHORE(baro.get_semaphore());
         vspd = baro.get_climb_rate();
     } while (false);
-    if (vspd < 0.0) {
-        vspd = 0.0;
+    if (is_positive(vspd)) {
+        AP_BattMonitor &battery = AP::battery();
+        uint32_t efficiency;
+        if (osd->efficiency_unit_base == AP_OSD::EFF_UNIT_BASE_MAH) {
+            float amps;
+            if (!battery.current_amps(amps) || !is_positive(amps)) goto invalid;
+            efficiency = roundf(3600.0f * vspd / amps);
+        } else {
+            float power_w;
+            if (!battery.power_watts(power_w) || !is_positive(power_w)) goto invalid;
+            efficiency = roundf(3600.0f * vspd / power_w);
+        }
+        if (efficiency < 1000) {
+            backend->write(x, y, false,"%c%c%3u%c", SYMBOL(SYM_PTCHUP), SYMBOL(SYM_EFF), (uint16_t)efficiency, unit_icon);
+            return;
+        }
     }
-    AP_BattMonitor &battery = AP::battery();
-    float amps;
-    if (battery.current_amps(amps) && is_positive(amps)) {
-        backend->write(x, y, false,"%c%c%3.1f%c",SYMBOL(SYM_PTCHUP),SYMBOL(SYM_EFF),(double)(3.6f * u_scale(VSPEED,vspd)/amps),unit_icon);
-    } else {
-        backend->write(x, y, false,"%c%c---%c",SYMBOL(SYM_PTCHUP),SYMBOL(SYM_EFF),unit_icon);
-    }
+invalid:
+    backend->write(x, y, false, "%c%c---%c", SYMBOL(SYM_PTCHUP), SYMBOL(SYM_EFF), unit_icon);
 }
 
 #if BARO_MAX_INSTANCES > 1
@@ -2186,6 +2252,8 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(rssi);
     DRAW_SETTING(link_quality);
     DRAW_SETTING(current);
+    DRAW_SETTING(power);
+    DRAW_SETTING(energy);
     DRAW_SETTING(batused);
     DRAW_SETTING(bat2used);
     DRAW_SETTING(sats);
