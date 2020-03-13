@@ -179,6 +179,8 @@ protected:
     static const uint8_t SYM_FENCE_DISABLED = 0xF6;
     static const uint8_t SYM_RNGFD = 0xF7;
     static const uint8_t SYM_LQ = 0xF8;
+    static const uint8_t SYM_WATT = 0xAE;
+    static const uint8_t SYM_WH = 0xAB;
 
     static constexpr uint8_t symbols[AP_OSD_NUM_SYMBOLS] {
         SYM_M,
@@ -260,5 +262,7 @@ protected:
         SYM_FENCE_DISABLED,
         SYM_RNGFD,
         SYM_LQ,
+        SYM_WATT,
+        SYM_WH
     };
 };
