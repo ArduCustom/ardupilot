@@ -1233,6 +1233,55 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_SUBGROUPINFO(follow, "FOLL", 33, ParametersG2, AP_Follow),
 #endif
     
+    // @Param: FLTMODE_EXT
+    // @DisplayName: Enable extra modes
+    // @Description: This enables 14 extra modes. Be careful when enabling this on PPM/analog, as each mode channel is only 45 usec wide (starting from 1050, then 1095, and so on).
+    // @Values: 0:Disabled,1:Enabled
+    // @User: Advanced
+    AP_GROUPINFO("FLTMODE_EXT", 57, ParametersG2, fltmode_ext, 0),
+
+    // @Param: FLTMODE7
+    // @DisplayName: FlightMode7
+    // @Description: Flight mode for switch position 7 (1501 to 1575), enabled with FLTMODE_EXT
+    // @Values: 0:Manual,1:CIRCLE,2:STABILIZE,3:TRAINING,4:ACRO,5:FBWA,6:FBWB,7:CRUISE,8:AUTOTUNE,10:Auto,11:RTL,12:Loiter,13:TAKEOFF,14:AVOID_ADSB,15:Guided,17:QSTABILIZE,18:QHOVER,19:QLOITER,20:QLAND,21:QRTL,22:QAUTOTUNE,23:QACRO,24:THERMAL
+    // @User: Advanced
+    AP_GROUPINFO("FLTMODE7", 58, ParametersG2, flight_mode7, FLIGHT_MODE_7),
+
+    // @Param: FLTMODE8
+    // @DisplayName: FlightMode8
+    // @Description: Flight mode for switch position 8 (1576 to 1650), enabled with FLTMODE_EXT
+    // @Values: 0:Manual,1:CIRCLE,2:STABILIZE,3:TRAINING,4:ACRO,5:FBWA,6:FBWB,7:CRUISE,8:AUTOTUNE,10:Auto,11:RTL,12:Loiter,13:TAKEOFF,14:AVOID_ADSB,15:Guided,17:QSTABILIZE,18:QHOVER,19:QLOITER,20:QLAND,21:QRTL,22:QAUTOTUNE,23:QACRO,24:THERMAL
+    // @User: Advanced
+    AP_GROUPINFO("FLTMODE8", 59, ParametersG2, flight_mode8, FLIGHT_MODE_8),
+
+    // @Param: FLTMODE9
+    // @DisplayName: FlightMode9
+    // @Description: Flight mode for switch position 9 (1651 to 1725), enabled with FLTMODE_EXT
+    // @Values: 0:Manual,1:CIRCLE,2:STABILIZE,3:TRAINING,4:ACRO,5:FBWA,6:FBWB,7:CRUISE,8:AUTOTUNE,10:Auto,11:RTL,12:Loiter,13:TAKEOFF,14:AVOID_ADSB,15:Guided,17:QSTABILIZE,18:QHOVER,19:QLOITER,20:QLAND,21:QRTL,22:QAUTOTUNE,23:QACRO,24:THERMAL
+    // @User: Advanced
+    AP_GROUPINFO("FLTMODE9", 60, ParametersG2, flight_mode9, FLIGHT_MODE_9),
+
+    // @Param: FLTMODE10
+    // @DisplayName: FlightMode10
+    // @Description: Flight mode for switch position 10 (1726 to 1800), enabled with FLTMODE_EXT
+    // @Values: 0:Manual,1:CIRCLE,2:STABILIZE,3:TRAINING,4:ACRO,5:FBWA,6:FBWB,7:CRUISE,8:AUTOTUNE,10:Auto,11:RTL,12:Loiter,13:TAKEOFF,14:AVOID_ADSB,15:Guided,17:QSTABILIZE,18:QHOVER,19:QLOITER,20:QLAND,21:QRTL,22:QAUTOTUNE,23:QACRO,24:THERMAL
+    // @User: Advanced
+    AP_GROUPINFO("FLTMODE10", 61, ParametersG2, flight_mode10, FLIGHT_MODE_10),
+
+    // @Param: FLTMODE11
+    // @DisplayName: FlightMode11
+    // @Description: Flight mode for switch position 11 (1801 to 1875), enabled with FLTMODE_EXT
+    // @Values: 0:Manual,1:CIRCLE,2:STABILIZE,3:TRAINING,4:ACRO,5:FBWA,6:FBWB,7:CRUISE,8:AUTOTUNE,10:Auto,11:RTL,12:Loiter,13:TAKEOFF,14:AVOID_ADSB,15:Guided,17:QSTABILIZE,18:QHOVER,19:QLOITER,20:QLAND,21:QRTL,22:QAUTOTUNE,23:QACRO,24:THERMAL
+    // @User: Advanced
+    AP_GROUPINFO("FLTMODE11", 62, ParametersG2, flight_mode11, FLIGHT_MODE_11),
+
+    // @Param: FLTMODE12
+    // @DisplayName: FlightMode12
+    // @Description: Flight mode for switch position 12 (1876 to 2049), enabled with FLTMODE_EXT
+    // @Values: 0:Manual,1:CIRCLE,2:STABILIZE,3:TRAINING,4:ACRO,5:FBWA,6:FBWB,7:CRUISE,8:AUTOTUNE,10:Auto,11:RTL,12:Loiter,13:TAKEOFF,14:AVOID_ADSB,15:Guided,17:QSTABILIZE,18:QHOVER,19:QLOITER,20:QLAND,21:QRTL,22:QAUTOTUNE,23:QACRO,24:THERMAL
+    // @User: Advanced
+    AP_GROUPINFO("FLTMODE12", 63, ParametersG2, flight_mode12, FLIGHT_MODE_12),
+
     AP_GROUPEND
 };
 
