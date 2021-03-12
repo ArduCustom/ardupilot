@@ -559,6 +559,15 @@ public:
     AP_Int8         man_expo_rudder;
 
     AP_Int32        oneshot_mask;
+
+    // Extra modes.
+    AP_Int8 fltmode_ext;
+    AP_Int8 flight_mode7;
+    AP_Int8 flight_mode8;
+    AP_Int8 flight_mode9;
+    AP_Int8 flight_mode10;
+    AP_Int8 flight_mode11;
+    AP_Int8 flight_mode12;
 };
 
 extern const AP_Param::Info var_info[];
