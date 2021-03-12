@@ -565,6 +565,15 @@ public:
 
     // just to make compilation easier when all things are compiled out...
     uint8_t unused_integer;
+
+    // Extra modes.
+    AP_Int8 fltmode_ext;
+    AP_Int8 flight_mode7;
+    AP_Int8 flight_mode8;
+    AP_Int8 flight_mode9;
+    AP_Int8 flight_mode10;
+    AP_Int8 flight_mode11;
+    AP_Int8 flight_mode12;
 };
 
 extern const AP_Param::Info var_info[];
