@@ -147,9 +147,11 @@ void RCOutput::update_channel_masks() {
         switch (_dshot_esc_type) {
             case DSHOT_ESC_BLHELI:
             case DSHOT_ESC_BLHELI_S:
+                /*
                 if (_reversible_mask & (1U<<i)) {
                     send_dshot_command(DSHOT_3D_ON, i + chan_offset, 0, 10, true);
                 }
+                */
                 if (_reversed_mask & (1U<<i)) {
                     send_dshot_command(DSHOT_REVERSE, i + chan_offset, 0, 10, true);
                 }
