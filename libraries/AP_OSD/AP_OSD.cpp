@@ -199,6 +199,13 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_W_RESTVOLT", 25, AP_OSD, warn_restvolt, 10.0f),
 
+    // @Param: _W_ASPD
+    // @DisplayName: ASPD warn level
+    // @Description: Set level at which ASPDx items will flash
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("_W_ASPD", 26, AP_OSD, warn_aspd, 0),
+
     // @Param: _EFF_UNIT
     // @DisplayName: Base unit for efficiency values
     // @Description: Base unit to be used for displaying distance and vertical speed efficiency values
