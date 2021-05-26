@@ -509,6 +509,8 @@ public:
     AP_Float warn_restvolt;
     AP_Float warn_batvolt;
     AP_Float warn_bat2volt;
+    AP_Float warn_aspd_low;
+    AP_Float warn_aspd_high;
     AP_Int8 msgtime_s;
     AP_Int8 arm_scr;
     AP_Int8 disarm_scr;
