@@ -207,8 +207,6 @@ private:
 
     void draw_altitude(uint8_t x, uint8_t y);
     void draw_bat_volt(uint8_t x, uint8_t y);
-    void draw_avgcellvolt(uint8_t x, uint8_t y);
-    void draw_restvolt(uint8_t x, uint8_t y);
     void draw_rssi(uint8_t x, uint8_t y);
     void draw_link_quality(uint8_t x, uint8_t y);
     void draw_current(uint8_t x, uint8_t y);
@@ -467,10 +465,6 @@ public:
     AP_Int8 warn_rssi;
     AP_Int8 warn_nsat;
     AP_Int32 warn_terr;
-    AP_Float warn_avgcellvolt;
-    AP_Float max_battery_voltage;
-    AP_Int8 cell_count;
-    AP_Float warn_restvolt;
     AP_Float warn_batvolt;
     AP_Float warn_bat2volt;
     AP_Int8 msgtime_s;
