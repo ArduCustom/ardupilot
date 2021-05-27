@@ -932,6 +932,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     AP_SUBGROUPINFO(hgt_abvterr, "TER_HGT", 56, AP_OSD_Screen, AP_OSD_Setting),
 #endif
 
+    // @Param: AVGCELLV_EN
+    // @DisplayName: AVGCELLV_EN
+    // @Description: Displays average cell voltage. WARNING: this can be inaccurate if the cell count is not detected properly. If the cell count detection voltage is not right or the battery is far from fully charged the detected cell count might not be accurate. Use BATT_CELL_COUNT to force the number of cells.
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: AVGCELLV_X
+    // @DisplayName: AVGCELLV_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: AVGCELLV_Y
+    // @DisplayName: AVGCELLV_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(avgcellvolt, "AVGCELLV", 57, AP_OSD_Screen, AP_OSD_Setting),
+
     // @Param: RESTVOLT_EN
     // @DisplayName: RESTVOLT_EN
     // @Description: Displays main battery resting voltage
@@ -1234,6 +1250,45 @@ void AP_OSD_Screen::draw_altitude(uint8_t x, uint8_t y)
     ahrs.get_relative_position_D_home(alt);
     alt = -alt;
     backend->write(x, y, false, "%4d%c", (int)u_scale(ALTITUDE, alt), u_icon(ALTITUDE));
+}
+
+void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
+{
+    AP_BattMonitor &battery = AP::battery();
+    uint8_t pct;
+    bool pct_available = !battery.capacity_remaining_pct(pct);
+    uint8_t pct_symbol;
+    if (pct_available) {
+        uint8_t p = (100 - pct) / 16.6;
+        pct_symbol = SYMBOL(SYM_BATT_FULL) + p;
+    }
+    if (battery.cell_count() > 0) {
+        float v = battery.cell_avg_voltage();
+        if (pct_available) {
+            backend->write(x,y, v < osd->warn_avgcellvolt, "%c%1.2f%c", pct_symbol, v, SYMBOL(SYM_VOLT));
+        } else {
+            backend->write(x,y, v < osd->warn_avgcellvolt, "%1.2f%c", v, SYMBOL(SYM_VOLT));
+        }
+    } else {
+        if (pct_available) {
+            backend->write(x,y, false, "%c---%c", pct_symbol, SYMBOL(SYM_VOLT));
+        } else {
+            backend->write(x,y, false, "---%c", SYMBOL(SYM_VOLT));
+        }
+    }
+}
+
+void AP_OSD_Screen::draw_restvolt(uint8_t x, uint8_t y)
+{
+    AP_BattMonitor &battery = AP::battery();
+    float v = battery.voltage_resting_estimate();
+    uint8_t pct;
+    if (!battery.capacity_remaining_pct(pct)) {
+        backend->write(x, y, v < osd->warn_restvolt, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+        return;
+    }
+    uint8_t p = (100 - pct) / 16.6;
+    backend->write(x,y, v < osd->warn_restvolt, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p, (double)v, SYMBOL(SYM_VOLT));
 }
 
 void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
@@ -2036,6 +2091,8 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(waypoint);
     DRAW_SETTING(xtrack_error);
     DRAW_SETTING(bat_volt);
+    DRAW_SETTING(restvolt);
+    DRAW_SETTING(avgcellvolt);
     DRAW_SETTING(bat2_vlt);
     DRAW_SETTING(rssi);
     DRAW_SETTING(link_quality);
