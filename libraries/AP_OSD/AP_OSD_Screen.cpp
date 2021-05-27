@@ -932,22 +932,6 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     AP_SUBGROUPINFO(hgt_abvterr, "TER_HGT", 56, AP_OSD_Screen, AP_OSD_Setting),
 #endif
 
-    // @Param: AVGCELLV_EN
-    // @DisplayName: AVGCELLV_EN
-    // @Description: Displays average cell voltage. WARNING: this can be inaccurate if the cell count is not detected or set properly. If the  the battery is far from fully charged the detected cell count might not be accurate if auto cell count detection is used (OSD_CELL_COUNT=0).
-    // @Values: 0:Disabled,1:Enabled
-
-    // @Param: AVGCELLV_X
-    // @DisplayName: AVGCELLV_X
-    // @Description: Horizontal position on screen
-    // @Range: 0 29
-
-    // @Param: AVGCELLV_Y
-    // @DisplayName: AVGCELLV_Y
-    // @Description: Vertical position on screen
-    // @Range: 0 15
-    AP_SUBGROUPINFO(avgcellvolt, "AVGCELLV", 57, AP_OSD_Screen, AP_OSD_Setting),
-
     // @Param: RESTVOLT_EN
     // @DisplayName: RESTVOLT_EN
     // @Description: Displays main battery resting voltage
@@ -1265,38 +1249,6 @@ void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
     uint8_t p = (100 - pct) / 16.6;
     backend->write(x,y, v < osd->warn_batvolt, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p, (double)v, SYMBOL(SYM_VOLT));
 }
-
-void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
-{
-    AP_BattMonitor &battery = AP::battery();
-    uint8_t pct = 0;
-    IGNORE_RETURN(battery.capacity_remaining_pct(pct));
-    uint8_t p = (100 - pct) / 16.6;
-    float v = battery.voltage();
-    // calculate cell count - WARNING this can be inaccurate if the LIPO/LIION  battery is far from fully charged when attached and is used in this panel
-    osd->max_battery_voltage = MAX(osd->max_battery_voltage,v);
-    if (osd->cell_count > 0) {
-        v = v / osd->cell_count;
-        backend->write(x,y, v < osd->warn_avgcellvolt, "%c%1.2f%c", SYMBOL(SYM_BATT_FULL) + p, v, SYMBOL(SYM_VOLT));
-    } else if (osd->cell_count < 0) { // user must decide on autodetect cell count or manually entered to display this panel since default is -1
-        backend->write(x,y, false, "%c---%c", SYMBOL(SYM_BATT_FULL) + p, SYMBOL(SYM_VOLT));
-    } else {  // use autodetected cell count
-        v = v /  (uint8_t)(osd->max_battery_voltage * 0.2381 + 1);
-        backend->write(x,y, v < osd->warn_avgcellvolt, "%c%1.2f%c", SYMBOL(SYM_BATT_FULL) + p, v, SYMBOL(SYM_VOLT));
-    }
-}
-
-void AP_OSD_Screen::draw_restvolt(uint8_t x, uint8_t y)
-{
-    AP_BattMonitor &battery = AP::battery();
-    uint8_t pct = 0;
-    IGNORE_RETURN(battery.capacity_remaining_pct(pct));
-    uint8_t p = (100 - pct) / 16.6;
-    float v = battery.voltage_resting_estimate();
-    backend->write(x,y, v < osd->warn_restvolt, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p, (double)v, SYMBOL(SYM_VOLT));
-}
-
-
 
 void AP_OSD_Screen::draw_rssi(uint8_t x, uint8_t y)
 {
@@ -2085,8 +2037,6 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(xtrack_error);
     DRAW_SETTING(bat_volt);
     DRAW_SETTING(bat2_vlt);
-    DRAW_SETTING(avgcellvolt);
-    DRAW_SETTING(restvolt);
     DRAW_SETTING(rssi);
     DRAW_SETTING(link_quality);
     DRAW_SETTING(current);
