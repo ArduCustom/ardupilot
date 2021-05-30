@@ -340,6 +340,7 @@ public:
         k_param_pidWheelSteer, // unused
 
         k_param_mixing_offset,
+        k_param_mixing_diff,
         k_param_dspoiler_rud_rate,
 
         k_param_logger = 253, // Logging Group
@@ -427,7 +428,8 @@ public:
     AP_Int8 auto_trim;
     AP_Int8 rudder_only;
     AP_Float mixing_gain;
-    AP_Int16 mixing_offset;
+    AP_Int8 mixing_offset;
+    AP_Int8 mixing_diff;
     AP_Int16 dspoiler_rud_rate;
     AP_Int16 num_resets;
     AP_Int32 log_bitmask;
