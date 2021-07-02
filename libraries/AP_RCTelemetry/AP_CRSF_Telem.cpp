@@ -784,7 +784,21 @@ void AP_CRSF_Telem::calc_gps()
     _telem.bcast.gps.latitude = htobe32(loc.lat);
     _telem.bcast.gps.longitude = htobe32(loc.lng);
     _telem.bcast.gps.groundspeed = htobe16(roundf(AP::gps().ground_speed() * 100000 / 3600));
-    _telem.bcast.gps.altitude = htobe16(constrain_int16(loc.alt / 100, 0, 5000) + 1000);
+
+    Location loc1;
+    float current_height = 0; // in centimeters above home
+
+    AP_AHRS &_ahrs = AP::ahrs();
+    WITH_SEMAPHORE(_ahrs.get_semaphore());
+    if (_ahrs.get_position(loc1)) {
+        current_height = loc1.alt*0.01f;
+        if (!loc1.relative_alt) {
+            // loc.alt has home altitude added, remove it
+            current_height -= _ahrs.get_home().alt*0.01f;
+        }
+    }
+
+    _telem.bcast.gps.altitude = htobe16(constrain_int16(current_height, 0, 5000) + 1000);
     _telem.bcast.gps.gps_heading = htobe16(roundf(AP::gps().ground_course() * 100.0f));
     _telem.bcast.gps.satellites = AP::gps().num_sats();
 
