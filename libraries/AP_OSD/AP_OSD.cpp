@@ -222,6 +222,32 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_EFF_UNIT", 63, AP_OSD, efficiency_unit_base, AP_OSD::EFF_UNIT_BASE_MAH),
 
+#if HAL_WITH_ESC_TELEM
+    // @Param: _W_BLHRPM
+    // @DisplayName: BLHRPM warn level
+    // @Description: Set level above which BLHRPM item will flash
+    // @Range: 0 500
+    // @Units: kRPM
+    // @User: Standard
+    AP_GROUPINFO("_W_BLHRPM", 28, AP_OSD, warn_blh_high_rpm, 0.0f),
+
+    // @Param: _W_BLHLRPM
+    // @DisplayName: BLHRPM warn level
+    // @Description: Set level under which BLHRPM item will flash with throttle > 5% and armed
+    // @Range: 0 10000
+    // @Units: RPM
+    // @User: Standard
+    AP_GROUPINFO("_W_BLHLRPM", 29, AP_OSD, warn_blh_low_rpm, 0.1f),
+
+    // @Param: _W_BLHTEMP
+    // @DisplayName: BLHTEMP warn level
+    // @Description: Set level at which BLHTEMP item will flash
+    // @Range: 0 200
+    // @Units: degC
+    // @User: Standard
+    AP_GROUPINFO("_W_BLHTEMP", 30, AP_OSD, warn_blhtemp, 80.0f),
+#endif
+
 #endif //osd enabled
 
 #if OSD_PARAM_ENABLED
@@ -442,7 +468,7 @@ void AP_OSD::update_stats()
     // max esc temp
     AP_ESC_Telem& telem = AP::esc_telem();
     int16_t highest_temperature = 0;
-    telem.get_highest_motor_temperature(highest_temperature);
+    telem.get_highest_temperature(highest_temperature);
     _stats.max_esc_temp = MAX(_stats.max_esc_temp, highest_temperature);
 #endif
 }
