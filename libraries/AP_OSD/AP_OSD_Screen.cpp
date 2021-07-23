@@ -348,7 +348,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
 #if HAL_WITH_ESC_TELEM
     // @Param: ESCTEMP_EN
     // @DisplayName: ESCTEMP_EN
-    // @Description: Displays first esc's temp
+    // @Description: Displays the temperature of the ESC with highest temperature
     // @Values: 0:Disabled,1:Enabled
 
     // @Param: ESCTEMP_X
@@ -360,39 +360,87 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @DisplayName: ESCTEMP_Y
     // @Description: Vertical position on screen
     // @Range: 0 15
-    AP_SUBGROUPINFO(esc_temp, "ESCTEMP", 21, AP_OSD_Screen, AP_OSD_Setting),
+    AP_SUBGROUPINFO(highest_esc_temp, "ESCTEMP", 21, AP_OSD_Screen, AP_OSD_Setting),
 
-    // @Param: ESCRPM_EN
-    // @DisplayName: ESCRPM_EN
-    // @Description: Displays first esc's rpm
+    // @Param: ESCARPM_EN
+    // @DisplayName: ESCARPM_EN
+    // @Description: Displays the average motor RPM as reported by the ESCs
     // @Values: 0:Disabled,1:Enabled
 
-    // @Param: ESCRPM_X
-    // @DisplayName: ESCRPM_X
+    // @Param: ESCARPM_X
+    // @DisplayName: ESCARPM_X
     // @Description: Horizontal position on screen
     // @Range: 0 29
 
-    // @Param: ESCRPM_Y
-    // @DisplayName: ESCRPM_Y
+    // @Param: ESCARPM_Y
+    // @DisplayName: ESCARPM_Y
     // @Description: Vertical position on screen
     // @Range: 0 15
-    AP_SUBGROUPINFO(esc_rpm, "ESCRPM", 22, AP_OSD_Screen, AP_OSD_Setting),
+    AP_SUBGROUPINFO(avg_esc_rpm, "ESCARPM", 22, AP_OSD_Screen, AP_OSD_Setting),
 
-    // @Param: ESCAMPS_EN
-    // @DisplayName: ESCAMPS_EN
-    // @Description: Displays first esc's current
+    // @Param: ESCHAMPS_EN
+    // @DisplayName: ESCHAMPS_EN
+    // @Description: Display the current going through the ESC with highest measured current
     // @Values: 0:Disabled,1:Enabled
 
-    // @Param: ESCAMPS_X
-    // @DisplayName: ESCAMPS_X
+    // @Param: ESCHAMPS_X
+    // @DisplayName: ESCHAMPS_X
     // @Description: Horizontal position on screen
     // @Range: 0 29
 
-    // @Param: ESCAMPS_Y
-    // @DisplayName: ESCAMPS_Y
+    // @Param: ESCHAMPS_Y
+    // @DisplayName: ESCHAMPS_Y
     // @Description: Vertical position on screen
     // @Range: 0 15
-    AP_SUBGROUPINFO(esc_amps, "ESCAMPS", 23, AP_OSD_Screen, AP_OSD_Setting),
+    AP_SUBGROUPINFO(highest_esc_amps, "ESCHAMPS", 23, AP_OSD_Screen, AP_OSD_Setting),
+
+    // @Param: ESCAAMPS_EN
+    // @DisplayName: ESCAAMPS_EN
+    // @Description: Display the average current going through the ESCs
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: ESCAAMPS_X
+    // @DisplayName: ESCAAMPS_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: ESCAAMPS_Y
+    // @DisplayName: ESCAAMPS_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(avg_esc_amps, "ESCAAMPS", 61, AP_OSD_Screen, AP_OSD_Setting),
+
+    // @Param: ESCTAMPS_EN
+    // @DisplayName: ESCTAMPS_EN
+    // @Description: Display the total current going through the ESCs
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: ESCTAMPS_X
+    // @DisplayName: ESCTAMPS_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: ESCTAMPS_Y
+    // @DisplayName: ESCTAMPS_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(total_esc_amps, "ESCTAMPS", 62, AP_OSD_Screen, AP_OSD_Setting),
+
+    // @Param: ESCHRPM_EN
+    // @DisplayName: ESCHRPM_EN
+    // @Description: Displays the highest motor RPM as reported by the ESCs
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: ESCHRPM_X
+    // @DisplayName: ESCHRPM_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: ESCHRPM_Y
+    // @DisplayName: ESCHRPM_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(highest_esc_rpm, "ESCHRPM", 63, AP_OSD_Screen, AP_OSD_Setting),
 #endif
     // @Param: GPSLAT_EN
     // @DisplayName: GPSLAT_EN
@@ -1828,34 +1876,61 @@ void AP_OSD_Screen::draw_vspeed(uint8_t x, uint8_t y)
 }
 
 #if HAL_WITH_ESC_TELEM
-void AP_OSD_Screen::draw_esc_temp(uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_highest_esc_temp(uint8_t x, uint8_t y)
 {
     int16_t etemp;
-    // first parameter is index into array of ESC's.  Hardwire to zero (first) for now.
-    if (!AP::esc_telem().get_temperature(0, etemp)) {
+    if (!AP::esc_telem().get_highest_temperature(etemp)) {
         return;
     }
 
-    backend->write(x, y, false, "%3d%c", (int)u_scale(TEMPERATURE, etemp / 100), u_icon(TEMPERATURE));
+    etemp /= 100;
+    backend->write(x, y, (osd->warn_blhtemp > 0 && etemp > osd->warn_blhtemp), "%3d%c", (int)u_scale(TEMPERATURE, etemp), u_icon(TEMPERATURE));
 }
 
-void AP_OSD_Screen::draw_esc_rpm(uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_rpm(uint8_t x, uint8_t y, float rpm)
 {
-    float rpm;
-    // first parameter is index into array of ESC's.  Hardwire to zero (first) for now.
-    if (!AP::esc_telem().get_rpm(0, rpm)) {
-        return;
-    }
     float krpm = rpm * 0.001f;
     const char *format = krpm < 9.995 ? "%.2f%c%c" : (krpm < 99.95 ? "%.1f%c%c" : "%.0f%c%c");
-    backend->write(x, y, false, format, krpm, SYMBOL(SYM_KILO), SYMBOL(SYM_RPM));
+    const bool warn_high = osd->warn_blh_high_rpm > 0 && krpm > osd->warn_blh_high_rpm;
+    const bool warn_low = osd->warn_blh_low_rpm > 0 && krpm < osd->warn_blh_low_rpm && gcs().get_hud_throttle() >= 5;
+    backend->write(x, y, warn_high || warn_low, format, krpm, SYMBOL(SYM_KILO), SYMBOL(SYM_RPM));
 }
 
-void AP_OSD_Screen::draw_esc_amps(uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_avg_esc_rpm(uint8_t x, uint8_t y)
+{
+    draw_rpm(x, y, AP::esc_telem().get_average_motor_rpm());
+}
+
+void AP_OSD_Screen::draw_highest_esc_rpm(uint8_t x, uint8_t y)
+{
+    float rpm;
+    if (AP::esc_telem().get_highest_motor_rpm(rpm)) {
+        draw_rpm(x, y, rpm);
+    }
+}
+
+void AP_OSD_Screen::draw_avg_esc_amps(uint8_t x, uint8_t y)
 {
     float amps;
-    // first parameter is index into array of ESC's.  Hardwire to zero (first) for now.
-    if (!AP::esc_telem().get_current(0, amps)) {
+    if (!AP::esc_telem().get_average_current(amps)) {
+        return;
+    }
+    backend->write(x, y, false, "%4.1f%c", amps, SYMBOL(SYM_AMP));
+}
+
+void AP_OSD_Screen::draw_highest_esc_amps(uint8_t x, uint8_t y)
+{
+    float amps;
+    if (!AP::esc_telem().get_highest_current(amps)) {
+        return;
+    }
+    backend->write(x, y, false, "%4.1f%c", amps, SYMBOL(SYM_AMP));
+}
+
+void AP_OSD_Screen::draw_total_esc_amps(uint8_t x, uint8_t y)
+{
+    float amps;
+    if (!AP::esc_telem().get_total_current(amps)) {
         return;
     }
     backend->write(x, y, false, "%4.1f%c", amps, SYMBOL(SYM_AMP));
@@ -2311,9 +2386,12 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(vtx_power);
 
 #if HAL_WITH_ESC_TELEM
-    DRAW_SETTING(esc_temp);
-    DRAW_SETTING(esc_rpm);
-    DRAW_SETTING(esc_amps);
+    DRAW_SETTING(highest_esc_temp);
+    DRAW_SETTING(avg_esc_rpm);
+    DRAW_SETTING(highest_esc_rpm);
+    DRAW_SETTING(avg_esc_amps);
+    DRAW_SETTING(highest_esc_amps);
+    DRAW_SETTING(total_esc_amps);
 #endif
 
     DRAW_SETTING(gps_latitude);
