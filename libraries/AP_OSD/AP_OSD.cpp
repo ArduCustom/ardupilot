@@ -252,10 +252,10 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
 #endif
 
     // additional tables to go beyond 63 limit
-    AP_SUBGROUPINFO2(screen[0], "1_", 27, AP_OSD, AP_OSD_Screen),
-    AP_SUBGROUPINFO2(screen[1], "2_", 28, AP_OSD, AP_OSD_Screen),
-    AP_SUBGROUPINFO2(screen[2], "3_", 29, AP_OSD, AP_OSD_Screen),
-    AP_SUBGROUPINFO2(screen[3], "4_", 30, AP_OSD, AP_OSD_Screen),
+    AP_SUBGROUPINFO2(screen[0], "1_", 31, AP_OSD, AP_OSD_Screen),
+    AP_SUBGROUPINFO2(screen[1], "2_", 32, AP_OSD, AP_OSD_Screen),
+    AP_SUBGROUPINFO2(screen[2], "3_", 33, AP_OSD, AP_OSD_Screen),
+    AP_SUBGROUPINFO2(screen[3], "4_", 34, AP_OSD, AP_OSD_Screen),
 
     AP_GROUPEND
 };
