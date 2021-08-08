@@ -292,8 +292,8 @@ void AP_MSP_Telem_Backend::update_flight_mode_str(char *flight_mode_str, bool wi
         units = osd->units == AP_OSD::UNITS_IMPERIAL ?  OSD_UNIT_IMPERIAL : OSD_UNIT_METRIC;
 #endif
         // if needed convert m/s to ft/s
-        const float v_length = (units == OSD_UNIT_METRIC) ? v.length() : v.length() * 3.28084;
-        const char* unit = (units == OSD_UNIT_METRIC) ? "m/s" : "f/s";
+        const float v_length = (units == OSD_UNIT_METRIC) ? v.length() * 3.6f : v.length() * 3.28084;
+        const char* unit = (units == OSD_UNIT_METRIC) ? "kmh" : "f/s";
 
         if (v_length > 1.0f) {
             const int32_t angle = wrap_360_cd(DEGX100 * atan2f(v.y, v.x) - ahrs.yaw_sensor);
