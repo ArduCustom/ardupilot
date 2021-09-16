@@ -17,19 +17,10 @@
 
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include "AP_RCProtocol.h"
-#include "AP_RCProtocol_PPMSum.h"
-#include "AP_RCProtocol_DSM.h"
 #include "AP_RCProtocol_IBUS.h"
 #include "AP_RCProtocol_SBUS.h"
-#include "AP_RCProtocol_SUMD.h"
-#include "AP_RCProtocol_SRXL.h"
-#ifndef IOMCU_FW
-#include "AP_RCProtocol_SRXL2.h"
-#endif
 #include "AP_RCProtocol_CRSF.h"
-#include "AP_RCProtocol_ST24.h"
 #include "AP_RCProtocol_FPort.h"
-#include "AP_RCProtocol_FPort2.h"
 #include <AP_Math/AP_Math.h>
 #include <RC_Channel/RC_Channel.h>
 
@@ -37,22 +28,10 @@ extern const AP_HAL::HAL& hal;
 
 void AP_RCProtocol::init()
 {
-    backend[AP_RCProtocol::PPM] = new AP_RCProtocol_PPMSum(*this);
     backend[AP_RCProtocol::IBUS] = new AP_RCProtocol_IBUS(*this);
     backend[AP_RCProtocol::SBUS] = new AP_RCProtocol_SBUS(*this, true, 100000);
-#if AP_RCPROTOCOL_FASTSBUS_ENABLED
-    backend[AP_RCProtocol::FASTSBUS] = new AP_RCProtocol_SBUS(*this, true, 200000);
-#endif
-    backend[AP_RCProtocol::DSM] = new AP_RCProtocol_DSM(*this);
-    backend[AP_RCProtocol::SUMD] = new AP_RCProtocol_SUMD(*this);
-    backend[AP_RCProtocol::SRXL] = new AP_RCProtocol_SRXL(*this);
-#ifndef IOMCU_FW
     backend[AP_RCProtocol::SBUS_NI] = new AP_RCProtocol_SBUS(*this, false, 100000);
-    backend[AP_RCProtocol::SRXL2] = new AP_RCProtocol_SRXL2(*this);
     backend[AP_RCProtocol::CRSF] = new AP_RCProtocol_CRSF(*this);
-    backend[AP_RCProtocol::FPORT2] = new AP_RCProtocol_FPort2(*this, true);
-#endif
-    backend[AP_RCProtocol::ST24] = new AP_RCProtocol_ST24(*this);
     backend[AP_RCProtocol::FPORT] = new AP_RCProtocol_FPort(*this, true);
 }
 
@@ -89,7 +68,7 @@ void AP_RCProtocol::process_pulse(uint32_t width_s0, uint32_t width_s1)
         !protocol_enabled(_detected_protocol)) {
         _detected_protocol = AP_RCProtocol::NONE;
     }
-    
+
     if (_detected_protocol != AP_RCProtocol::NONE && _detected_with_bytes && !searching) {
         // we're using byte inputs, discard pulses
         return;
