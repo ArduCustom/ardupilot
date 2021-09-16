@@ -24,8 +24,8 @@
 #include <AP_HAL/AP_HAL.h>
 
 #ifndef HAL_NAVEKF2_AVAILABLE
-// only default to EK2 enabled on boards with over 1M flash
-#define HAL_NAVEKF2_AVAILABLE (BOARD_FLASH_SIZE>1024)
+// disable EKF2 by default
+#define HAL_NAVEKF2_AVAILABLE 0
 #endif
 
 #ifndef HAL_NAVEKF3_AVAILABLE
