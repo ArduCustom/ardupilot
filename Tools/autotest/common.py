@@ -12304,10 +12304,10 @@ switch value'''
         sim_gps = [
             # (0, "NONE"),
             (1, "UBLOX", None, "u-blox"),
-            (5, "NMEA", 5, "NMEA"),
-            (6, "SBP", None, "SBP"),
+            #(5, "NMEA", 5, "NMEA"),
+            #(6, "SBP", None, "SBP"),
             # (7, "SBP2", 9, "SBP2"),  # broken, "waiting for config data"
-            (8, "NOVA", 15, "NOVA"),  # no attempt to auto-detect this in AP_GPS
+            #(8, "NOVA", 15, "NOVA"),  # no attempt to auto-detect this in AP_GPS
             # (9, "FILE"),
         ]
         self.context_collect("STATUSTEXT")
