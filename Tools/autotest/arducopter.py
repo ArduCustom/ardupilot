@@ -8147,14 +8147,6 @@ class AutoTestCopter(AutoTest):
              "Test MAV_CMD_PAUSE_CONTINUE",
              self.PAUSE_CONTINUE),
 
-            ("RichenPower",
-             "Test RichenPower generator",
-             self.test_richenpower),
-
-            ("IE24",
-             "Test IntelligentEnergy 2.4kWh generator",
-             self.test_ie24),
-
             ("LogUpload",
              "Log upload",
              self.log_upload),
