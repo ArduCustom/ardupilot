@@ -337,56 +337,9 @@ void AP_Airspeed::init()
         case TYPE_ANALOG:
             sensor[i] = new AP_Airspeed_Analog(*this, i);
             break;
-        case TYPE_I2C_MS5525:
-            sensor[i] = new AP_Airspeed_MS5525(*this, i, AP_Airspeed_MS5525::MS5525_ADDR_AUTO);
-            break;
-        case TYPE_I2C_MS5525_ADDRESS_1:
-            sensor[i] = new AP_Airspeed_MS5525(*this, i, AP_Airspeed_MS5525::MS5525_ADDR_1);
-            break;
-        case TYPE_I2C_MS5525_ADDRESS_2:
-            sensor[i] = new AP_Airspeed_MS5525(*this, i, AP_Airspeed_MS5525::MS5525_ADDR_2);
-            break;
-        case TYPE_I2C_SDP3X:
-            sensor[i] = new AP_Airspeed_SDP3X(*this, i);
-            break;
-        case TYPE_I2C_DLVR_5IN:
-#if !HAL_MINIMIZE_FEATURES
-            sensor[i] = new AP_Airspeed_DLVR(*this, i, 5);
-#endif // !HAL_MINIMIZE_FEATURES
-            break;
-        case TYPE_I2C_DLVR_10IN:
-#if !HAL_MINIMIZE_FEATURES
-            sensor[i] = new AP_Airspeed_DLVR(*this, i, 10);
-#endif // !HAL_MINIMIZE_FEATURES
-            break;
-        case TYPE_I2C_DLVR_20IN:
-#if !HAL_MINIMIZE_FEATURES
-            sensor[i] = new AP_Airspeed_DLVR(*this, i, 20);
-#endif // !HAL_MINIMIZE_FEATURES
-            break;
-        case TYPE_I2C_DLVR_30IN:
-#if !HAL_MINIMIZE_FEATURES
-            sensor[i] = new AP_Airspeed_DLVR(*this, i, 30);
-#endif // !HAL_MINIMIZE_FEATURES
-            break;
-        case TYPE_I2C_DLVR_60IN:
-#if !HAL_MINIMIZE_FEATURES
-            sensor[i] = new AP_Airspeed_DLVR(*this, i, 60);
-#endif // !HAL_MINIMIZE_FEATURES
-            break;
-        case TYPE_I2C_ASP5033:
-#if !HAL_MINIMIZE_FEATURES
-            sensor[i] = new AP_Airspeed_ASP5033(*this, i);
-#endif // !HAL_MINIMIZE_FEATURES
-            break;
-        case TYPE_UAVCAN:
+    case TYPE_UAVCAN:
 #if HAL_ENABLE_LIBUAVCAN_DRIVERS
             sensor[i] = AP_Airspeed_UAVCAN::probe(*this, i);
-#endif
-            break;
-        case TYPE_NMEA_WATER:
-#if APM_BUILD_TYPE(APM_BUILD_Rover) || APM_BUILD_TYPE(APM_BUILD_ArduSub) 
-            sensor[i] = new AP_Airspeed_NMEA(*this, i);
 #endif
             break;
         case TYPE_MSP:
