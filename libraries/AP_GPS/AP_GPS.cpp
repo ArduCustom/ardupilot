@@ -24,14 +24,7 @@
 #include <climits>
 #include <AP_SerialManager/AP_SerialManager.h>
 
-#include "AP_GPS_NOVA.h"
-#include "AP_GPS_ERB.h"
-#include "AP_GPS_GSOF.h"
 #include "AP_GPS_NMEA.h"
-#include "AP_GPS_SBF.h"
-#include "AP_GPS_SBP.h"
-#include "AP_GPS_SBP2.h"
-#include "AP_GPS_SIRF.h"
 #include "AP_GPS_UBLOX.h"
 #include "AP_GPS_MAV.h"
 #include "AP_GPS_MSP.h"
@@ -74,12 +67,7 @@ const uint32_t AP_GPS::_baudrates[] = {9600U, 115200U, 4800U, 19200U, 38400U, 57
 
 // initialisation blobs to send to the GPS to try to get it into the
 // right mode
-const char AP_GPS::_initialisation_blob[] =
-    UBLOX_SET_BINARY_230400
-#if AP_GPS_SIRF_ENABLED
-    SIRF_SET_BINARY
-#endif
-    ;
+const char AP_GPS::_initialisation_blob[] = UBLOX_SET_BINARY_230400;
 
 AP_GPS *AP_GPS::_singleton;
 
@@ -148,15 +136,6 @@ const AP_Param::GroupInfo AP_GPS::var_info[] = {
     // @Values: 0:send to first GPS,1:send to 2nd GPS,127:send to all
     // @User: Advanced
     AP_GROUPINFO("_INJECT_TO",   7, AP_GPS, _inject_to, GPS_RTK_INJECT_TO_ALL),
-
-#if AP_GPS_SBP2_ENABLED || AP_GPS_SBP_ENABLED
-    // @Param: _SBP_LOGMASK
-    // @DisplayName: Swift Binary Protocol Logging Mask
-    // @Description: Masked with the SBP msg_type field to determine whether SBR1/SBR2 data is logged
-    // @Values: 0:None (0x0000),-1:All (0xFFFF),-256:External only (0xFF00)
-    // @User: Advanced
-    AP_GROUPINFO("_SBP_LOGMASK", 8, AP_GPS, _sbp_logmask, -256),
-#endif //AP_GPS_SBP2_ENABLED || AP_GPS_SBP_ENABLED
 
     // @Param: _RAW_DATA
     // @DisplayName: Raw data logging
@@ -313,28 +292,6 @@ const AP_Param::GroupInfo AP_GPS::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("_DRV_OPTIONS", 22, AP_GPS, _driver_options, 0),
 #endif
-
-#if AP_GPS_SBF_ENABLED
-    // @Param: _COM_PORT
-    // @DisplayName: GPS physical COM port
-    // @Description: The physical COM port on the connected device, currently only applies to SBF GPS
-    // @Range: 0 10
-    // @Increment: 1
-    // @User: Advanced
-    // @RebootRequired: True
-    AP_GROUPINFO("_COM_PORT", 23, AP_GPS, _com_port[0], HAL_GPS_COM_PORT_DEFAULT),
-
-#if GPS_MAX_RECEIVERS > 1
-    // @Param: _COM_PORT2
-    // @DisplayName: GPS physical COM port
-    // @Description: The physical COM port on the connected device, currently only applies to SBF GPS
-    // @Range: 0 10
-    // @Increment: 1
-    // @User: Advanced
-    // @RebootRequired: True
-    AP_GROUPINFO("_COM_PORT2", 24, AP_GPS, _com_port[1], HAL_GPS_COM_PORT_DEFAULT),
-#endif
-#endif //AP_GPS_SBF_ENABLED
 
 #if GPS_MOVING_BASELINE
 
@@ -642,22 +599,6 @@ void AP_GPS::detect_instance(uint8_t instance)
     // don't build the less common GPS drivers on F1 AP_Periph
 #if !defined(HAL_BUILD_AP_PERIPH) || !defined(STM32F1)
     switch (_type[instance]) {
-#if AP_GPS_SBF_ENABLED
-    // by default the sbf/trimble gps outputs no data on its port, until configured.
-    case GPS_TYPE_SBF:
-        new_gps = new AP_GPS_SBF(*this, state[instance], _port[instance]);
-        break;
-#endif //AP_GPS_SBF_ENABLED
-#if AP_GPS_GSOF_ENABLED
-    case GPS_TYPE_GSOF:
-        new_gps = new AP_GPS_GSOF(*this, state[instance], _port[instance]);
-        break;
-#endif //AP_GPS_GSOF_ENABLED
-#if AP_GPS_NOVA_ENABLED
-    case GPS_TYPE_NOVA:
-        new_gps = new AP_GPS_NOVA(*this, state[instance], _port[instance]);
-        break;
-#endif //AP_GPS_NOVA_ENABLED
 
 #if HAL_SIM_GPS_ENABLED
     case GPS_TYPE_SITL:
@@ -743,41 +684,6 @@ void AP_GPS::detect_instance(uint8_t instance)
             }
             new_gps = new AP_GPS_UBLOX(*this, state[instance], _port[instance], role);
         }
-#ifndef HAL_BUILD_AP_PERIPH
-#if AP_GPS_SBP2_ENABLED
-        else if ((_type[instance] == GPS_TYPE_AUTO || _type[instance] == GPS_TYPE_SBP) &&
-                 AP_GPS_SBP2::_detect(dstate->sbp2_detect_state, data)) {
-            new_gps = new AP_GPS_SBP2(*this, state[instance], _port[instance]);
-        }
-#endif //AP_GPS_SBP2_ENABLED
-#if AP_GPS_SBP_ENABLED
-        else if ((_type[instance] == GPS_TYPE_AUTO || _type[instance] == GPS_TYPE_SBP) &&
-                 AP_GPS_SBP::_detect(dstate->sbp_detect_state, data)) {
-            new_gps = new AP_GPS_SBP(*this, state[instance], _port[instance]);
-        }
-#endif //AP_GPS_SBP_ENABLED
-#if !HAL_MINIMIZE_FEATURES && AP_GPS_SIRF_ENABLED
-        else if ((_type[instance] == GPS_TYPE_AUTO || _type[instance] == GPS_TYPE_SIRF) &&
-                 AP_GPS_SIRF::_detect(dstate->sirf_detect_state, data)) {
-            new_gps = new AP_GPS_SIRF(*this, state[instance], _port[instance]);
-        }
-#endif
-#if AP_GPS_ERB_ENABLED
-        else if ((_type[instance] == GPS_TYPE_AUTO || _type[instance] == GPS_TYPE_ERB) &&
-                 AP_GPS_ERB::_detect(dstate->erb_detect_state, data)) {
-            new_gps = new AP_GPS_ERB(*this, state[instance], _port[instance]);
-        }
-#endif // AP_GPS_ERB_ENABLED
-#if AP_GPS_NMEA_ENABLED
-        else if ((_type[instance] == GPS_TYPE_NMEA ||
-                    _type[instance] == GPS_TYPE_HEMI ||
-                    _type[instance] == GPS_TYPE_ALLYSTAR) &&
-                   AP_GPS_NMEA::_detect(dstate->nmea_detect_state, data)) {
-            new_gps = new AP_GPS_NMEA(*this, state[instance], _port[instance]);
-        }
-#endif //AP_GPS_NMEA_ENABLED
-
-#endif // HAL_BUILD_AP_PERIPH
         if (new_gps) {
             goto found_gps;
         }
