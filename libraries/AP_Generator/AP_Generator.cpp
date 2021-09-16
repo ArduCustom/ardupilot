@@ -59,6 +59,8 @@ AP_Generator::AP_Generator()
 
 void AP_Generator::init()
 {
+    return; //Disable generator detection
+
     // Select backend
     switch (type()) {
         case Type::GEN_DISABLED:
