@@ -68,20 +68,10 @@ class AP_GPS_Backend;
 /// GPS driver main class
 class AP_GPS
 {
-    friend class AP_GPS_ERB;
-    friend class AP_GPS_GSOF;
     friend class AP_GPS_MAV;
     friend class AP_GPS_MSP;
     friend class AP_GPS_ExternalAHRS;
-    friend class AP_GPS_MTK;
-    friend class AP_GPS_MTK19;
     friend class AP_GPS_NMEA;
-    friend class AP_GPS_NOVA;
-    friend class AP_GPS_PX4;
-    friend class AP_GPS_SBF;
-    friend class AP_GPS_SBP;
-    friend class AP_GPS_SBP2;
-    friend class AP_GPS_SIRF;
     friend class AP_GPS_UBLOX;
     friend class AP_GPS_Backend;
     friend class AP_GPS_UAVCAN;
@@ -101,7 +91,7 @@ public:
     HAL_Semaphore &get_semaphore(void) {
         return rsem;
     }
-    
+
     // GPS driver types
     enum GPS_Type {
         GPS_TYPE_NONE  = 0,
@@ -624,13 +614,7 @@ private:
         uint8_t current_baud;
         bool auto_detected_baud;
         struct UBLOX_detect_state ublox_detect_state;
-        struct MTK_detect_state mtk_detect_state;
-        struct MTK19_detect_state mtk19_detect_state;
-        struct SIRF_detect_state sirf_detect_state;
         struct NMEA_detect_state nmea_detect_state;
-        struct SBP_detect_state sbp_detect_state;
-        struct SBP2_detect_state sbp2_detect_state;
-        struct ERB_detect_state erb_detect_state;
     } detect_state[GPS_MAX_RECEIVERS];
 
     struct {
