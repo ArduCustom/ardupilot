@@ -1240,14 +1240,6 @@ void RCOutput::timer_tick(uint32_t time_out_us)
     if (min_pulse_trigger_us == 0) {
         return;
     }
-
-    uint32_t now = AP_HAL::micros();
-
-    if (now > min_pulse_trigger_us &&
-        now - min_pulse_trigger_us > 4000) {
-        // trigger at a minimum of 250Hz
-        trigger_groups();
-    }
 }
 
 // send dshot for all groups that support it
