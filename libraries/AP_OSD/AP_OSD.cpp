@@ -234,7 +234,7 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @DisplayName: BLHTEMP warn level
     // @Description: Set level at which BLHTEMP item will flash
     // @Range: 0 200
-    // @Units: °C
+    // @Units: degC
     // @User: Standard
     AP_GROUPINFO("_W_BLHTEMP", 30, AP_OSD, warn_blhtemp, 80.0f),
 #endif
