@@ -68,18 +68,10 @@ class AP_GPS_Backend;
 /// GPS driver main class
 class AP_GPS
 {
-    friend class AP_GPS_ERB;
-    friend class AP_GPS_GSOF;
     friend class AP_GPS_MAV;
     friend class AP_GPS_MSP;
     friend class AP_GPS_ExternalAHRS;
     friend class AP_GPS_NMEA;
-    friend class AP_GPS_NOVA;
-    friend class AP_GPS_PX4;
-    friend class AP_GPS_SBF;
-    friend class AP_GPS_SBP;
-    friend class AP_GPS_SBP2;
-    friend class AP_GPS_SIRF;
     friend class AP_GPS_UBLOX;
     friend class AP_GPS_Backend;
     friend class AP_GPS_UAVCAN;
@@ -99,7 +91,7 @@ public:
     HAL_Semaphore &get_semaphore(void) {
         return rsem;
     }
-    
+
     // GPS driver types
     enum GPS_Type {
         GPS_TYPE_NONE  = 0,
@@ -205,7 +197,7 @@ public:
         int32_t  rtk_baseline_z_mm;        ///< Current baseline in ECEF z or NED down component in mm
         uint32_t rtk_accuracy;             ///< Current estimate of 3D baseline accuracy (receiver dependent, typical 0 to 9999)
         int32_t  rtk_iar_num_hypotheses;   ///< Current number of integer ambiguity hypotheses
-        
+
         // UBX Relative Position and Heading message information
         float relPosHeading;               ///< Reported Heading in degrees
         float relPosLength;                ///< Reported Position horizontal distance in meters
@@ -435,7 +427,7 @@ public:
     bool have_gps_yaw_configured(uint8_t instance) const {
         return state[instance].gps_yaw_configured;
     }
-    
+
     // the expected lag (in seconds) in the position and velocity readings from the gps
     // return true if the GPS hardware configuration is known or the lag parameter has been set manually
     bool get_lag(uint8_t instance, float &lag_sec) const;
@@ -622,11 +614,7 @@ private:
         uint8_t current_baud;
         bool auto_detected_baud;
         struct UBLOX_detect_state ublox_detect_state;
-        struct SIRF_detect_state sirf_detect_state;
         struct NMEA_detect_state nmea_detect_state;
-        struct SBP_detect_state sbp_detect_state;
-        struct SBP2_detect_state sbp2_detect_state;
-        struct ERB_detect_state erb_detect_state;
     } detect_state[GPS_MAX_RECEIVERS];
 
     struct {
