@@ -4055,10 +4055,6 @@ function'''
              "Test triggering Auxiliary Functions via mavlink",
              self.fly_aux_function),
 
-            ("SmartBattery",
-             "Test smart battery logging etc",
-             self.SmartBattery),
-
             ("FlyEachFrame",
              "Fly each supported internal frame",
              self.fly_each_frame),
