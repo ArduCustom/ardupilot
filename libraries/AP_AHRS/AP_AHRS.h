@@ -25,18 +25,18 @@
 #include <AP_HAL/Semaphores.h>
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
-#define HAL_NAVEKF2_AVAILABLE 1
-#define HAL_NAVEKF3_AVAILABLE 1
+    #define HAL_NAVEKF2_AVAILABLE 1
+    #define HAL_NAVEKF3_AVAILABLE 1
 #else
 
-#ifndef HAL_NAVEKF3_AVAILABLE
-// only default to EK2 enabled on boards with over 1M flash
-#define HAL_NAVEKF3_AVAILABLE (BOARD_FLASH_SIZE>1024)
-#endif
+    #ifndef HAL_NAVEKF2_AVAILABLE
+    #define HAL_NAVEKF2_AVAILABLE 1
+    #endif
 
-#ifndef HAL_NAVEKF2_AVAILABLE
-#define HAL_NAVEKF2_AVAILABLE 1
-#endif
+    #ifndef HAL_NAVEKF3_AVAILABLE
+    // disable EKF3 by default
+    #define HAL_NAVEKF3_AVAILABLE 0
+    #endif
 #endif
 
 #ifndef AP_AHRS_SIM_ENABLED
