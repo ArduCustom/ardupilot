@@ -31,16 +31,13 @@
 #ifndef GPS_MAX_RECEIVERS
 #define GPS_MAX_RECEIVERS 2 // maximum number of physical GPS sensors allowed - does not include virtual GPS created by blending receiver data
 #endif
-#if !defined(GPS_MAX_INSTANCES)
+
+#ifndef GPS_MAX_INSTANCES
 #if GPS_MAX_RECEIVERS > 1
 #define GPS_MAX_INSTANCES  (GPS_MAX_RECEIVERS + 1) // maximum number of GPS instances including the 'virtual' GPS created by blending receiver data
 #else
 #define GPS_MAX_INSTANCES 1
-#endif // GPS_MAX_RECEIVERS > 1
-#endif // GPS_MAX_INSTANCES
-
-#if GPS_MAX_RECEIVERS <= 1 && GPS_MAX_INSTANCES > 1
-#error "GPS_MAX_INSTANCES should be 1 for GPS_MAX_RECEIVERS <= 1"
+#endif
 #endif
 
 #if GPS_MAX_INSTANCES > GPS_MAX_RECEIVERS
@@ -102,7 +99,7 @@ public:
     HAL_Semaphore &get_semaphore(void) {
         return rsem;
     }
-    
+
     // GPS driver types
     enum GPS_Type {
         GPS_TYPE_NONE  = 0,
@@ -212,7 +209,7 @@ public:
         int32_t  rtk_baseline_z_mm;        ///< Current baseline in ECEF z or NED down component in mm
         uint32_t rtk_accuracy;             ///< Current estimate of 3D baseline accuracy (receiver dependent, typical 0 to 9999)
         int32_t  rtk_iar_num_hypotheses;   ///< Current number of integer ambiguity hypotheses
-        
+
         // UBX Relative Position and Heading message information
         float relPosHeading;               ///< Reported Heading in degrees
         float relPosLength;                ///< Reported Position horizontal distance in meters
@@ -442,7 +439,7 @@ public:
     bool have_gps_yaw_configured(uint8_t instance) const {
         return state[instance].gps_yaw_configured;
     }
-    
+
     // the expected lag (in seconds) in the position and velocity readings from the gps
     // return true if the GPS hardware configuration is known or the lag parameter has been set manually
     bool get_lag(uint8_t instance, float &lag_sec) const;
