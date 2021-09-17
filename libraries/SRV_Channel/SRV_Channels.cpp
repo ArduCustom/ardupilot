@@ -30,8 +30,6 @@
   #if APM_BUILD_COPTER_OR_HELI || APM_BUILD_TYPE(APM_BUILD_ArduPlane) || APM_BUILD_TYPE(APM_BUILD_ArduSub)
     #include <AP_KDECAN/AP_KDECAN.h>
   #endif
-  #include <AP_ToshibaCAN/AP_ToshibaCAN.h>
-  #include <AP_PiccoloCAN/AP_PiccoloCAN.h>
 #endif
 
 #if NUM_SERVO_CHANNELS == 0
@@ -437,23 +435,8 @@ void SRV_Channels::push()
                 break;
             }
             case AP_CANManager::Driver_Type_ToshibaCAN: {
-                AP_ToshibaCAN *ap_tcan = AP_ToshibaCAN::get_tcan(i);
-                if (ap_tcan == nullptr) {
-                    continue;
-                }
-                ap_tcan->update();
                 break;
             }
-#if HAL_PICCOLO_CAN_ENABLE
-            case AP_CANManager::Driver_Type_PiccoloCAN: {
-                AP_PiccoloCAN *ap_pcan = AP_PiccoloCAN::get_pcan(i);
-                if (ap_pcan == nullptr) {
-                    continue;
-                }
-                ap_pcan->update();
-                break;
-            }
-#endif
             case AP_CANManager::Driver_Type_CANTester:
             case AP_CANManager::Driver_Type_None:
             default:
