@@ -27,7 +27,6 @@
 #include <AP_KDECAN/AP_KDECAN.h>
 #include <AP_ToshibaCAN/AP_ToshibaCAN.h>
 #include <AP_SerialManager/AP_SerialManager.h>
-#include <AP_PiccoloCAN/AP_PiccoloCAN.h>
 #include <AP_EFI/AP_EFI_NWPMU.h>
 #include "AP_CANTester.h"
 #include <GCS_MAVLink/GCS_MAVLink.h>
@@ -222,17 +221,6 @@ void AP_CANManager::init()
                 AP_BoardConfig::allocation_error("ToshibaCAN %d", drv_num + 1);
                 continue;
             }
-        } else if (drv_type[drv_num] == Driver_Type_PiccoloCAN) {
-#if HAL_PICCOLO_CAN_ENABLE
-            _drivers[drv_num] = _drv_param[drv_num]._piccolocan = new AP_PiccoloCAN;
-
-            if (_drivers[drv_num] == nullptr) {
-                AP_BoardConfig::allocation_error("PiccoloCAN %d", drv_num + 1);
-                continue;
-            }
-
-            AP_Param::load_object_from_eeprom((AP_PiccoloCAN*)_drivers[drv_num], AP_PiccoloCAN::var_info);
-#endif
         } else if (drv_type[drv_num] == Driver_Type_CANTester) {
 #if HAL_NUM_CAN_IFACES > 1 && !HAL_MINIMIZE_FEATURES && HAL_ENABLE_CANTESTER
             _drivers[drv_num] = _drv_param[drv_num]._testcan = new CANTester;
@@ -596,4 +584,3 @@ AP_CANManager& AP::can()
 }
 
 #endif
-
