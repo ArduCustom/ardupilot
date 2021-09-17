@@ -399,16 +399,6 @@ void SRV_Channels::push()
                 ap_tcan->update();
                 break;
             }
-#if HAL_PICCOLO_CAN_ENABLE
-            case AP_CANManager::Driver_Type_PiccoloCAN: {
-                AP_PiccoloCAN *ap_pcan = AP_PiccoloCAN::get_pcan(i);
-                if (ap_pcan == nullptr) {
-                    continue;
-                }
-                ap_pcan->update();
-                break;
-            }
-#endif
             case AP_CANManager::Driver_Type_CANTester:
             case AP_CANManager::Driver_Type_None:
             default:
