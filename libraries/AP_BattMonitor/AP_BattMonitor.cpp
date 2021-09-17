@@ -1,19 +1,7 @@
 #include "AP_BattMonitor.h"
 #include "AP_BattMonitor_Analog.h"
-#include "AP_BattMonitor_SMBus.h"
-#include "AP_BattMonitor_SMBus_Solo.h"
-#include "AP_BattMonitor_SMBus_Generic.h"
-#include "AP_BattMonitor_SMBus_Maxell.h"
-#include "AP_BattMonitor_SMBus_Rotoye.h"
-#include "AP_BattMonitor_Bebop.h"
 #include "AP_BattMonitor_ESC.h"
-#include "AP_BattMonitor_SMBus_SUI.h"
-#include "AP_BattMonitor_SMBus_NeoDesign.h"
 #include "AP_BattMonitor_Sum.h"
-#include "AP_BattMonitor_FuelFlow.h"
-#include "AP_BattMonitor_FuelLevel_PWM.h"
-#include "AP_BattMonitor_Generator.h"
-#include "AP_BattMonitor_MPPT_PacketDigital.h"
 
 #include <AP_HAL/AP_HAL.h>
 
@@ -123,52 +111,11 @@ const AP_Param::GroupInfo AP_BattMonitor::var_info[] = {
     // @Path: AP_BattMonitor_Analog.cpp
     AP_SUBGROUPVARPTR(drivers[8], "9_", 49, AP_BattMonitor, backend_analog_var_info[8]),
 
-#if HAL_BATTMON_SMBUS_ENABLE
-    // @Group: _
-    // @Path: AP_BattMonitor_SMBus.cpp
-    AP_SUBGROUPVARPTR(drivers[0], "_", 32, AP_BattMonitor, backend_smbus_var_info[0]),
-
-    // @Group: 2_
-    // @Path: AP_BattMonitor_SMBus.cpp
-    AP_SUBGROUPVARPTR(drivers[1], "2_", 33, AP_BattMonitor, backend_smbus_var_info[1]),
-
-    // @Group: 3_
-    // @Path: AP_BattMonitor_SMBus.cpp
-    AP_SUBGROUPVARPTR(drivers[2], "3_", 34, AP_BattMonitor, backend_smbus_var_info[2]),
-
-    // @Group: 4_
-    // @Path: AP_BattMonitor_SMBus.cpp
-    AP_SUBGROUPVARPTR(drivers[3], "4_", 35, AP_BattMonitor, backend_smbus_var_info[3]),
-
-    // @Group: 5_
-    // @Path: AP_BattMonitor_SMBus.cpp
-    AP_SUBGROUPVARPTR(drivers[4], "5_", 36, AP_BattMonitor, backend_smbus_var_info[4]),
-
-    // @Group: 6_
-    // @Path: AP_BattMonitor_SMBus.cpp
-    AP_SUBGROUPVARPTR(drivers[5], "6_", 37, AP_BattMonitor, backend_smbus_var_info[5]),
-
-    // @Group: 7_
-    // @Path: AP_BattMonitor_SMBus.cpp
-    AP_SUBGROUPVARPTR(drivers[6], "7_", 38, AP_BattMonitor, backend_smbus_var_info[6]),
-
-    // @Group: 8_
-    // @Path: AP_BattMonitor_SMBus.cpp
-    AP_SUBGROUPVARPTR(drivers[7], "8_", 39, AP_BattMonitor, backend_smbus_var_info[7]),
-
-    // @Group: 9_
-    // @Path: AP_BattMonitor_SMBus.cpp
-    AP_SUBGROUPVARPTR(drivers[8], "9_", 40, AP_BattMonitor, backend_smbus_var_info[8]),
-#endif // HAL_BATTMON_SMBUS_ENABLE
-
     AP_GROUPEND
 };
 
 const AP_Param::GroupInfo *AP_BattMonitor::backend_analog_var_info[AP_BATT_MONITOR_MAX_INSTANCES];
 
-#if HAL_BATTMON_SMBUS_ENABLE
-const AP_Param::GroupInfo *AP_BattMonitor::backend_smbus_var_info[AP_BATT_MONITOR_MAX_INSTANCES];
-#endif
 
 // Default constructor.
 // Note that the Vector/Matrix constructors already implicitly zero
@@ -217,34 +164,6 @@ AP_BattMonitor::init()
             case Type::ANALOG_VOLTAGE_AND_CURRENT:
                 drivers[instance] = new AP_BattMonitor_Analog(*this, state[instance], _params[instance]);
                 break;
-#if HAL_BATTMON_SMBUS_ENABLE
-            case Type::SOLO:
-                drivers[instance] = new AP_BattMonitor_SMBus_Solo(*this, state[instance], _params[instance]);
-                break;
-            case Type::SMBus_Generic:
-                drivers[instance] = new AP_BattMonitor_SMBus_Generic(*this, state[instance], _params[instance]);
-                break;
-            case Type::SUI3:
-                drivers[instance] = new AP_BattMonitor_SMBus_SUI(*this, state[instance], _params[instance], 3);
-                break;
-            case Type::SUI6:
-                drivers[instance] = new AP_BattMonitor_SMBus_SUI(*this, state[instance], _params[instance], 6);
-                break;
-            case Type::MAXELL:
-                drivers[instance] = new AP_BattMonitor_SMBus_Maxell(*this, state[instance], _params[instance]);
-                break;
-            case Type::Rotoye:
-                drivers[instance] = new AP_BattMonitor_SMBus_Rotoye(*this, state[instance], _params[instance]);
-                break;
-            case Type::NeoDesign:
-                drivers[instance] = new AP_BattMonitor_SMBus_NeoDesign(*this, state[instance], _params[instance]);
-                break;
-#endif // HAL_BATTMON_SMBUS_ENABLE
-            case Type::BEBOP:
-#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BEBOP || CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_DISCO
-                drivers[instance] = new AP_BattMonitor_Bebop(*this, state[instance], _params[instance]);
-#endif
-                break;
             case Type::UAVCAN_BatteryInfo:
 #if HAL_ENABLE_LIBUAVCAN_DRIVERS
                 drivers[instance] = new AP_BattMonitor_UAVCAN(*this, state[instance], AP_BattMonitor_UAVCAN::UAVCAN_BATTERY_INFO, _params[instance]);
@@ -258,27 +177,6 @@ AP_BattMonitor::init()
             case Type::Sum:
                 drivers[instance] = new AP_BattMonitor_Sum(*this, state[instance], _params[instance], instance);
                 break;
-#if HAL_BATTMON_FUEL_ENABLE
-            case Type::FuelFlow:
-                drivers[instance] = new AP_BattMonitor_FuelFlow(*this, state[instance], _params[instance]);
-                break;
-            case Type::FuelLevel_PWM:
-                drivers[instance] = new AP_BattMonitor_FuelLevel_PWM(*this, state[instance], _params[instance]);
-                break;
-#endif // HAL_BATTMON_FUEL_ENABLE
-#if GENERATOR_ENABLED
-            case Type::GENERATOR_ELEC:
-                drivers[instance] = new AP_BattMonitor_Generator_Elec(*this, state[instance], _params[instance]);
-                break;
-            case Type::GENERATOR_FUEL:
-                drivers[instance] = new AP_BattMonitor_Generator_FuelLevel(*this, state[instance], _params[instance]);
-                break;
-#endif // GENERATOR_ENABLED
-#if HAL_MPPT_PACKETDIGITAL_CAN_ENABLE
-            case Type::MPPT_PacketDigital:
-                drivers[instance] = new AP_BattMonitor_MPPT_PacketDigital(*this, state[instance], _params[instance]);
-                break;
-#endif // HAL_MPPT_PACKETDIGITAL_CAN_ENABLE
             case Type::NONE:
             default:
                 break;
@@ -287,18 +185,10 @@ AP_BattMonitor::init()
     // if the backend has some local parameters then make those available in the tree
     if (drivers[instance] && state[instance].var_info) {
         Type type = get_type(instance);
-        if((type == Type::ANALOG_VOLTAGE_AND_CURRENT) || (type == Type::ANALOG_VOLTAGE_ONLY) ||
-            (type == Type::FuelFlow) || (type == Type::FuelLevel_PWM)) {
+        if((type == Type::ANALOG_VOLTAGE_AND_CURRENT) || (type == Type::ANALOG_VOLTAGE_ONLY)) {
             backend_analog_var_info[instance] = state[instance].var_info;
             AP_Param::load_object_from_eeprom(drivers[instance], backend_analog_var_info[instance]);
         }
-#if HAL_BATTMON_SMBUS_ENABLE
-        else if ((type == Type::MAXELL) || (type == Type::NeoDesign) || (type == Type::Rotoye) || (type == Type::SMBus_Generic) ||
-            (type == Type::SOLO)   || (type == Type::SUI3)      || (type == Type::SUI6)) {
-            backend_smbus_var_info[instance] = state[instance].var_info;
-            AP_Param::load_object_from_eeprom(drivers[instance], backend_smbus_var_info[instance]);
-        }
-#endif
         // param count could have changed
         AP_Param::invalidate_count();
     }
