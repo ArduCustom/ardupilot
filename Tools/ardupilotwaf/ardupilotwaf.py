@@ -72,8 +72,6 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AP_SBusOut',
     'AP_IOMCU',
     'AP_Parachute',
-    'AP_PiccoloCAN',
-    'AP_PiccoloCAN/piccolo_protocol',
     'AP_RAMTRON',
     'AP_RCProtocol',
     'AP_Radio',
