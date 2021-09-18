@@ -27,44 +27,17 @@
 #define AP_BATT_MONITOR_CELLS_MAX           12
 #endif
 
-#ifndef AP_BATTMON_SMBUS_ENABLE
-#define AP_BATTMON_SMBUS_ENABLE 1
-#endif
-
-#ifndef AP_BATTMON_FUEL_ENABLE
-#define AP_BATTMON_FUEL_ENABLE 1
-#endif
-
 // declare backend class
 class AP_BattMonitor_Backend;
 class AP_BattMonitor_Analog;
-class AP_BattMonitor_SMBus;
-class AP_BattMonitor_SMBus_Solo;
-class AP_BattMonitor_SMBus_Generic;
-class AP_BattMonitor_SMBus_Maxell;
-class AP_BattMonitor_SMBus_Rotoye;
 class AP_BattMonitor_UAVCAN;
-class AP_BattMonitor_Generator;
-class AP_BattMonitor_INA2XX;
-class AP_BattMonitor_LTC2946;
-class AP_BattMonitor_Torqeedo;
 
 class AP_BattMonitor
 {
     friend class AP_BattMonitor_Backend;
     friend class AP_BattMonitor_Analog;
-    friend class AP_BattMonitor_SMBus;
-    friend class AP_BattMonitor_SMBus_Solo;
-    friend class AP_BattMonitor_SMBus_Generic;
-    friend class AP_BattMonitor_SMBus_Maxell;
-    friend class AP_BattMonitor_SMBus_Rotoye;
     friend class AP_BattMonitor_UAVCAN;
     friend class AP_BattMonitor_Sum;
-    friend class AP_BattMonitor_FuelFlow;
-    friend class AP_BattMonitor_FuelLevel_PWM;
-    friend class AP_BattMonitor_Generator;
-    friend class AP_BattMonitor_INA2XX;
-    friend class AP_BattMonitor_LTC2946;
 
     friend class AP_BattMonitor_Torqeedo;
 
