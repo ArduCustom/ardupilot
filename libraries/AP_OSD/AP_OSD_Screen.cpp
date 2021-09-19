@@ -1066,6 +1066,8 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Description: Vertical position on screen
     // @Range: 0 15
     AP_SUBGROUPINFO(link_quality, "LINK_Q", 1, AP_OSD_Screen, AP_OSD_Setting),
+    
+    //Custom Entries: (IDs start from 63 and go down to avoid conflicts with upstream)
 
     // @Param: ENERGY_EN
     // @DisplayName: ENERGY_EN
@@ -1081,7 +1083,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @DisplayName: ENERGY_Y
     // @Description: Vertical position on screen
     // @Range: 0 15
-    AP_SUBGROUPINFO(energy, "ENERGY", 3, AP_OSD_Screen, AP_OSD_Setting),
+    AP_SUBGROUPINFO(energy, "ENERGY", 63, AP_OSD_Screen, AP_OSD_Setting),
 
     AP_GROUPEND
 };
