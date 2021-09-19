@@ -1069,6 +1069,8 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Description: Vertical position on screen
     // @Range: 0 15
     AP_SUBGROUPINFO(link_quality, "LINK_Q", 1, AP_OSD_Screen, AP_OSD_Setting),
+    
+    //Custom Entries: (IDs start from 63 and go down to avoid conflicts with upstream)
 
 #if HAL_WITH_MSP_DISPLAYPORT
     // @Param: TXT_RES
