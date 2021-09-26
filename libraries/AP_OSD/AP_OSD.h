@@ -513,6 +513,7 @@ public:
         OPTION_INVERTED_AH_ROLL = 1U<<2,
         OPTION_IMPERIAL_MILES = 1U<<3,
         OPTION_DISABLE_CROSSHAIR = 1U<<4,
+        OPTION_SHORTEN_PLUSCODE = 1U<<23,
     };
 
     enum {
