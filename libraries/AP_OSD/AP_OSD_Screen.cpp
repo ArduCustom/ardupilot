@@ -2214,9 +2214,9 @@ void AP_OSD_Screen::draw_clk(uint8_t x, uint8_t y)
     uint8_t hour, min, sec;
     uint16_t ms;
     if (!rtc.get_local_time(hour, min, sec, ms)) {
-    backend->write(x, y, false, "%c--:--", SYMBOL(SYM_CLK));
+        backend->write(x, y, false, "%c--:--", SYMBOL(SYM_CLK));
     } else {
-    backend->write(x, y, false, "%c%02u:%02u", SYMBOL(SYM_CLK), hour, min);
+        backend->write(x, y, false, "%c%02u:%02u", SYMBOL(SYM_CLK), hour, min);
     }
 }
 
@@ -2226,10 +2226,10 @@ void AP_OSD_Screen::draw_pluscode(uint8_t x, uint8_t y)
     AP_GPS & gps = AP::gps();
     const Location &loc = gps.location();
     char buff[16];
-    if (gps.status() == AP_GPS::NO_GPS || gps.status() == AP_GPS::NO_FIX){
-        backend->write(x, y, false, "--------+--");
+    if (gps.status() == AP_GPS::NO_GPS || gps.status() == AP_GPS::NO_FIX) {
+        backend->write(x, y, false, check_option(AP_OSD::OPTION_SHORTEN_PLUSCODE) ? "----+---" : "--------+---");
     } else {
-        AP_OLC::olc_encode(loc.lat, loc.lng, 10, buff, sizeof(buff));
+        AP_OLC::olc_encode(loc.lat, loc.lng, 11, check_option(AP_OSD::OPTION_SHORTEN_PLUSCODE), buff, sizeof(buff));
         backend->write(x, y, false, "%s", buff);
     }
 }
