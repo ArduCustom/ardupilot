@@ -90,7 +90,7 @@ const AP_Param::GroupInfo RC_Channels::var_info[] = {
     // @Description: RC input options
     // @User: Advanced
     // @Bitmask: 0:Ignore RC Receiver, 1:Ignore MAVLink Overrides, 2:Ignore Receiver Failsafe bit but allow other RC failsafes if setup, 3:FPort Pad, 4:Log RC input bytes, 5:Arming check throttle for 0 input, 6:Skip the arming check for neutral Roll/Pitch/Yaw sticks, 7:Allow Switch reverse, 8:Use passthrough for CRSF telemetry, 9:Suppress CRSF mode/rate message for ELRS systems,10:Enable multiple receiver support, 11:CRSF RSSI shows Link Quality
-    AP_GROUPINFO("_OPTIONS", 33, RC_CHANNELS_SUBCLASS, _options, (uint32_t)RC_Channels::Option::ARMING_CHECK_THROTTLE),
+    AP_GROUPINFO("_OPTIONS", 33, RC_CHANNELS_SUBCLASS, _options, (uint32_t)RC_Channels::Option::ARMING_CHECK_THROTTLE | (uint32_t)RC_Channels::Option::SUPPRESS_CRSF_MESSAGE),
 
     // @Param: _PROTOCOLS
     // @DisplayName: RC protocols enabled
@@ -98,6 +98,6 @@ const AP_Param::GroupInfo RC_Channels::var_info[] = {
     // @User: Advanced
     // @Bitmask: 0:All,1:PPM,2:IBUS,3:SBUS,4:SBUS_NI,5:DSM,6:SUMD,7:SRXL,8:SRXL2,9:CRSF,10:ST24,11:FPORT,12:FPORT2,13:FastSBUS
     AP_GROUPINFO("_PROTOCOLS", 34, RC_CHANNELS_SUBCLASS, _protocols, 1),
-    
+
     AP_GROUPEND
 };
