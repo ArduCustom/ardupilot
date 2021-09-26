@@ -183,9 +183,10 @@ int AP_OLC::encode_grid(uint32_t lat, uint32_t lon, size_t length,
     return pos;
 }
 
-int AP_OLC::olc_encode(int32_t lat, int32_t lon, size_t length, char *buf, size_t bufsize)
+int AP_OLC::olc_encode(int32_t lat, int32_t lon, size_t length, bool shorten, char *buf, size_t bufsize)
 {
     int pos = 0;
+    int digitsRemoved = shorten ? 4 : 0;
 
     length = MIN(length, CODE_LEN_MAX);
 
@@ -198,7 +199,8 @@ int AP_OLC::olc_encode(int32_t lat, int32_t lon, size_t length, char *buf, size_
     if (length > PAIR_CODE_LEN) {
         pos += encode_grid(alat, alon, length - PAIR_CODE_LEN, buf + pos, bufsize - pos);
     }
-    buf[pos] = '\0';
+    memmove(buf, buf + digitsRemoved, pos - digitsRemoved);
+    buf[pos - digitsRemoved] = '\0';
     return pos;
 }
 
