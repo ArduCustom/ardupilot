@@ -191,6 +191,7 @@ AP_BattMonitor::init()
         }
         // param count could have changed
         AP_Param::invalidate_count();
+
     }
 
         // call init function for each backend
