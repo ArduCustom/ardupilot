@@ -227,7 +227,7 @@ public:
       DSHOT_LED3_OFF = 29,
     };
 
-    const uint8_t DSHOT_ZERO_THROTTLE = 48;
+    const uint8_t DSHOT_ZERO_THROTTLE = 47;
 
     enum DshotEscType {
       DSHOT_ESC_NONE = 0,
