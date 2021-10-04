@@ -2289,7 +2289,7 @@ void AP_OSD_Screen::draw_rngf(uint8_t x, uint8_t y)
        return;
     }
     if (rangefinder->status_orient(ROTATION_PITCH_270) <= RangeFinder::Status::NoData) {
-        backend->write(x, y, false, "%cNO DATA", SYMBOL(SYM_RNGFD));
+        backend->write(x, y, false, "%c----%c", SYMBOL(SYM_RNGFD), u_icon(DISTANCE));
     } else {
         backend->write(x, y, false, "%c%2.2f%c", SYMBOL(SYM_RNGFD), u_scale(DISTANCE, (rangefinder->distance_cm_orient(ROTATION_PITCH_270) * 0.01f)), u_icon(DISTANCE));
     }
