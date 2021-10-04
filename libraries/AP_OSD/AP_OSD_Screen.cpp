@@ -2317,7 +2317,9 @@ void AP_OSD_Screen::draw_rngf(uint8_t x, uint8_t y)
     if (rangefinder->status_orient(ROTATION_PITCH_270) <= RangeFinder::Status::NoData) {
         backend->write(x, y, false, "%c----%c", SYMBOL(SYM_RNGFD), u_icon(DISTANCE));
     } else {
-        const float distance = rangefinder->distance_orient(ROTATION_PITCH_270);
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        const float distance = rangefinder->distance_orient(ROTATION_PITCH_270) * ahrs.get_rotation_body_to_ned().c.z;
         const char *format = distance < 9.995 ? "%c %1.2f%c" : "%c%2.2f%c";
         backend->write(x, y, false, format, SYMBOL(SYM_RNGFD), u_scale(DISTANCE, distance), u_icon(DISTANCE));
     }
