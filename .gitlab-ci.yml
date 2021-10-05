@@ -1,0 +1,42 @@
+variables:
+    BOARDS: omnibusf4 omnibusf4pro MatekF405-Wing MatekF765-Wing OMNIBUSF7V2 MatekH743
+
+stages:
+  - build
+
+build:
+  cache:
+    key: build-cache
+    paths:
+      - build/
+  stage: build
+  image:
+    name: registry.gitlab.com/arducustom/ardupilot
+  script: |
+    set -euox pipefail
+
+    # We need to set these paths so compilation can work.
+    export ARM_EABI=/opt/$(ls -1 /opt/ | grep gcc-arm-none-eabi)/bin/
+    export PATH=$ARM_EABI:$PATH
+
+    git submodule update --init --recursive
+
+    for board in $BOARDS
+    do
+      # Delete the cache so `configure` doesn't complain.
+      rm -rf build/c4che
+      ./waf configure --board="$board"
+      ./waf plane
+      # Move the build artifacts to a different directory.
+      mkdir -p "builds/$board"
+      mv build/$board/bin/* "builds/$board"
+    done
+
+    # Delete bins so they don't get cached.
+    find build/ -name "bin" -type d -prune -exec rm -r "{}" \;
+  artifacts:
+    paths:
+      - builds
+  only:
+      - master_custom
+      - merge_requests
