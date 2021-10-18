@@ -1701,7 +1701,37 @@ void AP_OSD_Screen::draw_heading(uint8_t x, uint8_t y)
 
 void AP_OSD_Screen::draw_throttle(uint8_t x, uint8_t y)
 {
-    backend->write(x, y, false, "%3ld%c", lrintf(gcs().get_hud_throttle()), SYMBOL(SYM_PCNT));
+    const char *format;
+    uint8_t spaces;
+    float throttle_v = gcs().get_hud_throttle();
+    float throttle_abs = fabsf(throttle_v);
+    if (osd->options & AP_OSD::OPTION_ONE_DECIMAL_THROTTLE) {
+        if (throttle_abs < 9.95) {
+            spaces = 2;
+            format = "%1.1f%c";
+        } else if (throttle_abs < 99.95) {
+            spaces = 1;
+            format = "%2.1f%c";
+        } else {
+            spaces = 1;
+            format = "%3.0f%c";
+        }
+    } else {
+        if (throttle_abs < 9.5) {
+            spaces = 3;
+            format = "%1.0f%c";
+        } else if (throttle_abs < 99.5) {
+            spaces = 2;
+            format = "%2.0f%c";
+        } else {
+            spaces = 1;
+            format = "%3.0f%c";
+        }
+    }
+    if (signbit(throttle_v)) {
+        spaces -= 1;
+    }
+    backend->write(x + spaces, y, false, format, throttle_v, SYMBOL(SYM_PCNT));
 }
 
 #if HAL_OSD_SIDEBAR_ENABLE
