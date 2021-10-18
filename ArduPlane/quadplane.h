@@ -112,7 +112,7 @@ public:
     bool is_flying(void);
 
     // return current throttle as a percentate
-    uint8_t throttle_percentage(void) const {
+    float throttle_percentage(void) const {
         return last_throttle * 100;
     }
 
