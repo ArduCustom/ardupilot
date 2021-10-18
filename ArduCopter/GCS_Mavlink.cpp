@@ -204,7 +204,7 @@ float GCS_MAVLINK_Copter::vfr_hud_airspeed() const
     return AP::gps().ground_speed();
 }
 
-int16_t GCS_MAVLINK_Copter::vfr_hud_throttle() const
+float GCS_MAVLINK_Copter::vfr_hud_throttle() const
 {
     if (copter.motors == nullptr) {
         return 0;
