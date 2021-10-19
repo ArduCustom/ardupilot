@@ -16,7 +16,7 @@ public:
     AP_PitchController &operator=(const AP_PitchController&) = delete;
 
 	float get_rate_out(float desired_rate, float scaler);
-    float get_servo_out(int32_t angle_err, float scaler, bool disable_integrator, bool ground_mode);
+        float get_servo_out(int32_t angle_err, float scaler, bool disable_integrator, bool ground_mode);
 
 	void reset_I();
 
