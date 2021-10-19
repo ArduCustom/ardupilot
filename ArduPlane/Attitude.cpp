@@ -118,17 +118,17 @@ void Plane::stabilize_roll(float speed_scaler)
         if (ahrs.roll_sensor < 0) nav_roll_cd -= 36000;
     }
 
-    const int32_t roll_out = stabilize_roll_get_roll_out(speed_scaler);
+    const float roll_out = stabilize_roll_get_roll_out(speed_scaler);
     SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, roll_out);
 }
 
-int32_t Plane::stabilize_roll_get_roll_out(float speed_scaler)
+float Plane::stabilize_roll_get_roll_out(float speed_scaler)
 {
 #if HAL_QUADPLANE_ENABLED
     if (!quadplane.use_fw_attitude_controllers()) {
         // use the VTOL rate for control, to ensure consistency
         const auto &pid_info = quadplane.attitude_control->get_rate_roll_pid().get_pid_info();
-        const int32_t roll_out = rollController.get_rate_out(degrees(pid_info.target), speed_scaler);
+        const float roll_out = rollController.get_rate_out(degrees(pid_info.target), speed_scaler);
         /* when slaving fixed wing control to VTOL control we need to decay the integrator to prevent
            opposing integrators balancing between the two controllers
         */
@@ -138,7 +138,7 @@ int32_t Plane::stabilize_roll_get_roll_out(float speed_scaler)
 #endif
 
     bool disable_integrator = false;
-    if (control_mode == &mode_stabilize && channel_roll->get_control_in() != 0) {
+    if (control_mode == &mode_stabilize && !is_zero(channel_roll->get_control_in())) {
         disable_integrator = true;
     }
     return rollController.get_servo_out(nav_roll_cd - ahrs.roll_sensor, speed_scaler, disable_integrator);
@@ -159,11 +159,11 @@ void Plane::stabilize_pitch(float speed_scaler)
         return;
     }
 
-    const int32_t pitch_out = stabilize_pitch_get_pitch_out(speed_scaler);
+    const float pitch_out = stabilize_pitch_get_pitch_out(speed_scaler);
     SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, pitch_out);
 }
 
-int32_t Plane::stabilize_pitch_get_pitch_out(float speed_scaler)
+float Plane::stabilize_pitch_get_pitch_out(float speed_scaler)
 {
 #if HAL_QUADPLANE_ENABLED
     if (!quadplane.use_fw_attitude_controllers()) {
@@ -186,7 +186,7 @@ int32_t Plane::stabilize_pitch_get_pitch_out(float speed_scaler)
 
     int32_t demanded_pitch = nav_pitch_cd + g.pitch_trim_cd + SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) * g.kff_throttle_to_pitch;
     bool disable_integrator = false;
-    if (control_mode == &mode_stabilize && channel_pitch->get_control_in() != 0) {
+    if (control_mode == &mode_stabilize && !is_zero(channel_pitch->get_control_in())) {
         disable_integrator = true;
     }
     if (!quadplane_in_transition &&
@@ -225,11 +225,11 @@ void Plane::stabilize_stick_mixing_direct()
         control_mode == &mode_training) {
         return;
     }
-    int16_t aileron = SRV_Channels::get_output_scaled(SRV_Channel::k_aileron);
+    float aileron = SRV_Channels::get_output_scaled(SRV_Channel::k_aileron);
     aileron = channel_roll->stick_mixing(aileron);
     SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, aileron);
 
-    int16_t elevator = SRV_Channels::get_output_scaled(SRV_Channel::k_elevator);
+    float elevator = SRV_Channels::get_output_scaled(SRV_Channel::k_elevator);
     elevator = channel_pitch->stick_mixing(elevator);
     SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, elevator);
 }
@@ -308,7 +308,7 @@ void Plane::stabilize_yaw(float speed_scaler)
     } else {
         // otherwise use ground steering when no input control and we
         // are below the GROUND_STEER_ALT
-        steering_control.ground_steering = (channel_roll->get_control_in() == 0 && 
+        steering_control.ground_steering = (is_zero(channel_roll->get_control_in()) &&
                                             fabsf(relative_altitude) < g.ground_steer_alt);
         if (!landing.is_ground_steering_allowed()) {
             // don't use ground steering on landing approach
@@ -379,8 +379,8 @@ void Plane::stabilize_acro(float speed_scaler)
 {
     const float rexpo = roll_in_expo(true);
     const float pexpo = pitch_in_expo(true);
-    float roll_rate = (rexpo/float(SERVO_MAX)) * g.acro_roll_rate;
-    float pitch_rate = (pexpo/float(SERVO_MAX)) * g.acro_pitch_rate;
+    float roll_rate = (rexpo/SERVO_MAX) * g.acro_roll_rate;
+    float pitch_rate = (pexpo/SERVO_MAX) * g.acro_pitch_rate;
 
     /*
       check for special roll handling near the pitch poles
@@ -520,7 +520,7 @@ void Plane::stabilize()
     /*
       see if we should zero the attitude controller integrators. 
      */
-    if (get_throttle_input() == 0 &&
+    if (is_zero(get_throttle_input()) &&
         fabsf(relative_altitude) < 5.0f && 
         fabsf(barometer.get_climb_rate()) < 0.5f &&
         ahrs.groundspeed() < 3) {
@@ -545,11 +545,11 @@ void Plane::calc_throttle()
         // user has asked for zero throttle - this may be done by a
         // mission which wants to turn off the engine for a parachute
         // landing
-        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0);
+        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0.0);
         return;
     }
 
-    int32_t commanded_throttle = SpdHgt_Controller->get_throttle_demand();
+    float commanded_throttle = SpdHgt_Controller->get_throttle_demand();
 
     // Received an external msg that guides throttle in the last 3 seconds?
     if (control_mode->is_guided_mode() &&
@@ -616,7 +616,7 @@ void Plane::calc_nav_yaw_course(void)
 void Plane::calc_nav_yaw_ground(void)
 {
     if (gps.ground_speed() < 1 && 
-        get_throttle_input() == 0 &&
+        is_zero(get_throttle_input()) &&
         flight_stage != AP_Vehicle::FixedWing::FLIGHT_TAKEOFF &&
         flight_stage != AP_Vehicle::FixedWing::FLIGHT_ABORT_LAND) {
         // manual rudder control while still
