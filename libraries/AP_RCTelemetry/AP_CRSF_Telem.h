@@ -190,10 +190,10 @@ public:
     struct PACKED PassthroughMultiPacketFrame {
         uint8_t sub_type;
         uint8_t size;
-        struct PACKED {
+        struct PACKED PassthroughTelemetryPacket {
             uint16_t appid;
             uint32_t data;
-        } frames[PASSTHROUGH_MULTI_PACKET_FRAME_MAX_SIZE];
+        } packets[PASSTHROUGH_MULTI_PACKET_FRAME_MAX_SIZE];
     };
 
     // Frame to hold status text message
@@ -263,7 +263,7 @@ private:
     void process_packet(uint8_t idx) override;
     void adjust_packet_weight(bool queue_empty) override;
     void setup_custom_telemetry();
-    void update_custom_telemetry_rates(AP_RCProtocol_CRSF::RFMode rf_mode);
+    void update_custom_telemetry_rates(const AP_RCProtocol_CRSF::RFMode rf_mode);
 
     void calc_parameter_ping();
     void calc_heartbeat();
@@ -281,11 +281,12 @@ private:
     void update_params();
     void update_vtx_params();
     void get_single_packet_passthrough_telem_data();
-    void get_multi_packet_passthrough_telem_data();
+    void get_multi_packet_passthrough_telem_data(uint8_t size = PASSTHROUGH_MULTI_PACKET_FRAME_MAX_SIZE);
     void calc_status_text();
     void process_rf_mode_changes();
     uint8_t get_custom_telem_frame_id() const;
     AP_RCProtocol_CRSF::RFMode get_rf_mode() const;
+    uint16_t get_telemetry_rate() const;
     bool is_high_speed_telemetry(const AP_RCProtocol_CRSF::RFMode rf_mode) const;
 
     void process_vtx_frame(VTXFrame* vtx);
@@ -330,6 +331,7 @@ private:
         bool use_rf_mode;
         bool is_tracer;
         bool pending = true;
+        bool is_elrs;
     } _crsf_version;
 
     struct {
