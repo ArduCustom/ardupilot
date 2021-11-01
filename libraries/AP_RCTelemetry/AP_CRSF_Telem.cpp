@@ -186,16 +186,20 @@ void AP_CRSF_Telem::process_rf_mode_changes()
     if (_telem_last_report_ms == 0 && !uart->is_dma_enabled()) {
         gcs().send_text(MAV_SEVERITY_WARNING, "CRSF: running on non-DMA serial port");
     }
-    // report a change in RF mode or a chnage of more than 10Hz if we haven't done so in the last 5s
-    if ((now - _telem_last_report_ms > 5000) &&
-        (_telem_rf_mode != current_rf_mode || abs(int16_t(_telem_last_avg_rate) - int16_t(_scheduler.avg_packet_rate)) > 25)) {
-        if (!rc().suppress_crsf_message()) {
-            gcs().send_text(MAV_SEVERITY_INFO, "CRSFv%d: RF mode %d, rate is %dHz", uint8_t(2 + AP::crsf()->is_crsf_v3_active()),
-                (uint8_t)current_rf_mode, _scheduler.avg_packet_rate);
+    const bool is_high_speed = is_high_speed_telemetry(current_rf_mode);
+    // report a change in telemetry speed if we haven't done so in the last 5s
+    if ((now - _telem_last_report_ms > 5000)) {
+        if (_telem_is_high_speed != is_high_speed) {
+            if (!rc().suppress_crsf_message()) {
+                if (!_crsf_version.is_elrs) {
+                    gcs().send_text(MAV_SEVERITY_INFO, "CRSFv%d: RF mode %d, rate is %dHz (%s)", uint8_t(2 + AP::crsf()->is_crsf_v3_active()), (uint8_t)current_rf_mode, get_telemetry_rate(), is_high_speed_telemetry(current_rf_mode) ? "H":"L");
+                } else {
+                    gcs().send_text(MAV_SEVERITY_INFO, "ELRS: RF mode %d, rate is %dHz (%s)", uint8_t(current_rf_mode) - uint8_t(AP_RCProtocol_CRSF::RFMode::ELRS_RF_MODE_4HZ), get_telemetry_rate(), is_high_speed_telemetry(current_rf_mode) ? "H":"L");
+                }
+            }
+            update_custom_telemetry_rates(current_rf_mode);
+            _telem_is_high_speed = is_high_speed;
         }
-        update_custom_telemetry_rates(current_rf_mode);
-        _telem_rf_mode = current_rf_mode;
-        _telem_last_avg_rate = _scheduler.avg_packet_rate;
         _telem_last_report_ms = now;
     }
 }

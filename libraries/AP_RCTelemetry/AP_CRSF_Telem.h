@@ -314,8 +314,7 @@ private:
     AP_RCProtocol_CRSF::RFMode _telem_rf_mode;
     // reporting telemetry rate
     uint32_t _telem_last_report_ms;
-    uint16_t _telem_last_avg_rate;
-
+    bool _telem_is_high_speed;
     bool _telem_pending;
     bool _enable_telemetry;
 
