@@ -220,13 +220,21 @@ public:
         CRSF_RF_MODE_50HZ,
         CRSF_RF_MODE_150HZ,
         CRSF_RF_MODE_250HZ,
-        CRSF_RF_MODE_UNKNOWN,
+        ELRS_RF_MODE_4HZ,
+        ELRS_RF_MODE_25HZ,
+        ELRS_RF_MODE_50HZ,
+        ELRS_RF_MODE_100HZ,
+        ELRS_RF_MODE_150HZ,
+        ELRS_RF_MODE_200HZ,
+        ELRS_RF_MODE_250HZ,
+        ELRS_RF_MODE_500HZ,
+        RF_MODE_UNKNOWN,
     };
 
     struct LinkStatus {
         int16_t rssi = -1;
         int16_t link_quality = -1;
-        RFMode rf_mode;
+        uint8_t rf_mode;
     };
 
     // this will be used by AP_CRSF_Telem to access link status data
