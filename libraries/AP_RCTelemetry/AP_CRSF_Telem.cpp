@@ -113,23 +113,25 @@ void AP_CRSF_Telem::setup_custom_telemetry()
         return;
     }
 
-    // setup the frsky scheduler for crossfire
+    // setup the frsky scheduler for crossfire and elrs
     passthrough->disable_scheduler_entry(AP_Frsky_SPort_Passthrough::GPS_LAT);
     passthrough->disable_scheduler_entry(AP_Frsky_SPort_Passthrough::GPS_LON);
     passthrough->disable_scheduler_entry(AP_Frsky_SPort_Passthrough::TEXT);
     passthrough->set_scheduler_entry_min_period(AP_Frsky_SPort_Passthrough::ATTITUDE, 350); // 3Hz
 
     // setup the crossfire scheduler for custom telemetry
-    set_scheduler_entry(BATTERY, 1000, 1000);       // 1Hz
-    set_scheduler_entry(ATTITUDE, 1000, 1000);      // 1Hz
     set_scheduler_entry(FLIGHT_MODE, 1200, 2000);   // 0.5Hz
     set_scheduler_entry(HEARTBEAT, 2000, 5000);     // 0.2Hz
 
-    _telem_rf_mode = get_rf_mode();
+    _telem.rf_mode = get_rf_mode();
     // setup custom telemetry for current rf_mode
-    update_custom_telemetry_rates(_telem_rf_mode);
+    update_custom_telemetry_rates(_telem.rf_mode);
 
-    gcs().send_text(MAV_SEVERITY_DEBUG,"CRSF: custom telem init done, fw %d.%02d", _crsf_version.major, _crsf_version.minor);
+    if (_crsf_version.is_elrs) {
+        gcs().send_text(MAV_SEVERITY_DEBUG,"ELRS: custom telem init done, fw %d.%02d", _crsf_version.major, _crsf_version.minor);
+    } else {
+        gcs().send_text(MAV_SEVERITY_INFO, "CRSFv%d: custom telem init done, fw %d.%02d", uint8_t(2 + AP::crsf()->is_crsf_v3_active()), _crsf_version.major, _crsf_version.minor);
+    }
     _custom_telem.init_done = true;
 }
 
@@ -141,15 +143,28 @@ void AP_CRSF_Telem::update_custom_telemetry_rates(AP_RCProtocol_CRSF::RFMode rf_
     }
 
     if (is_high_speed_telemetry(rf_mode)) {
+        // standard telemetry for high data rates
+        set_scheduler_entry(BATTERY, 1000, 1000);       // 1Hz
+        set_scheduler_entry(ATTITUDE, 1000, 1000);      // 1Hz
         // custom telemetry for high data rates
-        set_scheduler_entry(GPS, 550, 500);           // 2.0Hz
-        set_scheduler_entry(PASSTHROUGH, 100, 100);   // 10Hz
-        set_scheduler_entry(STATUS_TEXT, 200, 750);   // 1.5Hz
+        set_scheduler_entry(GPS, 550, 500);            // 2.0Hz
+        set_scheduler_entry(PASSTHROUGH, 100, 100);    // 8Hz
+        set_scheduler_entry(STATUS_TEXT, 200, 750);    // 1.5Hz
     } else {
-        // custom telemetry for low data rates
-        set_scheduler_entry(GPS, 550, 1000);              // 1.0Hz
-        set_scheduler_entry(PASSTHROUGH, 500, 3000);      // 0.3Hz
-        set_scheduler_entry(STATUS_TEXT, 600, 2000);      // 0.5Hz
+        // standard telemetry for low data rates
+        set_scheduler_entry(BATTERY, 1000, 2000);       // 0.5Hz
+        set_scheduler_entry(ATTITUDE, 1000, 3000);      // 0.33Hz
+        if (_crsf_version.is_elrs) {
+            // ELRS custom telemetry for low data rates
+            set_scheduler_entry(GPS, 550, 1000);            // 1.0Hz
+            set_scheduler_entry(PASSTHROUGH, 350, 500);     // 2.0Hz
+            set_scheduler_entry(STATUS_TEXT, 500, 2000);    // 0.5Hz
+        } else {
+            // CRSF custom telemetry for low data rates
+            set_scheduler_entry(GPS, 550, 1000);              // 1.0Hz
+            set_scheduler_entry(PASSTHROUGH, 500, 3000);      // 0.3Hz
+            set_scheduler_entry(STATUS_TEXT, 600, 2000);      // 0.5Hz
+        }
     }
 }
 
@@ -168,27 +183,32 @@ void AP_CRSF_Telem::process_rf_mode_changes()
         return;
     }
     // warn the user if their setup is sub-optimal
-    if (_telem_last_report_ms == 0 && !uart->is_dma_enabled()) {
+    if (_telem.last_report_ms == 0 && !uart->is_dma_enabled()) {
         gcs().send_text(MAV_SEVERITY_WARNING, "CRSF: running on non-DMA serial port");
     }
-    // report a change in RF mode or a chnage of more than 10Hz if we haven't done so in the last 5s
-    if ((now - _telem_last_report_ms > 5000) &&
-        (_telem_rf_mode != current_rf_mode || abs(int16_t(_telem_last_avg_rate) - int16_t(_scheduler.avg_packet_rate)) > 25)) {
-        if (!rc().suppress_crsf_message()) {
-            gcs().send_text(MAV_SEVERITY_INFO, "CRSFv%d: RF mode %d, rate is %dHz", uint8_t(2 + AP::crsf()->is_crsf_v3_active()),
-                (uint8_t)current_rf_mode, _scheduler.avg_packet_rate);
+    const bool is_high_speed = is_high_speed_telemetry(current_rf_mode);
+    // report a change in telemetry speed if we haven't done so in the last 5s
+    if ((now - _telem.last_report_ms > 5000)) {
+        if (_telem.is_high_speed != is_high_speed) {
+            if (!rc().suppress_crsf_message()) {
+                if (!_crsf_version.is_elrs) {
+                    gcs().send_text(MAV_SEVERITY_INFO, "CRSFv%d: RF mode %d, rate is %dHz (%s)", uint8_t(2 + AP::crsf()->is_crsf_v3_active()), (uint8_t)current_rf_mode, get_telemetry_rate(), is_high_speed_telemetry(current_rf_mode) ? "H":"L");
+                } else {
+                    gcs().send_text(MAV_SEVERITY_INFO, "ELRS: RF mode %d, rate is %dHz (%s)", uint8_t(current_rf_mode) - uint8_t(AP_RCProtocol_CRSF::RFMode::ELRS_RF_MODE_4HZ), get_telemetry_rate(), is_high_speed_telemetry(current_rf_mode) ? "H":"L");
+                }
+            }
+            update_custom_telemetry_rates(current_rf_mode);
+            _telem.is_high_speed = is_high_speed;
         }
-        update_custom_telemetry_rates(current_rf_mode);
-        _telem_rf_mode = current_rf_mode;
-        _telem_last_avg_rate = _scheduler.avg_packet_rate;
-        _telem_last_report_ms = now;
+        _telem.last_report_ms = now;
     }
 }
 
 // return custom frame id based on fw version
 uint8_t AP_CRSF_Telem::get_custom_telem_frame_id() const
 {
-    if (!_crsf_version.pending && (_crsf_version.major > 4 || (_crsf_version.major == 4 && _crsf_version.minor >= 6))) {
+    if (!_crsf_version.pending &&
+        ((_crsf_version.major > 4 || (_crsf_version.major == 4 && _crsf_version.minor >= 6)) || _crsf_version.is_elrs)) {
         return AP_RCProtocol_CRSF::CRSF_FRAMETYPE_AP_CUSTOM_TELEM;
     }
     return AP_RCProtocol_CRSF::CRSF_FRAMETYPE_AP_CUSTOM_TELEM_LEGACY;
@@ -198,30 +218,33 @@ AP_RCProtocol_CRSF::RFMode AP_CRSF_Telem::get_rf_mode() const
 {
     AP_RCProtocol_CRSF* crsf = AP::crsf();
     if (crsf == nullptr) {
-        return AP_RCProtocol_CRSF::RFMode::CRSF_RF_MODE_UNKNOWN;
+        return AP_RCProtocol_CRSF::RFMode::RF_MODE_UNKNOWN;
     }
 
     if (!_crsf_version.pending && _crsf_version.use_rf_mode) {
-        return crsf->get_link_status().rf_mode;
+        if (_crsf_version.is_elrs) {
+            return static_cast<AP_RCProtocol_CRSF::RFMode>(uint8_t(AP_RCProtocol_CRSF::RFMode::ELRS_RF_MODE_4HZ) + crsf->get_link_status().rf_mode);
+        }
+        return static_cast<AP_RCProtocol_CRSF::RFMode>(crsf->get_link_status().rf_mode);
     } else if (_crsf_version.is_tracer) {
         return AP_RCProtocol_CRSF::RFMode::CRSF_RF_MODE_250HZ;
     }
 
     /*
      Note:
-     - rf mode 2 on UARTS with DMA runs @160Hz
-     - rf mode 2 on UARTS with no DMA runs @70Hz
+     - CRSF rf mode 2 on UARTS with DMA runs @160Hz
+     - CRSF rf mode 2 on UARTS with no DMA runs @70Hz
     */
     if (get_avg_packet_rate() < 40U) {
-        // no DMA rf mode 1
+        // no DMA CRSF rf mode 1
         return AP_RCProtocol_CRSF::RFMode::CRSF_RF_MODE_50HZ;
     }
     if (get_avg_packet_rate() > 120U) {
-        // DMA rf mode 2
+        // DMA CRSF rf mode 2
         return AP_RCProtocol_CRSF::RFMode::CRSF_RF_MODE_150HZ;
     }
     if (get_max_packet_rate() < 120U) {
-        // no DMA rf mode 2
+        // no CRSF DMA rf mode 2
         return AP_RCProtocol_CRSF::RFMode::CRSF_RF_MODE_150HZ;
     }
     return AP_RCProtocol_CRSF::RFMode::CRSF_RF_MODE_50HZ;
@@ -229,7 +252,27 @@ AP_RCProtocol_CRSF::RFMode AP_CRSF_Telem::get_rf_mode() const
 
 bool AP_CRSF_Telem::is_high_speed_telemetry(const AP_RCProtocol_CRSF::RFMode rf_mode) const
 {
-    return rf_mode == AP_RCProtocol_CRSF::RFMode::CRSF_RF_MODE_150HZ || rf_mode == AP_RCProtocol_CRSF::RFMode::CRSF_RF_MODE_250HZ;
+    if (!_crsf_version.is_elrs) {
+        return rf_mode == AP_RCProtocol_CRSF::RFMode::CRSF_RF_MODE_150HZ || rf_mode == AP_RCProtocol_CRSF::RFMode::CRSF_RF_MODE_250HZ;
+    }
+    return get_telemetry_rate() > 30;
+}
+
+uint16_t AP_CRSF_Telem::get_telemetry_rate() const
+{
+    if (!_crsf_version.is_elrs) {
+        return get_avg_packet_rate();
+    }
+    AP_RCProtocol_CRSF* crsf = AP::crsf();
+    if (crsf == nullptr) {
+        return get_avg_packet_rate();
+    }
+    // ELRS sends 1 telemetry frame every n RC frames
+    // the 1:n ratio is user selected
+    // RC rate is measured by get_avg_packet_rate()
+    // telemetry rate = air rate - RC rate
+    const uint16_t elrs_air_rates[8] = {0, 25, 50, 100, 150, 200, 250, 500};
+    return uint16_t(elrs_air_rates[MIN(crsf->get_link_status().rf_mode, 7U)] - get_avg_packet_rate());
 }
 
 void AP_CRSF_Telem::queue_message(MAV_SEVERITY severity, const char *text)
@@ -268,7 +311,7 @@ void AP_CRSF_Telem::exit_scheduler_params_mode()
     enable_scheduler_entry(PASSTHROUGH);
     enable_scheduler_entry(STATUS_TEXT);
 
-    update_custom_telemetry_rates(_telem_rf_mode);
+    update_custom_telemetry_rates(_telem.rf_mode);
 }
 
 void AP_CRSF_Telem::adjust_packet_weight(bool queue_empty)
@@ -328,7 +371,7 @@ bool AP_CRSF_Telem::is_packet_ready(uint8_t idx, bool queue_empty)
     case GENERAL_COMMAND:
         return _baud_rate_request.pending;
     default:
-        return _enable_telemetry;
+        return _telem.enable;
     }
 }
 
@@ -359,14 +402,15 @@ void AP_CRSF_Telem::process_packet(uint8_t idx)
             calc_flight_mode();
             break;
         case PASSTHROUGH:
-            if (is_high_speed_telemetry(_telem_rf_mode)) {
+            if (is_high_speed_telemetry(_telem.rf_mode)) {
                 // on fast links we have 1:1 ratio between
                 // passthrough frames and crossfire frames
                 get_single_packet_passthrough_telem_data();
             } else {
                 // on slower links we pack many passthrough
                 // frames in a single crossfire one (up to 9)
-                get_multi_packet_passthrough_telem_data();
+                const uint8_t size = _crsf_version.is_elrs ? 3 : PASSTHROUGH_MULTI_PACKET_FRAME_MAX_SIZE;
+                get_multi_packet_passthrough_telem_data(size);
             }
             break;
         case STATUS_TEXT:
@@ -387,7 +431,7 @@ bool AP_CRSF_Telem::_process_frame(AP_RCProtocol_CRSF::FrameType frame_type, voi
     case AP_RCProtocol_CRSF::CRSF_FRAMETYPE_RC_CHANNELS_PACKED:
     // the EVO sends battery frames and we should send telemetry back to populate the OSD
     case AP_RCProtocol_CRSF::CRSF_FRAMETYPE_BATTERY_SENSOR:
-        _enable_telemetry = true;
+        _telem.enable = true;
         break;
 
     case AP_RCProtocol_CRSF::CRSF_FRAMETYPE_VTX:
@@ -547,6 +591,11 @@ void AP_CRSF_Telem::process_device_info_frame(ParameterDeviceInfoFrame* info)
     if (strncmp((char*)info->payload, "Tracer", 6) == 0) {
         _crsf_version.is_tracer = true;
     }
+    // ELRS magic number is ELRS encoded in the serial number
+    // 0x45 'E' 0x4C 'L' 0x52 'R' 0x53 'S'
+    if (strncmp((char*)&info->payload[offset+1], "ELRS", 4) == 0) {
+        _crsf_version.is_elrs = true;
+    }
     /*
         fw major ver = offset + terminator (8bits) + serial (32bits) + hw id (32bits) + 3rd byte of sw id = 11bytes
         fw minor ver = offset + terminator (8bits) + serial (32bits) + hw id (32bits) + 4th byte of sw id = 12bytes
@@ -555,7 +604,7 @@ void AP_CRSF_Telem::process_device_info_frame(ParameterDeviceInfoFrame* info)
     _crsf_version.minor = info->payload[offset+12];
 
     // should we use rf_mode reported by link statistics?
-    if (!_crsf_version.is_tracer && (_crsf_version.major > 3 || (_crsf_version.major == 3 && _crsf_version.minor >= 72))) {
+    if (_crsf_version.is_elrs || (!_crsf_version.is_tracer && (_crsf_version.major > 3 || (_crsf_version.major == 3 && _crsf_version.minor >= 72)))) {
         _crsf_version.use_rf_mode = true;
     }
 
@@ -661,36 +710,36 @@ void AP_CRSF_Telem::update_vtx_params()
             vtx.get_power_mw(), vtx.get_configured_power_mw(),
             vtx.get_options(), vtx.get_configured_options());
 
-        _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_COMMAND;
-        _telem.ext.command.destination = AP_RCProtocol_CRSF::CRSF_ADDRESS_VTX;
-        _telem.ext.command.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
-        _telem.ext.command.command_id = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX;
+        _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_COMMAND;
+        _telem.payload.ext.command.destination = AP_RCProtocol_CRSF::CRSF_ADDRESS_VTX;
+        _telem.payload.ext.command.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
+        _telem.payload.ext.command.command_id = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX;
 
         uint8_t len = 5;
         // prioritize option changes so that the pilot can get in and out of pitmode
         if (_vtx_options_change_pending) {
-            _telem.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX_PITMODE;
+            _telem.payload.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX_PITMODE;
             if (vtx.get_configured_options() & uint8_t(AP_VideoTX::VideoOptions::VTX_PITMODE)) {
-                _telem.ext.command.payload[1] = 1;
+                _telem.payload.ext.command.payload[1] = 1;
             } else {
-                _telem.ext.command.payload[1] = 0;
+                _telem.payload.ext.command.payload[1] = 0;
             }
         } else if (_vtx_freq_change_pending && _vtx_freq_update) {
-            _telem.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX_FREQ;
-            _telem.ext.command.payload[1] = (vtx.get_frequency_mhz() & 0xFF00) >> 8;
-            _telem.ext.command.payload[2] = (vtx.get_frequency_mhz() & 0xFF);
+            _telem.payload.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX_FREQ;
+            _telem.payload.ext.command.payload[1] = (vtx.get_frequency_mhz() & 0xFF00) >> 8;
+            _telem.payload.ext.command.payload[2] = (vtx.get_frequency_mhz() & 0xFF);
             _vtx_freq_update = false;
             len++;
         } else if (_vtx_freq_change_pending) {
-            _telem.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX_CHANNEL;
-            _telem.ext.command.payload[1] = vtx.get_configured_band() * VTX_MAX_CHANNELS + vtx.get_configured_channel();
+            _telem.payload.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX_CHANNEL;
+            _telem.payload.ext.command.payload[1] = vtx.get_configured_band() * VTX_MAX_CHANNELS + vtx.get_configured_channel();
             _vtx_freq_update = true;
         } else if (_vtx_power_change_pending && _vtx_dbm_update) {
-            _telem.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX_POWER_DBM;
-            _telem.ext.command.payload[1] = vtx.get_configured_power_dbm();
+            _telem.payload.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX_POWER_DBM;
+            _telem.payload.ext.command.payload[1] = vtx.get_configured_power_dbm();
             _vtx_dbm_update = false;
         } else if (_vtx_power_change_pending) {
-            _telem.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX_POWER;
+            _telem.payload.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_VTX_POWER;
             if (vtx.get_configured_power_mw() < 26) {
                 vtx.set_configured_power_mw(25);
             } else if (vtx.get_configured_power_mw() < 201) {
@@ -708,38 +757,38 @@ void AP_CRSF_Telem::update_vtx_params()
             } else {
                 vtx.set_configured_power_mw(800);
             }
-            _telem.ext.command.payload[1] = vtx.get_configured_power_level();
+            _telem.payload.ext.command.payload[1] = vtx.get_configured_power_level();
             _vtx_dbm_update = true;
         }
-        _telem_pending = true;
+        _telem.pending = true;
         // calculate command crc
-        uint8_t* crcptr = &_telem.ext.command.destination;
+        uint8_t* crcptr = &_telem.payload.ext.command.destination;
         uint8_t crc = crc8_dvb(0, AP_RCProtocol_CRSF::CRSF_FRAMETYPE_COMMAND, 0xBA);
         for (uint8_t i = 0; i < len; i++) {
             crc = crc8_dvb(crc, crcptr[i], 0xBA);
         }
         crcptr[len] = crc;
-        _telem_size = len + 1;
+        _telem.size = len + 1;
     }
 }
 
 // prepare parameter ping data
 void AP_CRSF_Telem::calc_parameter_ping()
 {
-    _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAM_DEVICE_PING;
-    _telem.ext.ping.destination = AP_RCProtocol_CRSF::CRSF_ADDRESS_VTX;
-    _telem.ext.ping.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
-    _telem_size = sizeof(ParameterPingFrame);
-    _telem_pending = true;
+    _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAM_DEVICE_PING;
+    _telem.payload.ext.ping.destination = AP_RCProtocol_CRSF::CRSF_ADDRESS_VTX;
+    _telem.payload.ext.ping.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
+    _telem.size = sizeof(ParameterPingFrame);
+    _telem.pending = true;
 }
 
 // prepare qos data - mandatory frame that must be sent periodically
 void AP_CRSF_Telem::calc_heartbeat()
 {
-    _telem.bcast.heartbeat.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
-    _telem_size = sizeof(HeartbeatFrame);
-    _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_HEARTBEAT;
-    _telem_pending = true;
+    _telem.payload.bcast.heartbeat.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
+    _telem.size = sizeof(HeartbeatFrame);
+    _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_HEARTBEAT;
+    _telem.pending = true;
 }
 
 // prepare battery data
@@ -747,13 +796,13 @@ void AP_CRSF_Telem::calc_battery()
 {
     const AP_BattMonitor &_battery = AP::battery();
 
-    _telem.bcast.battery.voltage = htobe16(uint16_t(roundf(_battery.voltage(0) * 10.0f)));
+    _telem.payload.bcast.battery.voltage = htobe16(uint16_t(roundf(_battery.voltage(0) * 10.0f)));
 
     float current;
     if (!_battery.current_amps(current, 0)) {
         current = 0;
     }
-    _telem.bcast.battery.current = htobe16(int16_t(roundf(current * 10.0f)));
+    _telem.payload.bcast.battery.current = htobe16(int16_t(roundf(current * 10.0f)));
 
     float used_mah;
     if (!_battery.consumed_mah(used_mah, 0)) {
@@ -763,17 +812,17 @@ void AP_CRSF_Telem::calc_battery()
     uint8_t percentage = 0;
     IGNORE_RETURN(_battery.capacity_remaining_pct(percentage, 0));
 
-    _telem.bcast.battery.remaining = percentage;
+    _telem.payload.bcast.battery.remaining = percentage;
 
     const int32_t capacity = used_mah;
-    _telem.bcast.battery.capacity[0] = (capacity & 0xFF0000) >> 16;
-    _telem.bcast.battery.capacity[1] = (capacity & 0xFF00) >> 8;
-    _telem.bcast.battery.capacity[2] = (capacity & 0xFF);
+    _telem.payload.bcast.battery.capacity[0] = (capacity & 0xFF0000) >> 16;
+    _telem.payload.bcast.battery.capacity[1] = (capacity & 0xFF00) >> 8;
+    _telem.payload.bcast.battery.capacity[2] = (capacity & 0xFF);
 
-    _telem_size = sizeof(BatteryFrame);
-    _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_BATTERY_SENSOR;
+    _telem.size = sizeof(BatteryFrame);
+    _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_BATTERY_SENSOR;
 
-    _telem_pending = true;
+    _telem.pending = true;
 }
 
 // prepare gps data
@@ -781,31 +830,17 @@ void AP_CRSF_Telem::calc_gps()
 {
     const Location &loc = AP::gps().location(0); // use the first gps instance (same as in send_mavlink_gps_raw)
 
-    _telem.bcast.gps.latitude = htobe32(loc.lat);
-    _telem.bcast.gps.longitude = htobe32(loc.lng);
-    _telem.bcast.gps.groundspeed = htobe16(roundf(AP::gps().ground_speed() * 100000 / 3600));
+    _telem.payload.bcast.gps.latitude = htobe32(loc.lat);
+    _telem.payload.bcast.gps.longitude = htobe32(loc.lng);
+    _telem.payload.bcast.gps.groundspeed = htobe16(roundf(AP::gps().ground_speed() * 100000 / 3600));
+    _telem.payload.bcast.gps.altitude = htobe16(constrain_int16(loc.alt / 100, 0, 5000) + 1000);
+    _telem.payload.bcast.gps.gps_heading = htobe16(roundf(AP::gps().ground_course() * 100.0f));
+    _telem.payload.bcast.gps.satellites = AP::gps().num_sats();
 
-    Location loc1;
-    float current_height = 0; // in centimeters above home
+    _telem.size = sizeof(AP_CRSF_Telem::GPSFrame);
+    _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_GPS;
 
-    AP_AHRS &_ahrs = AP::ahrs();
-    WITH_SEMAPHORE(_ahrs.get_semaphore());
-    if (_ahrs.get_position(loc1)) {
-        current_height = loc1.alt*0.01f;
-        if (!loc1.relative_alt) {
-            // loc.alt has home altitude added, remove it
-            current_height -= _ahrs.get_home().alt*0.01f;
-        }
-    }
-
-    _telem.bcast.gps.altitude = htobe16(constrain_int16(current_height, 0, 5000) + 1000);
-    _telem.bcast.gps.gps_heading = htobe16(roundf(AP::gps().ground_course() * 100.0f));
-    _telem.bcast.gps.satellites = AP::gps().num_sats();
-
-    _telem_size = sizeof(AP_CRSF_Telem::GPSFrame);
-    _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_GPS;
-
-    _telem_pending = true;
+    _telem.pending = true;
 }
 
 // prepare attitude data
@@ -816,14 +851,14 @@ void AP_CRSF_Telem::calc_attitude()
 
     const int16_t INT_PI = 31415;
     // units are radians * 10000
-    _telem.bcast.attitude.roll_angle = htobe16(constrain_int16(roundf(wrap_PI(_ahrs.roll) * 10000.0f), -INT_PI, INT_PI));
-    _telem.bcast.attitude.pitch_angle = htobe16(constrain_int16(roundf(wrap_PI(_ahrs.pitch) * 10000.0f), -INT_PI, INT_PI));
-    _telem.bcast.attitude.yaw_angle = htobe16(constrain_int16(roundf(wrap_PI(_ahrs.yaw) * 10000.0f), -INT_PI, INT_PI));
+    _telem.payload.bcast.attitude.roll_angle = htobe16(constrain_int16(roundf(wrap_PI(_ahrs.roll) * 10000.0f), -INT_PI, INT_PI));
+    _telem.payload.bcast.attitude.pitch_angle = htobe16(constrain_int16(roundf(wrap_PI(_ahrs.pitch) * 10000.0f), -INT_PI, INT_PI));
+    _telem.payload.bcast.attitude.yaw_angle = htobe16(constrain_int16(roundf(wrap_PI(_ahrs.yaw) * 10000.0f), -INT_PI, INT_PI));
 
-    _telem_size = sizeof(AP_CRSF_Telem::AttitudeFrame);
-    _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_ATTITUDE;
+    _telem.size = sizeof(AP_CRSF_Telem::AttitudeFrame);
+    _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_ATTITUDE;
 
-    _telem_pending = true;
+    _telem.pending = true;
 }
 
 // prepare flight mode data
@@ -832,118 +867,118 @@ void AP_CRSF_Telem::calc_flight_mode()
     AP_Notify * notify = AP_Notify::get_singleton();
     if (notify) {
         // Note: snprintf() always terminates the string
-        hal.util->snprintf(_telem.bcast.flightmode.flight_mode, sizeof(AP_CRSF_Telem::FlightModeFrame), "%s", notify->get_flight_mode_str());
-        // Note: strlen(_telem.bcast.flightmode.flight_mode) is safe because called on a guaranteed null terminated string
-        _telem_size = strlen(_telem.bcast.flightmode.flight_mode) + 1; //send the terminator as well
-        _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_FLIGHT_MODE;
-        _telem_pending = true;
+        hal.util->snprintf(_telem.payload.bcast.flightmode.flight_mode, sizeof(AP_CRSF_Telem::FlightModeFrame), "%s", notify->get_flight_mode_str());
+        // Note: strlen(_telem.payload.bcast.flightmode.flight_mode) is safe because called on a guaranteed null terminated string
+        _telem.size = strlen(_telem.payload.bcast.flightmode.flight_mode) + 1; //send the terminator as well
+        _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_FLIGHT_MODE;
+        _telem.pending = true;
     }
 }
 
 // return device information about ArduPilot
 void AP_CRSF_Telem::calc_device_info() {
 #if !APM_BUILD_TYPE(APM_BUILD_UNKNOWN)
-    _telem.ext.info.destination = _param_request.origin;
-    _telem.ext.info.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
+    _telem.payload.ext.info.destination = _param_request.origin;
+    _telem.payload.ext.info.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
 
     const AP_FWVersion &fwver = AP::fwversion();
     // write out the name with version, max width is 60 - 18 = the meaning of life
     int32_t n = strlen(fwver.fw_short_string);
-    strncpy((char*)_telem.ext.info.payload, fwver.fw_short_string, 41);
+    strncpy((char*)_telem.payload.ext.info.payload, fwver.fw_short_string, 41);
     n = MIN(n + 1, 42);
 
-    put_be32_ptr(&_telem.ext.info.payload[n], // serial number
+    put_be32_ptr(&_telem.payload.ext.info.payload[n], // serial number
         uint32_t(fwver.major) << 24 | uint32_t(fwver.minor) << 16 | uint32_t(fwver.patch) << 8 | uint32_t(fwver.fw_type));
     n += 4;
-    put_be32_ptr(&_telem.ext.info.payload[n], // hardware id
+    put_be32_ptr(&_telem.payload.ext.info.payload[n], // hardware id
         uint32_t(fwver.vehicle_type) << 24 | uint32_t(fwver.board_type) << 16 | uint32_t(fwver.board_subtype));
     n += 4;
-    put_be32_ptr(&_telem.ext.info.payload[n], fwver.os_sw_version);   // software id
+    put_be32_ptr(&_telem.payload.ext.info.payload[n], fwver.os_sw_version);   // software id
     n += 4;
 #if OSD_PARAM_ENABLED
-    _telem.ext.info.payload[n++] = AP_OSD_ParamScreen::NUM_PARAMS * AP_OSD_NUM_PARAM_SCREENS; // param count
+    _telem.payload.ext.info.payload[n++] = AP_OSD_ParamScreen::NUM_PARAMS * AP_OSD_NUM_PARAM_SCREENS; // param count
 #else
-    _telem.ext.info.payload[n++] = 0; // param count
+    _telem.payload.ext.info.payload[n++] = 0; // param count
 #endif
-    _telem.ext.info.payload[n++] = 0;   // param version
+    _telem.payload.ext.info.payload[n++] = 0;   // param version
 
-    _telem_size = n + 2;
-    _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAM_DEVICE_INFO;
+    _telem.size = n + 2;
+    _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAM_DEVICE_INFO;
 
     _pending_request.frame_type = 0;
-    _telem_pending = true;
+    _telem.pending = true;
 #endif
 }
 
 // send a device ping
 void AP_CRSF_Telem::calc_device_ping() {
-    _telem.ext.ping.destination = _pending_request.destination;
-    _telem.ext.ping.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
-    _telem_size = 2;
-    _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAM_DEVICE_PING;
+    _telem.payload.ext.ping.destination = _pending_request.destination;
+    _telem.payload.ext.ping.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
+    _telem.size = 2;
+    _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAM_DEVICE_PING;
 
     _pending_request.destination = AP_RCProtocol_CRSF::CRSF_ADDRESS_BROADCAST;
     _pending_request.frame_type = 0;
 
-    _telem_pending = true;
+    _telem.pending = true;
 }
 
 // send a command response
 void AP_CRSF_Telem::calc_command_response() {
-    _telem.ext.command.destination = AP_RCProtocol_CRSF::CRSF_ADDRESS_CRSF_RECEIVER;
-    _telem.ext.command.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
-    _telem.ext.command.command_id = AP_RCProtocol_CRSF::CRSF_COMMAND_GENERAL;
-    _telem.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_GENERAL_CRSF_SPEED_RESPONSE;
-    _telem.ext.command.payload[1] = _baud_rate_request.port_id;
-    _telem.ext.command.payload[2] = _baud_rate_request.valid;
-    _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_COMMAND;
+    _telem.payload.ext.command.destination = AP_RCProtocol_CRSF::CRSF_ADDRESS_CRSF_RECEIVER;
+    _telem.payload.ext.command.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
+    _telem.payload.ext.command.command_id = AP_RCProtocol_CRSF::CRSF_COMMAND_GENERAL;
+    _telem.payload.ext.command.payload[0] = AP_RCProtocol_CRSF::CRSF_COMMAND_GENERAL_CRSF_SPEED_RESPONSE;
+    _telem.payload.ext.command.payload[1] = _baud_rate_request.port_id;
+    _telem.payload.ext.command.payload[2] = _baud_rate_request.valid;
+    _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_COMMAND;
 
     // calculate command crc
     uint8_t len = 6;
-    uint8_t* crcptr = &_telem.ext.command.destination;
+    uint8_t* crcptr = &_telem.payload.ext.command.destination;
     uint8_t crc = crc8_dvb(0, AP_RCProtocol_CRSF::CRSF_FRAMETYPE_COMMAND, 0xBA);
     for (uint8_t i = 0; i < len; i++) {
         crc = crc8_dvb(crc, crcptr[i], 0xBA);
     }
     crcptr[len] = crc;
-    _telem_size = len + 1;
+    _telem.size = len + 1;
 
     _pending_request.frame_type = 0;
     _baud_rate_request.pending = false;
 
     debug("sent baud rate response: %u", _baud_rate_request.valid);
-    _telem_pending = true;
+    _telem.pending = true;
 }
 
 // return parameter information
 void AP_CRSF_Telem::calc_parameter() {
 #if OSD_PARAM_ENABLED
-    _telem.ext.param_entry.header.destination = _param_request.origin;
-    _telem.ext.param_entry.header.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
+    _telem.payload.ext.param_entry.header.destination = _param_request.origin;
+    _telem.payload.ext.param_entry.header.origin = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;
     size_t idx = 0;
 
     // root folder request
     if (_param_request.param_num == 0) {
-        _telem.ext.param_entry.header.param_num = 0;
-        _telem.ext.param_entry.header.chunks_left = 0;
-        _telem.ext.param_entry.payload[idx++] = 0; // parent folder
-        _telem.ext.param_entry.payload[idx++] = ParameterType::FOLDER; // type
-        _telem.ext.param_entry.payload[idx++] = 'r'; // "root" name
-        _telem.ext.param_entry.payload[idx++] = 'o';
-        _telem.ext.param_entry.payload[idx++] = 'o';
-        _telem.ext.param_entry.payload[idx++] = 't';
-        _telem.ext.param_entry.payload[idx++] = 0; // null terminator
+        _telem.payload.ext.param_entry.header.param_num = 0;
+        _telem.payload.ext.param_entry.header.chunks_left = 0;
+        _telem.payload.ext.param_entry.payload[idx++] = 0; // parent folder
+        _telem.payload.ext.param_entry.payload[idx++] = ParameterType::FOLDER; // type
+        _telem.payload.ext.param_entry.payload[idx++] = 'r'; // "root" name
+        _telem.payload.ext.param_entry.payload[idx++] = 'o';
+        _telem.payload.ext.param_entry.payload[idx++] = 'o';
+        _telem.payload.ext.param_entry.payload[idx++] = 't';
+        _telem.payload.ext.param_entry.payload[idx++] = 0; // null terminator
 
         // write out all of the ids we are going to send
         for (uint8_t i = 0; i < AP_OSD_ParamScreen::NUM_PARAMS * AP_OSD_NUM_PARAM_SCREENS; i++) {
-            _telem.ext.param_entry.payload[idx++] = i + 1;
+            _telem.payload.ext.param_entry.payload[idx++] = i + 1;
         }
-        _telem.ext.param_entry.payload[idx] = 0xFF; // terminator
+        _telem.payload.ext.param_entry.payload[idx] = 0xFF; // terminator
 
-        _telem_size = sizeof(AP_CRSF_Telem::ParameterSettingsEntryHeader) + 1 + idx;
-        _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAMETER_SETTINGS_ENTRY;
+        _telem.size = sizeof(AP_CRSF_Telem::ParameterSettingsEntryHeader) + 1 + idx;
+        _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAMETER_SETTINGS_ENTRY;
         _pending_request.frame_type = 0;
-        _telem_pending = true;
+        _telem.pending = true;
         return;
     }
 
@@ -960,57 +995,57 @@ void AP_CRSF_Telem::calc_parameter() {
         return;
     }
 
-    _telem.ext.param_entry.header.param_num = _param_request.param_num;
+    _telem.payload.ext.param_entry.header.param_num = _param_request.param_num;
 #if HAL_CRSF_TELEM_TEXT_SELECTION_ENABLED
     if (param->get_custom_metadata() != nullptr) {
         calc_text_selection(param, _param_request.param_chunk);
         return;
     }
 #endif
-    _telem.ext.param_entry.header.chunks_left = 0;
-    _telem.ext.param_entry.payload[idx++] = 0; // parent folder
+    _telem.payload.ext.param_entry.header.chunks_left = 0;
+    _telem.payload.ext.param_entry.payload[idx++] = 0; // parent folder
     idx++;  // leave a gap for the type
-    param->copy_name_camel_case((char*)&_telem.ext.param_entry.payload[idx], 17);
-    idx += strnlen((char*)&_telem.ext.param_entry.payload[idx], 16) + 1;
+    param->copy_name_camel_case((char*)&_telem.payload.ext.param_entry.payload[idx], 17);
+    idx += strnlen((char*)&_telem.payload.ext.param_entry.payload[idx], 16) + 1;
 
     switch (param->_param_type) {
     case AP_PARAM_INT8: {
         AP_Int8* p = (AP_Int8*)param->_param;
-        _telem.ext.param_entry.payload[1] = ParameterType::INT8;
-        _telem.ext.param_entry.payload[idx] = p->get();  // value
-        _telem.ext.param_entry.payload[idx+1] = int8_t(param->_param_min);  // min
-        _telem.ext.param_entry.payload[idx+2] = int8_t(param->_param_max); // max
-        _telem.ext.param_entry.payload[idx+3] = int8_t(0);  // default
+        _telem.payload.ext.param_entry.payload[1] = ParameterType::INT8;
+        _telem.payload.ext.param_entry.payload[idx] = p->get();  // value
+        _telem.payload.ext.param_entry.payload[idx+1] = int8_t(param->_param_min);  // min
+        _telem.payload.ext.param_entry.payload[idx+2] = int8_t(param->_param_max); // max
+        _telem.payload.ext.param_entry.payload[idx+3] = int8_t(0);  // default
         idx += 4;
         break;
     }
     case AP_PARAM_INT16: {
         AP_Int16* p = (AP_Int16*)param->_param;
-        _telem.ext.param_entry.payload[1] = ParameterType::INT16;
-        put_be16_ptr(&_telem.ext.param_entry.payload[idx], p->get());  // value
-        put_be16_ptr(&_telem.ext.param_entry.payload[idx+2], param->_param_min);  // min
-        put_be16_ptr(&_telem.ext.param_entry.payload[idx+4], param->_param_max); // max
-        put_be16_ptr(&_telem.ext.param_entry.payload[idx+6], 0);  // default
+        _telem.payload.ext.param_entry.payload[1] = ParameterType::INT16;
+        put_be16_ptr(&_telem.payload.ext.param_entry.payload[idx], p->get());  // value
+        put_be16_ptr(&_telem.payload.ext.param_entry.payload[idx+2], param->_param_min);  // min
+        put_be16_ptr(&_telem.payload.ext.param_entry.payload[idx+4], param->_param_max); // max
+        put_be16_ptr(&_telem.payload.ext.param_entry.payload[idx+6], 0);  // default
         idx += 8;
         break;
     }
     case AP_PARAM_INT32: {
         AP_Int32* p = (AP_Int32*)param->_param;
-        _telem.ext.param_entry.payload[1] = ParameterType::FLOAT;
+        _telem.payload.ext.param_entry.payload[1] = ParameterType::FLOAT;
 #define FLOAT_ENCODE(f) (int32_t(roundf(f)))
-        put_be32_ptr(&_telem.ext.param_entry.payload[idx], p->get());  // value
-        put_be32_ptr(&_telem.ext.param_entry.payload[idx+4], FLOAT_ENCODE(param->_param_min));  // min
-        put_be32_ptr(&_telem.ext.param_entry.payload[idx+8], FLOAT_ENCODE(param->_param_max)); // max
-        put_be32_ptr(&_telem.ext.param_entry.payload[idx+12], FLOAT_ENCODE(0.0f));  // default
+        put_be32_ptr(&_telem.payload.ext.param_entry.payload[idx], p->get());  // value
+        put_be32_ptr(&_telem.payload.ext.param_entry.payload[idx+4], FLOAT_ENCODE(param->_param_min));  // min
+        put_be32_ptr(&_telem.payload.ext.param_entry.payload[idx+8], FLOAT_ENCODE(param->_param_max)); // max
+        put_be32_ptr(&_telem.payload.ext.param_entry.payload[idx+12], FLOAT_ENCODE(0.0f));  // default
 #undef FLOAT_ENCODE
-        _telem.ext.param_entry.payload[idx+16] = 0; // decimal point
-        put_be32_ptr(&_telem.ext.param_entry.payload[idx+17], 1);  // step size
+        _telem.payload.ext.param_entry.payload[idx+16] = 0; // decimal point
+        put_be32_ptr(&_telem.payload.ext.param_entry.payload[idx+17], 1);  // step size
         idx += 21;
         break;
     }
     case AP_PARAM_FLOAT: {
         AP_Float* p = (AP_Float*)param->_param;
-        _telem.ext.param_entry.payload[1] = ParameterType::FLOAT;
+        _telem.payload.ext.param_entry.payload[1] = ParameterType::FLOAT;
         uint8_t digits = 0;
         const float incr = MAX(0.001f, param->_param_incr); // a bug in OpenTX prevents this going any smaller
 
@@ -1019,12 +1054,12 @@ void AP_CRSF_Telem::calc_parameter() {
         }
         const float mult = powf(10, digits);
 #define FLOAT_ENCODE(f) (int32_t(roundf(mult * f)))
-        put_be32_ptr(&_telem.ext.param_entry.payload[idx], FLOAT_ENCODE(p->get()));  // value
-        put_be32_ptr(&_telem.ext.param_entry.payload[idx+4], FLOAT_ENCODE(param->_param_min));  // min
-        put_be32_ptr(&_telem.ext.param_entry.payload[idx+8], FLOAT_ENCODE(param->_param_max)); // max
-        put_be32_ptr(&_telem.ext.param_entry.payload[idx+12], FLOAT_ENCODE(0.0f));  // default
-        _telem.ext.param_entry.payload[idx+16] = digits; // decimal point
-        put_be32_ptr(&_telem.ext.param_entry.payload[idx+17], FLOAT_ENCODE(incr));  // step size
+        put_be32_ptr(&_telem.payload.ext.param_entry.payload[idx], FLOAT_ENCODE(p->get()));  // value
+        put_be32_ptr(&_telem.payload.ext.param_entry.payload[idx+4], FLOAT_ENCODE(param->_param_min));  // min
+        put_be32_ptr(&_telem.payload.ext.param_entry.payload[idx+8], FLOAT_ENCODE(param->_param_max)); // max
+        put_be32_ptr(&_telem.payload.ext.param_entry.payload[idx+12], FLOAT_ENCODE(0.0f));  // default
+        _telem.payload.ext.param_entry.payload[idx+16] = digits; // decimal point
+        put_be32_ptr(&_telem.payload.ext.param_entry.payload[idx+17], FLOAT_ENCODE(incr));  // step size
 #undef FLOAT_ENCODE
         //debug("Encoding param %f(%f -> %f, %f) as %d(%d) (%d -> %d, %d)", p->get(),
         //    param->_param_min.get(), param->_param_max.get(), param->_param_incr.get(),
@@ -1036,13 +1071,13 @@ void AP_CRSF_Telem::calc_parameter() {
     default:
         return;
     }
-    _telem.ext.param_entry.payload[idx] = 0; // units
+    _telem.payload.ext.param_entry.payload[idx] = 0; // units
 
-    _telem_size = sizeof(AP_CRSF_Telem::ParameterSettingsEntryHeader) + 1 + idx;
-    _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAMETER_SETTINGS_ENTRY;
+    _telem.size = sizeof(AP_CRSF_Telem::ParameterSettingsEntryHeader) + 1 + idx;
+    _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAMETER_SETTINGS_ENTRY;
 
     _pending_request.frame_type = 0;
-    _telem_pending = true;
+    _telem.pending = true;
 #endif
 }
 
@@ -1138,7 +1173,7 @@ void AP_CRSF_Telem::calc_text_selection(AP_OSD_ParamSetting* param, uint8_t chun
     const AP_OSD_ParamSetting::ParamMetadata* metadata = param->get_custom_metadata();
 
     // chunk the output
-    BufferChunker chunker(_telem.ext.param_entry.payload, CHUNK_SIZE, chunk);
+    BufferChunker chunker(_telem.payload.ext.param_entry.payload, CHUNK_SIZE, chunk);
 
     chunker.put_byte(0);  // parent folder
     chunker.put_byte(ParameterType::TEXT_SELECTION);  // parameter type
@@ -1185,13 +1220,13 @@ void AP_CRSF_Telem::calc_text_selection(AP_OSD_ParamSetting* param, uint8_t chun
     chunker.put_byte(0);  // default
     chunker.put_byte(0); // units
 
-    _telem.ext.param_entry.header.chunks_left = chunker.chunks_remaining();
+    _telem.payload.ext.param_entry.header.chunks_left = chunker.chunks_remaining();
 
-    _telem_size = sizeof(AP_CRSF_Telem::ParameterSettingsEntryHeader) + chunker.bytes_written();
-    _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAMETER_SETTINGS_ENTRY;
+    _telem.size = sizeof(AP_CRSF_Telem::ParameterSettingsEntryHeader) + chunker.bytes_written();
+    _telem.type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAMETER_SETTINGS_ENTRY;
 
     _pending_request.frame_type = 0;
-    _telem_pending = true;
+    _telem.pending = true;
 }
 #endif
 
@@ -1272,7 +1307,7 @@ void AP_CRSF_Telem::calc_status_text()
     if (!_statustext.available) {
         WITH_SEMAPHORE(_statustext.sem);
         // check link speed
-        if (!is_high_speed_telemetry(_telem_rf_mode)) {
+        if (!_crsf_version.is_elrs && !is_high_speed_telemetry(_telem.rf_mode)) {
             // keep only warning/error/critical/alert/emergency status text messages
             bool got_message = false;
             while (_statustext.queue.pop(_statustext.next)) {
@@ -1290,15 +1325,15 @@ void AP_CRSF_Telem::calc_status_text()
         _statustext.available = true;
     }
 
-    _telem_type = get_custom_telem_frame_id();
-    _telem.bcast.custom_telem.status_text.sub_type = AP_RCProtocol_CRSF::CustomTelemSubTypeID::CRSF_AP_CUSTOM_TELEM_STATUS_TEXT;
-    _telem.bcast.custom_telem.status_text.severity = _statustext.next.severity;
+    _telem.type = get_custom_telem_frame_id();
+    _telem.payload.bcast.custom_telem.status_text.sub_type = AP_RCProtocol_CRSF::CustomTelemSubTypeID::CRSF_AP_CUSTOM_TELEM_STATUS_TEXT;
+    _telem.payload.bcast.custom_telem.status_text.severity = _statustext.next.severity;
     // Note: snprintf() always terminates the string
-    hal.util->snprintf(_telem.bcast.custom_telem.status_text.text, AP_CRSF_Telem::PASSTHROUGH_STATUS_TEXT_FRAME_MAX_SIZE, "%s", _statustext.next.text);
+    hal.util->snprintf(_telem.payload.bcast.custom_telem.status_text.text, AP_CRSF_Telem::PASSTHROUGH_STATUS_TEXT_FRAME_MAX_SIZE, "%s", _statustext.next.text);
     // frame size = sub_type(1) + severity(1) + strlen(text) + terminator
-    // Note: strlen(_telem.bcast.custom_telem.status_text.text) is safe because called on a guaranteed null terminated string
-    _telem_size = 2 + strlen(_telem.bcast.custom_telem.status_text.text) + 1;
-    _telem_pending = true;
+    // Note: strlen(_telem.payload.bcast.custom_telem.status_text.text) is safe because called on a guaranteed null terminated string
+    _telem.size = 2 + strlen(_telem.payload.bcast.custom_telem.status_text.text) + 1;
+    _telem.pending = true;
     _statustext.available = false;
 }
 
@@ -1307,18 +1342,18 @@ void AP_CRSF_Telem::calc_status_text()
 */
 void AP_CRSF_Telem::get_single_packet_passthrough_telem_data()
 {
-    _telem_pending = false;
+    _telem.pending = false;
     uint8_t packet_count;
     AP_Frsky_SPort::sport_packet_t packet;
     if (!AP_Frsky_Telem::get_telem_data(&packet, packet_count, 1)) {
         return;
     }
-    _telem.bcast.custom_telem.single_packet_passthrough.sub_type = AP_RCProtocol_CRSF::CustomTelemSubTypeID::CRSF_AP_CUSTOM_TELEM_SINGLE_PACKET_PASSTHROUGH;
-    _telem.bcast.custom_telem.single_packet_passthrough.appid = packet.appid;
-    _telem.bcast.custom_telem.single_packet_passthrough.data = packet.data;
-    _telem_size = sizeof(AP_CRSF_Telem::PassthroughSinglePacketFrame);
-    _telem_type = get_custom_telem_frame_id();
-    _telem_pending = true;
+    _telem.payload.bcast.custom_telem.single_packet_passthrough.sub_type = AP_RCProtocol_CRSF::CustomTelemSubTypeID::CRSF_AP_CUSTOM_TELEM_SINGLE_PACKET_PASSTHROUGH;
+    _telem.payload.bcast.custom_telem.single_packet_passthrough.appid = packet.appid;
+    _telem.payload.bcast.custom_telem.single_packet_passthrough.data = packet.data;
+    _telem.size = sizeof(AP_CRSF_Telem::PassthroughSinglePacketFrame);
+    _telem.type = get_custom_telem_frame_id();
+    _telem.pending = true;
 }
 
 /*
@@ -1327,24 +1362,25 @@ void AP_CRSF_Telem::get_single_packet_passthrough_telem_data()
  whenever possible we use smaller frames for they have a higher "chance"
  of being transmitted by the crossfire RX scheduler.
 */
-void AP_CRSF_Telem::get_multi_packet_passthrough_telem_data()
+void AP_CRSF_Telem::get_multi_packet_passthrough_telem_data(uint8_t size)
 {
-    _telem_pending = false;
+    size = MIN(size, PASSTHROUGH_MULTI_PACKET_FRAME_MAX_SIZE);
+    _telem.pending = false;
     uint8_t count = 0;
     AP_Frsky_SPort::sport_packet_t buffer[PASSTHROUGH_MULTI_PACKET_FRAME_MAX_SIZE] {};
     // we request a PASSTHROUGH_MULTI_PACKET_FRAME_MAX_SIZE packet array, i.e. 9 packets
-    if (!AP_Frsky_Telem::get_telem_data(buffer, count, ARRAY_SIZE(buffer))) {
+    if (!AP_Frsky_Telem::get_telem_data(buffer, count, size)) {
         return;
     }
-    _telem.bcast.custom_telem.multi_packet_passthrough.sub_type = AP_RCProtocol_CRSF::CustomTelemSubTypeID::CRSF_AP_CUSTOM_TELEM_MULTI_PACKET_PASSTHROUGH;
+    _telem.payload.bcast.custom_telem.multi_packet_passthrough.sub_type = AP_RCProtocol_CRSF::CustomTelemSubTypeID::CRSF_AP_CUSTOM_TELEM_MULTI_PACKET_PASSTHROUGH;
     for (uint8_t idx=0; idx<count; idx++) {
-        _telem.bcast.custom_telem.multi_packet_passthrough.frames[idx].appid = buffer[idx].appid;
-        _telem.bcast.custom_telem.multi_packet_passthrough.frames[idx].data = buffer[idx].data;
+        _telem.payload.bcast.custom_telem.multi_packet_passthrough.packets[idx].appid = buffer[idx].appid;
+        _telem.payload.bcast.custom_telem.multi_packet_passthrough.packets[idx].data = buffer[idx].data;
     }
-    _telem.bcast.custom_telem.multi_packet_passthrough.size = count;
-    _telem_size = sizeof(AP_CRSF_Telem::PassthroughMultiPacketFrame);
-    _telem_type = get_custom_telem_frame_id();
-    _telem_pending = true;
+    _telem.payload.bcast.custom_telem.multi_packet_passthrough.size = count;
+    _telem.size = 2 + sizeof(AP_CRSF_Telem::PassthroughMultiPacketFrame::PassthroughTelemetryPacket)*count; //subtype + size + 6*count
+    _telem.type = get_custom_telem_frame_id();
+    _telem.pending = true;
 }
 
 /*
@@ -1354,15 +1390,15 @@ bool AP_CRSF_Telem::_get_telem_data(AP_RCProtocol_CRSF::Frame* data)
 {
     memset(&_telem, 0, sizeof(TelemetryPayload));
     run_wfq_scheduler();
-    if (!_telem_pending) {
+    if (!_telem.pending) {
         return false;
     }
-    memcpy(data->payload, &_telem, _telem_size);
+    memcpy(data->payload, &_telem, _telem.size);
     data->device_address = AP_RCProtocol_CRSF::CRSF_ADDRESS_FLIGHT_CONTROLLER;  // sync byte
-    data->length = _telem_size + 2;
-    data->type = _telem_type;
+    data->length = _telem.size + 2;
+    data->type = _telem.type;
 
-    _telem_pending = false;
+    _telem.pending = false;
     return true;
 }
 
