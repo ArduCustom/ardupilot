@@ -26,7 +26,7 @@ const AP_Param::GroupInfo AP_PitchController::var_info[] = {
 
     // @Param: 2SRV_TCONST
 	// @DisplayName: Pitch Time Constant
-	// @Description: Time constant in seconds from demanded to achieved pitch angle. Most models respond well to 0.5. May be reduced for faster responses, but setting lower than a model can achieve will not help.
+	// @Description: Time constant in seconds from demanded to achieved pitch angle in all angle control modes (all but MANUAL and ACRO). Most models respond well to 0.5. May be reduced for faster responses, but setting lower than a model can achieve will not help.
 	// @Range: 0.4 1.0
 	// @Units: s
 	// @Increment: 0.1
@@ -37,7 +37,7 @@ const AP_Param::GroupInfo AP_PitchController::var_info[] = {
 
     // @Param: 2SRV_RMAX_UP
 	// @DisplayName: Pitch up max rate
-	// @Description: Maximum pitch up rate that the pitch controller demands (degrees/sec) in ACRO mode.
+	// @Description: Maximum pitch up rate that the pitch controller demands (degrees/sec) in angle control modes (all but MANUAL and ACRO).
 	// @Range: 0 100
 	// @Units: deg/s
 	// @Increment: 1
@@ -46,7 +46,7 @@ const AP_Param::GroupInfo AP_PitchController::var_info[] = {
 
     // @Param: 2SRV_RMAX_DN
 	// @DisplayName: Pitch down max rate
-	// @Description: This sets the maximum nose down pitch rate that the controller will demand (degrees/sec). Setting it to zero disables the limit.
+	// @Description: This sets the maximum nose down pitch rate that the controller will demand (degrees/sec) in angle control modes (all but MANUAL and ACRO). Setting it to zero disables the limit.
 	// @Range: 0 100
 	// @Units: deg/s
 	// @Increment: 1
