@@ -26,7 +26,7 @@ extern const AP_HAL::HAL& hal;
 const AP_Param::GroupInfo AP_RollController::var_info[] = {
     // @Param: 2SRV_TCONST
     // @DisplayName: Roll Time Constant
-    // @Description: Time constant in seconds from demanded to achieved roll angle. Most models respond well to 0.5. May be reduced for faster responses, but setting lower than a model can achieve will not help.
+    // @Description: Time constant in seconds from demanded to achieved roll angle in angle control modes (all but MANUAL and ACRO). Most models respond well to 0.5. May be reduced for faster responses, but setting lower than a model can achieve will not help.
     // @Range: 0.4 1.0
     // @Units: s
     // @Increment: 0.1
@@ -37,7 +37,7 @@ const AP_Param::GroupInfo AP_RollController::var_info[] = {
 
     // @Param: 2SRV_RMAX
     // @DisplayName: Maximum Roll Rate
-    // @Description: This sets the maximum roll rate that the attitude controller will demand (degrees/sec) in angle stabilized modes. Setting it to zero disables this limit.
+    // @Description: This sets the maximum roll rate that the attitude controller will demand (degrees/sec) in angle stabilized modes (all but MANUAL and ACRO). Setting it to zero disables this limit.
     // @Range: 0 180
     // @Units: deg/s
     // @Increment: 1
