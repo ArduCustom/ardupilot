@@ -431,6 +431,8 @@ void Copter::rc_loop()
 // ---------------------------
 void Copter::throttle_loop()
 {
+    osd.set_rc_throttle(channel_throttle->get_control_in() / 10.0f);
+
     // update throttle_low_comp value (controls priority of throttle vs attitude control)
     update_throttle_mix();
 
