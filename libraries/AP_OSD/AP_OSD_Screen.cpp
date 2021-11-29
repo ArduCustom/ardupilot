@@ -1088,6 +1088,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(energy, "ENERGY", 63, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: RC_THR_EN
+    // @DisplayName: RC_THR_EN
+    // @Description: Displays input throttle value (plane only)
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: RC_THR_X
+    // @DisplayName: RC_THR_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: RC_THR_Y
+    // @DisplayName: RC_THR_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(rc_throttle, "RC_THR", 62, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -1683,11 +1699,10 @@ void AP_OSD_Screen::draw_heading(uint8_t x, uint8_t y)
     backend->write(x, y, false, "%3d%c", yaw, SYMBOL(SYM_DEGR));
 }
 
-void AP_OSD_Screen::draw_throttle(uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_throttle_value(uint8_t x, uint8_t y, float throttle_v)
 {
     const char *format;
     uint8_t spaces;
-    float throttle_v = gcs().get_hud_throttle();
     float throttle_abs = fabsf(throttle_v);
     if (osd->options & AP_OSD::OPTION_ONE_DECIMAL_THROTTLE) {
         if (throttle_abs < 9.95) {
@@ -1716,6 +1731,11 @@ void AP_OSD_Screen::draw_throttle(uint8_t x, uint8_t y)
         spaces -= 1;
     }
     backend->write(x + spaces, y, false, format, throttle_v, SYMBOL(SYM_PCNT));
+}
+
+void AP_OSD_Screen::draw_throttle(uint8_t x, uint8_t y)
+{
+    draw_throttle_value(x, y, gcs().get_hud_throttle());
 }
 
 #if HAL_OSD_SIDEBAR_ENABLE
@@ -2332,6 +2352,10 @@ void AP_OSD_Screen::draw_rngf(uint8_t x, uint8_t y)
     }
 }
 
+void AP_OSD_Screen::draw_rc_throttle(uint8_t x, uint8_t y) {
+    draw_throttle_value(x, y, osd->rc_throttle);
+}
+
 #define DRAW_SETTING(n) if (n.enabled) draw_ ## n(n.xpos, n.ypos)
 
 #if HAL_WITH_OSD_BITMAP || HAL_WITH_MSP_DISPLAYPORT
@@ -2414,6 +2438,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(eff);
     DRAW_SETTING(callsign);
     DRAW_SETTING(current2);
+    DRAW_SETTING(rc_throttle);
 }
 #endif
 #endif // OSD_ENABLED
