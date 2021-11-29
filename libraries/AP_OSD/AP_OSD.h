@@ -207,6 +207,7 @@ private:
     AP_OSD_Setting sidebars{false, 4, 5};
     AP_OSD_Setting power{true, 1, 1};
     AP_OSD_Setting energy{false, 0, 0};
+    AP_OSD_Setting rc_throttle{false, 0, 0};
 
     // MSP OSD only
     AP_OSD_Setting crosshair{false, 0, 0};
@@ -235,6 +236,7 @@ private:
     void draw_horizon(uint8_t x, uint8_t y);
     void draw_home(uint8_t x, uint8_t y);
     void draw_throttle(uint8_t x, uint8_t y);
+    void draw_throttle_value(uint8_t x, uint8_t y, float throttle_v);
     void draw_heading(uint8_t x, uint8_t y);
 #ifdef HAL_OSD_SIDEBAR_ENABLE
     void draw_sidebars(uint8_t x, uint8_t y);
@@ -286,6 +288,7 @@ private:
     void draw_hgt_abvterr(uint8_t x, uint8_t y);
     void draw_fence(uint8_t x, uint8_t y);
     void draw_rngf(uint8_t x, uint8_t y);
+    void draw_rc_throttle(uint8_t x, uint8_t y);
 
 
     struct {
@@ -566,6 +569,8 @@ public:
         _disable = false;
     }
 
+    void set_rc_throttle(float value) { rc_throttle = value; }
+
     AP_OSD_AbstractScreen& get_screen(uint8_t idx) {
 #if OSD_PARAM_ENABLED
         if (idx >= AP_OSD_NUM_DISPLAY_SCREENS) {
@@ -630,6 +635,9 @@ private:
     float avg_current_a;
     float avg_power_w;
 #endif
+
+    float rc_throttle;
+
     AP_OSD_Backend *backend;
 
     static AP_OSD *_singleton;
