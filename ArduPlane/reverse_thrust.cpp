@@ -135,6 +135,7 @@ float Plane::get_throttle_input(bool no_deadzone) const
         // RC option for reverse throttle has been set
         ret = -ret;
     }
+    plane.osd.set_rc_throttle(ret);
     return ret;
 }
 
