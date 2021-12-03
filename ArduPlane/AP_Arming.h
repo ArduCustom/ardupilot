@@ -1,6 +1,7 @@
 #pragma once
 
 #include <AP_Arming/AP_Arming.h>
+#include "mode.h"
 
 /*
   a plane specific arming class
@@ -23,11 +24,15 @@ public:
     // var_info for holding Parameter information
     static const struct AP_Param::GroupInfo var_info[];
 
+    void disarm_if_requested();
     bool disarm(AP_Arming::Method method, bool do_disarm_checks=true) override;
     bool arm(AP_Arming::Method method, bool do_arming_checks=true) override;
 
     void update_soft_armed();
     bool get_delay_arming() const { return delay_arming; };
+
+    void set_throttle_cut(bool status);
+    bool get_throttle_cut() const { return throttle_cut; };
 
 protected:
     bool ins_checks(bool report) override;
@@ -38,6 +43,12 @@ protected:
 
 private:
     void change_arm_state(void);
+
+    // throttle cut when trying to disarm but the plane is still flying
+    bool throttle_cut = false;
+
+    // mode the plane was in when throttle cut was enabled
+    Mode *throttle_cut_prev_mode;
 
     // oneshot with duration AP_ARMING_DELAY_MS used by quadplane to delay spoolup after arming:
     // ignored unless OPTION_DELAY_ARMING or OPTION_TILT_DISARMED is set

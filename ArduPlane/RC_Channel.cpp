@@ -51,6 +51,22 @@ void RC_Channel_Plane::do_aux_function_change_mode(const Mode::Number number,
     }
 }
 
+void RC_Channel_Plane::do_aux_function_armdisarm(const AuxSwitchPos ch_flag)
+{
+    // arm or disarm the vehicle
+    switch (ch_flag) {
+    case AuxSwitchPos::HIGH:
+        plane.arming.arm(AP_Arming::Method::AUXSWITCH, true);
+        break;
+    case AuxSwitchPos::MIDDLE:
+        // nothing
+        break;
+    case AuxSwitchPos::LOW:
+        plane.arming.disarm(AP_Arming::Method::AUXSWITCH , true);
+        break;
+    }
+}
+
 #if HAL_QUADPLANE_ENABLED
 void RC_Channel_Plane::do_aux_function_q_assist_state(AuxSwitchPos ch_flag)
 {
@@ -401,6 +417,10 @@ bool RC_Channel_Plane::do_aux_function(const aux_func_t ch_option, const AuxSwit
 
     case AUX_FUNC::FW_AUTOTUNE:
         plane.autotune_enable(ch_flag == AuxSwitchPos::HIGH);
+        break;
+
+    case AUX_FUNC::ARMDISARM:
+        do_aux_function_armdisarm(ch_flag);
         break;
 
     default:
