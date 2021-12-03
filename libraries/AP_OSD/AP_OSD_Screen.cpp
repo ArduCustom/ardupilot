@@ -1493,13 +1493,14 @@ void AP_OSD_Screen::draw_fltmode(uint8_t x, uint8_t y)
 {
     AP_Notify * notify = AP_Notify::get_singleton();
     char arm;
-    if (AP_Notify::flags.armed) {
+    if (AP_Notify::flags.armed && !AP_Notify::flags.throttle_cut) {
         arm = SYMBOL(SYM_ARMED);
     } else {
         arm = SYMBOL(SYM_DISARMED);
     }
     if (notify) {
-        backend->write(x, y, false, "%s%c", notify->get_flight_mode_str(), arm);
+        backend->write(x, y, false, "%s", notify->get_flight_mode_str());
+        backend->write(x+4, y, AP_Notify::flags.throttle_cut, "%c", arm);
     }
 }
 
@@ -1746,7 +1747,7 @@ void AP_OSD_Screen::draw_throttle_value(uint8_t x, uint8_t y, float throttle_v)
     if (signbit(throttle_v)) {
         spaces -= 1;
     }
-    backend->write(x + spaces, y, false, format, throttle_v, SYMBOL(SYM_PCNT));
+    backend->write(x + spaces, y, AP_Notify::flags.throttle_cut, format, throttle_v, SYMBOL(SYM_PCNT));
 }
 
 void AP_OSD_Screen::draw_throttle(uint8_t x, uint8_t y)

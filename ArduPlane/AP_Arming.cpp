@@ -298,6 +298,15 @@ void AP_Arming_Plane::change_arm_state(void)
 
 bool AP_Arming_Plane::arm(const AP_Arming::Method method, const bool do_arming_checks)
 {
+    if (throttle_cut) {
+        if (throttle_cut_prev_mode && plane.control_mode == &plane.mode_fbwa) {
+            plane.set_mode(*throttle_cut_prev_mode, ModeReason::RC_COMMAND);
+        }
+        set_throttle_cut(false);
+        gcs().send_text(MAV_SEVERITY_INFO , "Rearmed");
+        return true;
+    }
+
     if (!AP_Arming::arm(method, do_arming_checks)) {
         return false;
     }
@@ -312,26 +321,47 @@ bool AP_Arming_Plane::arm(const AP_Arming::Method method, const bool do_arming_c
     return true;
 }
 
+void AP_Arming_Plane::set_throttle_cut(bool status)
+{
+    throttle_cut = status;
+    AP_Notify::flags.throttle_cut = status;
+}
+
 /*
   disarm motors
  */
 bool AP_Arming_Plane::disarm(const AP_Arming::Method method, bool do_disarm_checks)
 {
-    if (do_disarm_checks &&
-        (method == AP_Arming::Method::MAVLINK ||
-         method == AP_Arming::Method::RUDDER)) {
+    if (do_disarm_checks) {
+
+        // don't allow disarming in flight, cut the throttle instead and change mode to FBWA if in auto throttle mode
+#if CONFIG_HAL_BOARD != HAL_BOARD_SITL
         if (plane.is_flying()) {
-            // don't allow mavlink or rudder disarm while flying
+            if (method == AP_Arming::Method::AUXSWITCH) {
+                set_throttle_cut(true);
+                if (plane.control_mode->does_auto_throttle()) {
+                    throttle_cut_prev_mode = plane.control_mode;
+                    plane.set_mode(plane.mode_fbwa, ModeReason::RC_COMMAND);
+                } else {
+                    throttle_cut_prev_mode = NULL;
+                }
+                gcs().send_text(MAV_SEVERITY_INFO , "Throttle cut by arm switch");
+            }
+            // obviously this could happen in-flight so we can't warn about it
             return false;
         }
-    }
-    
-    if (do_disarm_checks && method == AP_Arming::Method::RUDDER) {
+#else
+        if (plane.is_flying() && (method == AP_Arming::Method::RUDDER || method == AP_Arming::Method::MAVLINK)) {
+            return false;
+        }
+#endif
+
         // option must be enabled:
-        if (get_rudder_arming_type() != AP_Arming::RudderArming::ARMDISARM) {
+        if (method == AP_Arming::Method::RUDDER && get_rudder_arming_type() != AP_Arming::RudderArming::ARMDISARM) {
             gcs().send_text(MAV_SEVERITY_INFO, "Rudder disarm: disabled");
             return false;
         }
+
     }
 
     if (!AP_Arming::disarm(method, do_disarm_checks)) {
@@ -354,6 +384,7 @@ bool AP_Arming_Plane::disarm(const AP_Arming::Method method, bool do_disarm_chec
 
     //only log if disarming was successful
     change_arm_state();
+    set_throttle_cut(false);
 
 #if QAUTOTUNE_ENABLED
     //save qautotune gains if enabled and success
@@ -371,6 +402,13 @@ bool AP_Arming_Plane::disarm(const AP_Arming::Method method, bool do_disarm_chec
     gcs().send_text(MAV_SEVERITY_INFO, "Throttle disarmed");
 
     return true;
+}
+
+void AP_Arming_Plane::disarm_if_requested()
+{
+    if (throttle_cut) {
+        disarm(AP_Arming::Method::AUXSWITCH, false);
+    }
 }
 
 void AP_Arming_Plane::update_soft_armed()
