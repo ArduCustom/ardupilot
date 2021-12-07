@@ -536,9 +536,6 @@ void Plane::set_servos_controlled(void)
         min_throttle = 0;
     }
 
-    // conpensate for battery voltage drop
-    throttle_voltage_comp(min_throttle, max_throttle);
-
     // apply watt limiter
     throttle_watt_limiter(min_throttle, max_throttle);
 
@@ -612,6 +609,9 @@ void Plane::set_servos_controlled(void)
             plane.ahrs.set_takeoff_expected(true);
         }
     }
+
+    // conpensate for battery voltage drop
+    throttle_voltage_comp(min_throttle, max_throttle);
 }
 
 /*
