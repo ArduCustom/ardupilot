@@ -237,6 +237,8 @@ void Plane::calc_airspeed_errors()
     // Apply airspeed limit
     target_airspeed_cm = constrain_int32(target_airspeed_cm, aparm.airspeed_min*100, aparm.airspeed_max*100);
 
+    notify.set_plane_demanded_airspeed(target_airspeed_cm * 0.01f);
+
     // use the TECS view of the target airspeed for reporting, to take
     // account of the landing speed
     airspeed_error = TECS_controller.get_target_airspeed() - airspeed_measured;
