@@ -1088,21 +1088,21 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(energy, "ENERGY", 63, AP_OSD_Screen, AP_OSD_Setting),
 
-    // @Param: RC_THROTTLE_EN
-    // @DisplayName: RC_THROTTLE_EN
+    // @Param: RC_THR_EN
+    // @DisplayName: RC_THR_EN
     // @Description: Displays input throttle value (plane only)
     // @Values: 0:Disabled,1:Enabled
 
-    // @Param: RC_THROTTLE_X
-    // @DisplayName: RC_THROTTLE_X
+    // @Param: RC_THR_X
+    // @DisplayName: RC_THR_X
     // @Description: Horizontal position on screen
     // @Range: 0 29
 
-    // @Param: RC_THROTTLE_Y
-    // @DisplayName: RC_THROTTLE_Y
+    // @Param: RC_THR_Y
+    // @DisplayName: RC_THR_Y
     // @Description: Vertical position on screen
     // @Range: 0 15
-    AP_SUBGROUPINFO(rc_throttle, "RC_THR", 3, AP_OSD_Screen, AP_OSD_Setting),
+    AP_SUBGROUPINFO(rc_throttle, "RC_THR", 62, AP_OSD_Screen, AP_OSD_Setting),
 
     AP_GROUPEND
 };
