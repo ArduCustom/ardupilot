@@ -330,6 +330,14 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Standard
     ASCALAR(throttle_max,           "THR_MAX",        THROTTLE_MAX),
 
+    // @Param: THR_DZ
+    // @DisplayName: Throttle deadzone
+    // @Description: No command will be applied to the throttle ESC or servo unless the command is at least this value
+    // @Units: %
+    // @Range: 0 100
+    // @User: Advanced
+    GSCALAR(throttle_dz,            "THR_DZ",   4),
+
     // @Param: TKOFF_THR_MAX
     // @DisplayName: Maximum Throttle for takeoff
     // @Description: The maximum throttle setting during automatic takeoff. If this is zero then THR_MAX is used for takeoff as well.
@@ -1359,7 +1367,6 @@ static const AP_Param::ConversionInfo conversion_table[] = {
     { Parameters::k_param_land_flap_percent,  0,      AP_PARAM_INT8,  "LAND_FLAP_PERCENT" },
 
     // battery failsafes
-    { Parameters::k_param_fs_batt_voltage,    0,      AP_PARAM_FLOAT, "BATT_LOW_VOLT" },
     { Parameters::k_param_fs_batt_mah,        0,      AP_PARAM_FLOAT, "BATT_LOW_MAH" },
 
     { Parameters::k_param_arming,             3,      AP_PARAM_INT8,  "ARMING_RUDDER" },
