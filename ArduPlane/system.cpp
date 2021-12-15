@@ -300,6 +300,9 @@ bool Plane::set_mode(Mode &new_mode, const ModeReason reason)
     if (reason != ModeReason::INITIALISED) {
         AP_Notify::events.user_mode_change = 1;
     }
+
+    AP_Notify::flags.plane_auto_throttle = control_mode->does_auto_throttle();
+
     return true;
 }
 
