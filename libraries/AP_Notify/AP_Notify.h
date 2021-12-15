@@ -115,6 +115,7 @@ public:
         bool video_recording;     // true when the vehicle is recording video
         bool temp_cal_running;    // true if a temperature calibration is running
         bool throttle_cut;        // true if the throttle has been cut by an attempt to disarm with aux channel while flying
+        bool plane_auto_throttle; // true if the plane is in an auto throttle mode
     };
 
     /// notify_events_type - bitmask of active events.
@@ -176,6 +177,10 @@ public:
     void set_flight_mode_str(const char *str);
     const char* get_flight_mode_str() const { return _flight_mode_str; }
 
+    // get/set plane demanded airspeed
+    void set_plane_demanded_airspeed(const float aspd) { _plane_arsp_dem = aspd; }
+    float get_plane_demanded_airspeed(void) { return _plane_arsp_dem; }
+
     // send text to display
     void send_text(const char *str);
     const char* get_text() const { return _send_text; }
@@ -216,6 +221,8 @@ private:
     char _send_text[NOTIFY_TEXT_BUFFER_SIZE];
     uint32_t _send_text_updated_millis; // last time text changed
     char _flight_mode_str[5];
+
+    float _plane_arsp_dem; // plane demanded airspeed if in auto throttle mode
 
     static NotifyDevice* _devices[];
     static uint8_t _num_devices;
