@@ -28,7 +28,7 @@ const AP_Param::GroupInfo AP_TECS::var_info[] = {
 
     // @Param: SINK_MIN
     // @DisplayName: Minimum Sink Rate (metres/sec)
-    // @Description: Minimum sink rate when at THR_MIN and TRIM_ARSPD_CM.
+    // @Description: Minimum sink rate when at THR_MIN (or zero throttle when THR_MIN < 0) and TRIM_ARSPD_CM.
     // @Increment: 0.1
     // @Range: 0.1 10.0
     // @User: Standard
@@ -108,7 +108,7 @@ const AP_Param::GroupInfo AP_TECS::var_info[] = {
 
     // @Param: SINK_MAX
     // @DisplayName: Maximum Descent Rate (metres/sec)
-    // @Description: Maximum demanded descent rate. Do not set higher than the vertical speed the aircraft can maintain at THR_MIN, TECS_PITCH_MIN, and ARSPD_FBW_MAX.
+    // @Description: Maximum demanded descent rate. Do not set higher than the vertical speed the aircraft can maintain at THR_MIN (or zero throttle when THR_MIN < 0), TECS_PITCH_MIN, and ARSPD_FBW_MAX.
     // @Increment: 0.1
     // @Range: 0.0 20.0
     // @User: Standard
@@ -644,7 +644,7 @@ void AP_TECS::_update_throttle_with_airspeed(void)
     } else {
         // Calculate gain scaler from specific energy error to throttle
         // (_STEdot_max - _STEdot_min) / (_THRmaxf - _THRminf) is the derivative of STEdot wrt throttle measured across the max allowed throttle range.
-        float K_STE2Thr = 1 / (timeConstant() * (_STEdot_max - _STEdot_min) / (_THRmaxf - _THRminf));
+        float K_STE2Thr = 1 / (timeConstant() * (_STEdot_max - _STEdot_min) / (_THRmaxf - _THRminf_clipped_to_zero));
 
         // Calculate feed-forward throttle
         float ff_throttle = 0;
@@ -655,7 +655,7 @@ void AP_TECS::_update_throttle_with_airspeed(void)
         // drag increase during turns.
         float cosPhi = sqrtf((rotMat.a.y*rotMat.a.y) + (rotMat.b.y*rotMat.b.y));
         STEdot_dem = STEdot_dem + _rollComp * (1.0f/constrain_float(cosPhi * cosPhi, 0.1f, 1.0f) - 1.0f);
-        ff_throttle = nomThr + STEdot_dem / (_STEdot_max - _STEdot_min) * (_THRmaxf - _THRminf);
+        ff_throttle = nomThr + STEdot_dem / (_STEdot_max - _STEdot_min) * (_THRmaxf - _THRminf_clipped_to_zero);
 
         // Calculate PD + FF throttle
         float throttle_damp = _thrDamp;
@@ -664,12 +664,10 @@ void AP_TECS::_update_throttle_with_airspeed(void)
         }
         _throttle_dem = (_STE_error + STEdot_error * throttle_damp) * K_STE2Thr + ff_throttle;
 
-        float THRminf_clipped_to_zero = constrain_float(_THRminf, 0, _THRmaxf);
-
         // Calculate integrator state upper and lower limits
         // Set to a value that will allow 0.1 (10%) throttle saturation to allow for noise on the demand
         // Additionally constrain the integrator state amplitude so that the integrator comes off limits faster.
-        float maxAmp = 0.5f*(_THRmaxf - THRminf_clipped_to_zero);
+        float maxAmp = 0.5f * (_THRmaxf - _THRminf_clipped_to_zero);
         float integ_max = constrain_float((_THRmaxf - _throttle_dem + 0.1f),-maxAmp,maxAmp);
         float integ_min = constrain_float((_THRminf - _throttle_dem - 0.1f),-maxAmp,maxAmp);
 
@@ -697,7 +695,7 @@ void AP_TECS::_update_throttle_with_airspeed(void)
         }
 
         if (throttle_slewrate != 0) {
-            float thrRateIncr = _DT * (_THRmaxf - THRminf_clipped_to_zero) * throttle_slewrate * 0.01f;
+            float thrRateIncr = _DT * (_THRmaxf - _THRminf_clipped_to_zero) * throttle_slewrate * 0.01f;
 
             _throttle_dem = constrain_float(_throttle_dem,
                                             _last_throttle_dem - thrRateIncr,
@@ -771,7 +769,7 @@ void AP_TECS::_update_throttle_without_airspeed(int16_t throttle_nudge)
     // drag increase during turns.
     float cosPhi = sqrtf((rotMat.a.y*rotMat.a.y) + (rotMat.b.y*rotMat.b.y));
     float STEdot_dem = _rollComp * (1.0f/constrain_float(cosPhi * cosPhi, 0.1f, 1.0f) - 1.0f);
-    _throttle_dem = _throttle_dem + STEdot_dem / (_STEdot_max - _STEdot_min) * (_THRmaxf - _THRminf);
+    _throttle_dem = _throttle_dem + STEdot_dem / (_STEdot_max - _STEdot_min) * (_THRmaxf - _THRminf_clipped_to_zero);
 }
 
 void AP_TECS::_detect_bad_descent(void)
@@ -1004,10 +1002,11 @@ void AP_TECS::update_pitch_throttle(int32_t hgt_dem_cm,
     } else {
         _THRmaxf  = aparm.throttle_max * 0.01f;
     }
-    _THRminf  = aparm.throttle_min * 0.01f;
+    _THRminf = aparm.throttle_min * 0.01f;
+    _THRminf_clipped_to_zero = MAX(_THRminf, 0);
 
     // min of 1% throttle range to prevent a numerical error
-    _THRmaxf = MAX(_THRmaxf, _THRminf+0.01);
+    _THRmaxf = MAX(_THRmaxf, _THRminf_clipped_to_zero + 0.01);
 
     // work out the maximum and minimum pitch
     // if TECS_PITCH_{MAX,MIN} isn't set then use
