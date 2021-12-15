@@ -117,7 +117,7 @@ bool Plane::allow_reverse_thrust(void) const
  */
 bool Plane::have_reverse_thrust(void) const
 {
-    return aparm.throttle_min < 0;
+    return aparm.throttle_min < 0 || have_reverse_throttle_rc_option;
 }
 
 /*
