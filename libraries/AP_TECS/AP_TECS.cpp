@@ -264,6 +264,30 @@ const AP_Param::GroupInfo AP_TECS::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("PTCH_FF_K", 30, AP_TECS, _pitch_ff_k, 0.0),
 
+    // @Param: SPDRATE_ACC
+    // @DisplayName: Speed demand rate acceleration (m/s^3)
+    // @Description: Speed demand rate acceleration (m/s^3)
+    // @Range: 0.1 2.0
+    // @Increment: 0.05
+    // @User: Advanced
+    AP_GROUPINFO("SPDRATE_ACC", 61, AP_TECS, _vel_rate_acc, 0.6f),
+
+    // @Param: SPDRATE_MIN
+    // @DisplayName: Speed demand rate when demanding a decrease in speed (m/s^2)
+    // @Description: Speed demand rate when demanding a decrease in speed (m/s^2). Set to 0 (default) to calculate the rate based on the airplane's physical limits
+    // @Range: -1.0 -10.0
+    // @Increment: 0.5
+    // @User: Advanced
+    AP_GROUPINFO("SPDRATE_MIN", 62, AP_TECS, _vel_rate_min, 0),
+
+    // @Param: SPDRATE_MAX
+    // @DisplayName: Speed demand rate when demanding an increase in speed (m/s^2)
+    // @Description: Speed demand rate when demanding an increase in speed (m/s^2). Set to 0 (default) to calculate the rate based on the airplane's physical limits
+    // @Range: 1.0 10.0
+    // @Increment: 0.5
+    // @User: Advanced
+    AP_GROUPINFO("SPDRATE_MAX", 63, AP_TECS, _vel_rate_max, 0),
+
     AP_GROUPEND
 };
 
@@ -416,7 +440,7 @@ void AP_TECS::_update_speed(float load_factor)
 
 }
 
-void AP_TECS::_update_speed_demand(void)
+void AP_TECS::_update_speed_demand(float dt)
 {
     // Set the airspeed demand to the minimum value if an underspeed condition exists
     // or a bad descent condition exists
@@ -433,24 +457,52 @@ void AP_TECS::_update_speed_demand(void)
     // calculate velocity rate limits based on physical performance limits
     // provision to use a different rate limit if bad descent or underspeed condition exists
     // Use 50% of maximum energy rate to allow margin for total energy contgroller
-    const float velRateMax = 0.5f * _STEdot_max / _TAS_state;
-    const float velRateMin = 0.5f * _STEdot_min / _TAS_state;
+    const float velRateMax = is_zero(_vel_rate_max) ? _STEdot_max / _TAS_state : _vel_rate_max;
+    const float velRateMin = is_zero(_vel_rate_min) ? -velRateMax : -fabsf(_vel_rate_min);
     const float TAS_dem_previous = _TAS_dem_adj;
 
-    // assume fixed 10Hz call rate
-    const float dt = 0.1;
+    const float diff = _TAS_dem - TAS_dem_previous;
 
-    // Apply rate limit
-    if ((_TAS_dem - TAS_dem_previous) > (velRateMax * dt)) {
-        _TAS_dem_adj = TAS_dem_previous + velRateMax * dt;
-        _TAS_rate_dem = velRateMax;
-    } else if ((_TAS_dem - TAS_dem_previous) < (velRateMin * dt)) {
-        _TAS_dem_adj = TAS_dem_previous + velRateMin * dt;
-        _TAS_rate_dem = velRateMin;
+    if (signbit(diff) != signbit(current_vel_rate)) {
+
+        if (signbit(diff)) {
+            current_vel_rate = MAX(-0.01, current_vel_rate - _vel_rate_acc * dt);
+        } else {
+            current_vel_rate = MIN(0.01, current_vel_rate + _vel_rate_acc * dt);
+        }
+
     } else {
-        _TAS_rate_dem = (_TAS_dem - TAS_dem_previous) / dt;
-        _TAS_dem_adj = _TAS_dem;
+
+        // difference between _TAS_dem and _TAS_dem_adj from which we need to start reducing the rate of change
+        // of _TAS_dem_adj so that we don't overshoot _TAS_dem and not exceed the jerk limit
+        const float inflection_dist_from_target = (3 * sq(current_vel_rate)) / (2 * _vel_rate_acc);
+
+        if (signbit(diff)) {
+            if (TAS_dem_previous > _TAS_dem + inflection_dist_from_target) {
+                current_vel_rate = MAX(velRateMin, current_vel_rate - _vel_rate_acc * dt);
+            } else {
+                current_vel_rate = MIN(-0.01, current_vel_rate + _vel_rate_acc * dt);
+            }
+        } else {
+            if (TAS_dem_previous < _TAS_dem - inflection_dist_from_target) {
+                current_vel_rate = MIN(velRateMax, current_vel_rate + _vel_rate_acc * dt);
+            } else {
+                current_vel_rate = MAX(0.01, current_vel_rate - _vel_rate_acc * dt);
+            }
+        }
+
     }
+
+    _TAS_dem_adj = TAS_dem_previous + current_vel_rate * dt;
+
+    if (signbit(diff)) {
+        _TAS_dem_adj = MAX(_TAS_dem, _TAS_dem_adj);
+    } else {
+        _TAS_dem_adj = MIN(_TAS_dem, _TAS_dem_adj);
+    }
+
+    _TAS_rate_dem = (_TAS_dem_adj - TAS_dem_previous) / dt;
+
     // Constrain speed demand again to protect against bad values on initialisation.
     _TAS_dem_adj = constrain_float(_TAS_dem_adj, _TASmin, _TASmax);
 }
@@ -655,7 +707,7 @@ void AP_TECS::_update_throttle_with_airspeed(void)
         // drag increase during turns.
         float cosPhi = sqrtf((rotMat.a.y*rotMat.a.y) + (rotMat.b.y*rotMat.b.y));
         STEdot_dem = STEdot_dem + _rollComp * (1.0f/constrain_float(cosPhi * cosPhi, 0.1f, 1.0f) - 1.0f);
-        ff_throttle = nomThr + STEdot_dem / (_STEdot_max - _STEdot_min) * (_THRmaxf - _THRminf_clipped_to_zero);
+        ff_throttle = nomThr + STEdot_dem * K_STE2Thr;
 
         // Calculate PD + FF throttle
         float throttle_damp = _thrDamp;
@@ -1113,7 +1165,7 @@ void AP_TECS::update_pitch_throttle(int32_t hgt_dem_cm,
     _update_STE_rate_lim();
 
     // Calculate the speed demand
-    _update_speed_demand();
+    _update_speed_demand(_DT);
 
     // Calculate the height demand
     _update_height_demand();

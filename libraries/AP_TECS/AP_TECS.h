@@ -194,6 +194,9 @@ private:
     AP_Int8  _land_pitch_max;
     AP_Float _maxSinkRate_approach;
     AP_Int32 _options;
+    AP_Float _vel_rate_acc;
+    AP_Float _vel_rate_min;
+    AP_Float _vel_rate_max;
 
     enum {
         OPTION_GLIDER_ONLY=(1<<0),
@@ -258,6 +261,8 @@ private:
 
     // Current true airspeed demand
     float _TAS_dem;
+
+    float current_vel_rate;
 
     // Equivalent airspeed demand
     float _EAS_dem;
@@ -391,7 +396,7 @@ private:
     void _update_speed(float load_factor);
 
     // Update the demanded airspeed
-    void _update_speed_demand(void);
+    void _update_speed_demand(float dt);
 
     // Update the demanded height
     void _update_height_demand(void);
