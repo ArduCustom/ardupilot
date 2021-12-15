@@ -324,6 +324,7 @@ private:
     // Maximum and minimum floating point throttle limits
     float _THRmaxf;
     float _THRminf;
+    float _THRminf_clipped_to_zero;
 
     // Maximum and minimum floating point pitch limits
     float _PITCHmaxf;
