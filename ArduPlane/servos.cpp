@@ -407,6 +407,8 @@ void Plane::set_servos_manual_passthrough(void)
         SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle);
     }
 #endif
+
+    apply_throttle_dz();
 }
 
 /*
@@ -489,6 +491,13 @@ void Plane::throttle_watt_limiter(int8_t &min_throttle, int8_t &max_throttle)
     max_throttle = constrain_int16(max_throttle, 0, max_throttle - throttle_watt_limit_max);
     if (min_throttle < 0) {
         min_throttle = constrain_int16(min_throttle, min_throttle + throttle_watt_limit_min, 0);
+    }
+}
+
+void Plane::apply_throttle_dz(void)
+{
+    if (fabsf(SRV_Channels::get_output_scaled(SRV_Channel::k_throttle)) < g.throttle_dz) {
+        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0.0);
     }
 }
 
@@ -592,6 +601,8 @@ void Plane::set_servos_controlled(void)
         SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, fwd_thr);
 #endif  // HAL_QUADPLANE_ENABLED
     }
+
+    apply_throttle_dz();
 
     // let EKF know to start GSF yaw estimator before takeoff movement starts so that yaw angle is better estimated
     const float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
