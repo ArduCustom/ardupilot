@@ -1071,6 +1071,7 @@ private:
     void set_servos_idle(void);
     void set_servos();
     void set_servos_manual_passthrough(void);
+    void apply_throttle_dz(void);
     void set_servos_controlled(void);
     void set_servos_old_elevons(void);
     void set_servos_flaps(void);
