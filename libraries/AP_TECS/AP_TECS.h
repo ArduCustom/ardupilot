@@ -428,6 +428,8 @@ private:
     // Calculate specific total energy rate limits
     void _update_STE_rate_lim(void);
 
+    void _apply_throttle_slewrate(void);
+
     // declares a 5point average filter using floats
     AverageFilterFloat_Size5 _vdot_filter;
 
