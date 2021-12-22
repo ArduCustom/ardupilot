@@ -1,0 +1,179 @@
+# hw definition file for processing by chibios_pins.py
+# for QF4MWGM
+
+MCU STM32F4xx STM32F405xx
+
+# board ID for firmware load
+APJ_BOARD_ID 7003
+
+# ------Frequency-------------
+# crystal frequency
+OSCILLATOR_HZ 16000000
+define HAL_CUSTOM_CLOCK_TREE
+define STM32_PLLM_VALUE 8
+define STM32_PLLN_VALUE 168
+define STM32_PLLP_VALUE 2
+define STM32_PLLQ_VALUE 7
+
+# ---------Board timer---------
+define STM32_ST_USE_TIMER 5
+define CH_CFG_ST_RESOLUTION 32
+
+#----------Flash setup---------
+# flash size
+FLASH_SIZE_KB 1024
+
+define HAL_STORAGE_SIZE 15360
+define STORAGE_FLASH_PAGE 1
+
+# reserve 16k for bootloader, 16k for OSD and 32k for flash storage
+FLASH_RESERVE_START_KB 64
+
+# ---------I2C---------------
+I2C_ORDER I2C2
+
+PB10 I2C2_SCL I2C2
+PB11 I2C2_SDA I2C2
+
+# ---------ANALOG-----------
+# analog pins
+PC0 BATT_VOLTAGE_SENS ADC1 SCALE(1)
+PC2 BATT_CURRENT_SENS ADC1 SCALE(1)
+
+
+# define default battery setup
+define HAL_BATT_VOLT_PIN 10
+define HAL_BATT_CURR_PIN 12
+define HAL_BATT_VOLT_SCALE 8.527
+define HAL_BATT_CURR_SCALE 11.6
+# current 1mOhm shunt and 82.5k
+# Volt 68k1 & 9k1 28V divider
+
+# ---------RCIN-----------
+PA15 TIM2_CH1 TIM2 RCININT PULLDOWN LOW
+
+# ---------UARTS-----------
+SERIAL_ORDER OTG1 USART1 USART2 USART3 EMPTY EMPTY USART6
+
+PA11 OTG_FS_DM OTG1 # 0) USB
+PA12 OTG_FS_DP OTG1
+PA9 VBUS INPUT OPENDRAIN
+
+# Serial
+PB6 USART1_TX USART1
+PB7 USART1_RX USART1
+
+# Serial Use for GPS1
+PA2 USART2_TX USART2 NODMA
+PA3 USART2_RX USART2 NODMA
+
+# Serial
+PC10 USART3_TX USART3
+PC11 USART3_RX USART3
+
+# Serial
+PC6 USART6_TX USART6
+PC7 USART6_RX USART6
+
+
+# --------SPI------------
+# spi bus for Osd
+PA5  SPI1_SCK SPI1
+PA6  SPI1_MISO SPI1
+PA7  SPI1_MOSI SPI1
+PC8 OSD_CS CS
+
+# spi bus for Sensors
+PB13 SPI2_SCK SPI2
+PB14 SPI2_MISO SPI2
+PB15 SPI2_MOSI SPI2
+PC4 BMI088_GYRO_CS CS
+PC5 BMI088_ACCEL_CS CS
+PA0 BARO_CS CS
+PA4 MAG_CS CS PULLUP
+
+# spi bus for SD CARD
+PB3 SPI3_SCK SPI3
+PB4 SPI3_MISO SPI3
+PC12 SPI3_MOSI SPI3
+PB12 SDCARD_CS CS
+
+# --------BUZZ-----------
+PC9 TIM8_CH4 TIM8 GPIO(80) ALARM
+
+# --------PWMS-----------
+PA10 TIM1_CH3 TIM1 PWM(1) GPIO(50)
+PA8 TIM1_CH1 TIM1 PWM(2) GPIO(51)
+PB8 TIM4_CH3 TIM4 PWM(3) GPIO(52)
+PB5 TIM3_CH2 TIM3 PWM(4) GPIO(53)
+
+# --------LED-----------
+define HAL_HAVE_PIXRACER_LED
+
+define HAL_GPIO_LED_ON  0
+define HAL_GPIO_LED_OFF 1
+
+# LED setup for PixracerLED driver
+PB9 LED_RED   OUTPUT GPIO(0)
+PD2  LED_GREEN OUTPUT GPIO(1)
+PC15  LED_BLUE  OUTPUT GPIO(2)
+
+define HAL_GPIO_A_LED_PIN 0
+define HAL_GPIO_B_LED_PIN 1
+define HAL_GPIO_C_LED_PIN 2
+
+# ----------SPI devices------------
+SPIDEV osd         SPI1 DEVID6  OSD_CS              MODE0 10*MHZ 10*MHZ
+SPIDEV dps310      SPI2 DEVID1  BARO_CS             MODE3 20*MHZ 20*MHZ
+SPIDEV bmi088_g    SPI2 DEVID3  BMI088_GYRO_CS      MODE3 10*MHZ 10*MHZ
+SPIDEV bmi088_a    SPI2 DEVID4  BMI088_ACCEL_CS     MODE3 10*MHZ 10*MHZ
+SPIDEV lis3mdl     SPI2 DEVID5  MAG_CS              MODE3 500*KHZ 500*KHZ
+SPIDEV sdcard      SPI3 DEVID2  SDCARD_CS           MODE0 400*KHZ 25*MHZ
+
+# --------Sensors-------------------
+# One IMU BMI088
+IMU BMI088 SPI:bmi088_a SPI:bmi088_g ROTATION_PITCH_180
+
+# One Baro DPS310
+BARO DPS280 SPI:dps310
+
+# One compass LIS3MDL
+COMPASS LIS3MDL SPI:lis3mdl false ROTATION_PITCH_180
+
+# Look for external compass
+define HAL_PROBE_EXTERNAL_I2C_COMPASSES
+define HAL_I2C_INTERNAL_MASK 0
+define HAL_COMPASS_AUTO_ROT_DEFAULT 2
+
+#------------SD card-----------------
+define HAL_OS_FATFS_IO 1
+define HAL_BOARD_LOG_DIRECTORY "/APM/LOGS"
+define HAL_BOARD_TERRAIN_DIRECTORY "/APM/TERRAIN"
+
+# -----------OSD--------------------
+# font for the osd
+ROMFS_WILDCARD libraries/AP_OSD/fonts/font*.bin
+define OSD_ENABLED 1
+define HAL_OSD_TYPE_DEFAULT 1
+
+# ----------Memory save-----------------
+
+# disable SMBUS and fuel battery monitors to save flash
+define HAL_BATTMON_SMBUS_ENABLE 0
+define HAL_BATTMON_FUEL_ENABLE 0
+
+# disable parachute and sprayer to save flash
+define HAL_PARACHUTE_ENABLED 0
+define HAL_SPRAYER_ENABLED 0
+
+# reduce max size of embedded params for apj_tool.py
+define AP_PARAM_MAX_EMBEDDED_PARAM 1024
+define HAL_WITH_DSP FALSE
+
+#define HAL_MSP_ENABLED 1
+#define HAL_CRSF_ENABLED 1
+#define HAL_CRSF_TELEM_ENABLED 1
+#define HAL_MINIMIZE_FEATURES 1
+
+# STDOUT_SERIAL SD2
+# STDOUT_BAUDRATE 57600
