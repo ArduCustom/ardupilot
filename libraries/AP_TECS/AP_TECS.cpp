@@ -660,6 +660,26 @@ float AP_TECS::timeConstant(void) const
     return _timeConst;
 }
 
+void AP_TECS::_apply_throttle_slewrate(void)
+{
+    int8_t throttle_slewrate = aparm.throttle_slewrate;
+    if (_landing.is_on_approach()) {
+        const int8_t land_slewrate = _landing.get_throttle_slewrate();
+        if (land_slewrate > 0) {
+            throttle_slewrate = land_slewrate;
+        }
+    }
+
+    if (throttle_slewrate != 0) {
+        float thrRateIncr = _DT * (_THRmaxf - _THRminf_clipped_to_zero) * throttle_slewrate * 0.01f;
+
+        _throttle_dem = constrain_float(_throttle_dem,
+                                        _last_throttle_dem - thrRateIncr,
+                                        _last_throttle_dem + thrRateIncr);
+        _last_throttle_dem = _throttle_dem;
+    }
+}
+
 /*
   calculate throttle demand - airspeed enabled case
  */
@@ -737,28 +757,11 @@ void AP_TECS::_update_throttle_with_airspeed(void)
             _integTHR_state = constrain_float(_integTHR_state, integ_min, integ_max);
         }
 
-        // Rate limit PD + FF throttle
-        // Calculate the throttle increment from the specified slew time
-        int8_t throttle_slewrate = aparm.throttle_slewrate;
-        if (_landing.is_on_approach()) {
-            const int8_t land_slewrate = _landing.get_throttle_slewrate();
-            if (land_slewrate > 0) {
-                throttle_slewrate = land_slewrate;
-            }
-        }
-
-        if (throttle_slewrate != 0) {
-            float thrRateIncr = _DT * (_THRmaxf - _THRminf_clipped_to_zero) * throttle_slewrate * 0.01f;
-
-            _throttle_dem = constrain_float(_throttle_dem,
-                                            _last_throttle_dem - thrRateIncr,
-                                            _last_throttle_dem + thrRateIncr);
-            _last_throttle_dem = _throttle_dem;
-        }
-
         // Sum the components.
         _throttle_dem = _throttle_dem + _integTHR_state;
     }
+
+    _apply_throttle_slewrate();
 
     // Constrain throttle demand and record clipping
     if (_throttle_dem > _THRmaxf) {
@@ -823,6 +826,7 @@ void AP_TECS::_update_throttle_without_airspeed(int16_t throttle_nudge)
     float cosPhi = sqrtf((rotMat.a.y*rotMat.a.y) + (rotMat.b.y*rotMat.b.y));
     float STEdot_dem = _rollComp * (1.0f/constrain_float(cosPhi * cosPhi, 0.1f, 1.0f) - 1.0f);
     _throttle_dem = _throttle_dem + STEdot_dem / (_STEdot_max - _STEdot_min) * (_THRmaxf - _THRminf_clipped_to_zero);
+    _apply_throttle_slewrate();
 }
 
 void AP_TECS::_detect_bad_descent(void)
