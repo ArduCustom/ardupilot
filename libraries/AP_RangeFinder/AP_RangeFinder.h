@@ -42,10 +42,6 @@
 #define RANGEFINDER_PREARM_REQUIRED_CHANGE_CM   50
 #endif
 
-#ifndef HAL_MSP_RANGEFINDER_ENABLED
-#define HAL_MSP_RANGEFINDER_ENABLED HAL_MSP_ENABLED && !HAL_MINIMIZE_FEATURES
-#endif
-
 class AP_RangeFinder_Backend;
 
 class RangeFinder
@@ -64,39 +60,12 @@ public:
     enum class Type {
         NONE   = 0,
         ANALOG = 1,
-        MBI2C  = 2,
-        PLI2C  = 3,
-//        PX4    = 4, // no longer used, but may be in some user's parameters
-        PX4_PWM= 5,
-        BBB_PRU= 6,
-        LWI2C  = 7,
-        LWSER  = 8,
-        BEBOP  = 9,
-        MAVLink = 10,
-        USD1_Serial = 11,
-        LEDDARONE = 12,
-        MBSER  = 13,
-        TRI2C  = 14,
-        PLI2CV3= 15,
         VL53L0X = 16,
-        NMEA = 17,
-        WASP = 18,
         BenewakeTF02 = 19,
         BenewakeTFmini = 20,
-        PLI2CV3HP = 21,
-        PWM = 22,
-        BLPing = 23,
-        UAVCAN = 24,
         BenewakeTFminiPlus = 25,
-        Lanbao = 26,
         BenewakeTF03 = 27,
         VL53L1X_Short = 28,
-        LeddarVu8_Serial = 29,
-        HC_SR04 = 30,
-        GYUS42v2 = 31,
-        MSP = 32,
-        USD1_CAN = 33,
-        Benewake_CAN = 34,
         SIM = 100,
     };
 
@@ -155,10 +124,6 @@ public:
     // Handle an incoming DISTANCE_SENSOR message (from a MAVLink enabled range finder)
     void handle_msg(const mavlink_message_t &msg);
 
-#if HAL_MSP_RANGEFINDER_ENABLED
-    // Handle an incoming DISTANCE_SENSOR message (from a MSP enabled range finder)
-    void handle_msp(const MSP::msp_rangefinder_data_message_t &pkt);
-#endif
     // return true if we have a range finder with the specified orientation
     bool has_orientation(enum Rotation orientation) const;
 
