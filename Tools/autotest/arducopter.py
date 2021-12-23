@@ -7404,21 +7404,9 @@ class AutoTestCopter(AutoTest):
             "RTL_ALT_TYPE": 1,
         })
         drivers = [
-            ("lightwareserial", 8),  # autodetected between this and -binary
-            ("lightwareserial-binary", 8),
-            ("USD1_v0", 11),
-            ("USD1_v1", 11),
-            ("leddarone", 12),
-            ("maxsonarseriallv", 13),
-            ("nmea", 17, {"baud": 9600}),
-            ("wasp", 18),
             ("benewake_tf02", 19),
-            ("blping", 23),
             ("benewake_tfmini", 20),
-            ("lanbao", 26),
             ("benewake_tf03", 27),
-            ("gyus42v2", 31),
-            ("teraranger_serial", 35),
         ]
         while len(drivers):
             do_drivers = drivers[0:3]
@@ -7447,10 +7435,7 @@ class AutoTestCopter(AutoTest):
             self.fly_rangefinder_drivers_fly([x[0] for x in do_drivers])
             self.context_pop()
 
-        self.fly_rangefinder_mavlink()
-
         i2c_drivers = [
-            ("maxbotixi2cxl", 2),
         ]
         while len(i2c_drivers):
             do_drivers = i2c_drivers[0:9]
@@ -7472,16 +7457,16 @@ class AutoTestCopter(AutoTest):
         # lightwareserial goes to 130m when out of range
         self.set_parameters({
             "SERIAL4_PROTOCOL": 9,
-            "RNGFND1_TYPE": 8,
+            "RNGFND1_TYPE": 20,
             "WPNAV_SPEED_UP": 1000,  # cm/s
         })
         self.customise_SITL_commandline([
             "--uartE=sim:lightwareserial",
         ])
-        self.takeoff(95, mode='GUIDED', timeout=240, max_err=0.5)
-        self.assert_rangefinder_distance_between(90, 100)
+        self.takeoff(6, mode='GUIDED', timeout=240, max_err=0.5)
+        self.assert_rangefinder_distance_between(4, 8)
 
-        self.wait_rangefinder_distance(90, 100)
+        self.wait_rangefinder_distance(4, 8)
 
         rf_bit = mavutil.mavlink.MAV_SYS_STATUS_SENSOR_LASER_POSITION
 
