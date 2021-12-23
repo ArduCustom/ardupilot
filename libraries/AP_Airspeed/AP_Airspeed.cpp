@@ -392,6 +392,7 @@ void AP_Airspeed::init()
         case TYPE_ANALOG:
             sensor[i] = new AP_Airspeed_Analog(*this, i);
             break;
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
         case TYPE_I2C_MS5525:
             sensor[i] = new AP_Airspeed_MS5525(*this, i, AP_Airspeed_MS5525::MS5525_ADDR_AUTO);
             break;
@@ -449,6 +450,7 @@ void AP_Airspeed::init()
             sensor[i] = new AP_Airspeed_MSP(*this, i, 0);
 #endif
             break;
+#endif // CONFIG_HAL_BOARD == HAL_BOARD_SITL
         }
         if (sensor[i] && !sensor[i]->init()) {
             GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "Airspeed %u init failed", i + 1);
