@@ -161,6 +161,7 @@ public:
         TYPE_NONE=0,
         TYPE_I2C_MS4525=1,
         TYPE_ANALOG=2,
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
         TYPE_I2C_MS5525=3,
         TYPE_I2C_MS5525_ADDRESS_1=4,
         TYPE_I2C_MS5525_ADDRESS_2=5,
@@ -174,6 +175,7 @@ public:
         TYPE_NMEA_WATER=13,
         TYPE_MSP=14,
         TYPE_I2C_ASP5033=15,
+#endif
     };
 
     // get current primary sensor
