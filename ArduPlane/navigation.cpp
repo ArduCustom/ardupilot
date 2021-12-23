@@ -153,7 +153,7 @@ void Plane::calc_airspeed_errors()
         } else if (g2.flight_options & FlightOptions::CRUISE_TRIM_THROTTLE) {
             float control_min = 0.0f;
             float control_mid = 0.0f;
-            const float control_mid_deadband = 0.1f;
+            const float control_mid_deadband = 10.0f;
             const float control_max = channel_throttle->get_range();
             const float control_in = get_throttle_input();
             switch (channel_throttle->get_type()) {
