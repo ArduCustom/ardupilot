@@ -292,6 +292,7 @@ bool AP_Arming_Plane::disarm(const AP_Arming::Method method, bool do_disarm_chec
     if (do_disarm_checks) {
 
         // don't allow disarming in flight, cut the throttle instead and change mode to FBWA if in auto throttle mode
+#if CONFIG_HAL_BOARD != HAL_BOARD_SITL
         if (plane.is_flying()) {
             if (method == AP_Arming::Method::AUXSWITCH) {
                 set_throttle_cut(true);
@@ -306,6 +307,11 @@ bool AP_Arming_Plane::disarm(const AP_Arming::Method method, bool do_disarm_chec
             // obviously this could happen in-flight so we can't warn about it
             return false;
         }
+#else
+        if (plane.is_flying() && method == AP_Arming::Method::RUDDER) {
+            return false;
+        }
+#endif
 
         // option must be enabled:
         if (method == AP_Arming::Method::RUDDER && get_rudder_arming_type() != AP_Arming::RudderArming::ARMDISARM) {
