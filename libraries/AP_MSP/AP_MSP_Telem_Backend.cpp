@@ -489,11 +489,6 @@ MSPCommandResult AP_MSP_Telem_Backend::msp_process_sensor_command(uint16_t cmd_m
     MSP_UNUSED(src);
 
     switch (cmd_msp) {
-    case MSP2_SENSOR_RANGEFINDER: {
-        const MSP::msp_rangefinder_data_message_t *pkt = (const MSP::msp_rangefinder_data_message_t *)src->ptr;
-        msp_handle_rangefinder(*pkt);
-    }
-    break;
     case MSP2_SENSOR_OPTIC_FLOW: {
         const MSP::msp_opflow_data_message_t *pkt = (const MSP::msp_opflow_data_message_t *)src->ptr;
         msp_handle_opflow(*pkt);
@@ -532,17 +527,6 @@ void AP_MSP_Telem_Backend::msp_handle_opflow(const MSP::msp_opflow_data_message_
         return;
     }
     optflow->handle_msp(pkt);
-#endif
-}
-
-void AP_MSP_Telem_Backend::msp_handle_rangefinder(const MSP::msp_rangefinder_data_message_t &pkt)
-{
-#if HAL_MSP_RANGEFINDER_ENABLED
-    RangeFinder *rangefinder = AP::rangefinder();
-    if (rangefinder == nullptr) {
-        return;
-    }
-    rangefinder->handle_msp(pkt);
 #endif
 }
 
