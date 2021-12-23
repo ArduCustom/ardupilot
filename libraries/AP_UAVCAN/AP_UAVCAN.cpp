@@ -47,7 +47,6 @@
 
 #include <AP_Arming/AP_Arming.h>
 #include <AP_Baro/AP_Baro_UAVCAN.h>
-#include <AP_RangeFinder/AP_RangeFinder_UAVCAN.h>
 #include <AP_EFI/AP_EFI_DroneCAN.h>
 #include <AP_GPS/AP_GPS_UAVCAN.h>
 #include <AP_BattMonitor/AP_BattMonitor_UAVCAN.h>
@@ -348,9 +347,6 @@ void AP_UAVCAN::init(uint8_t driver_index, bool enable_filters)
 #endif
 #if AP_OPTICALFLOW_HEREFLOW_ENABLED
     AP_OpticalFlow_HereFlow::subscribe_msgs(this);
-#endif
-#if AP_RANGEFINDER_UAVCAN_ENABLED
-    AP_RangeFinder_UAVCAN::subscribe_msgs(this);
 #endif
 #if HAL_EFI_DRONECAN_ENABLED
     AP_EFI_DroneCAN::subscribe_msgs(this);
