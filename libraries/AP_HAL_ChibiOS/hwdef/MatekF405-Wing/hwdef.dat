@@ -6,7 +6,7 @@
 
 # SerialX ports are mapped as printed on the top board
 # R1/T1 -> Serial1
-# R2 -> Sbus (T2 not currently used or available)
+# R2 -> RCIN (BOARD_ALT_CONFIG = 0) / Serial2 (BOARD_ALT_CONFIG = 1), T2 -> Serial2
 # R3/T3 -> Serial3
 # R4/T4 -> Serial4
 # R5/T5 -> Serial5
@@ -43,7 +43,7 @@ STORAGE_FLASH_PAGE 1
 I2C_ORDER I2C1 I2C2
 
 # order of UARTs
-SERIAL_ORDER OTG1 USART1 EMPTY USART3 UART4 UART5 USART6 USART2
+SERIAL_ORDER OTG1 USART1 USART2 USART3 UART4 UART5 USART6
 
 #################################################
 ###             PIN DEFINITIONS               ###
