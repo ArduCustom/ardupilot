@@ -1136,6 +1136,54 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(aspd_dem, "ASPD_DEM", 61, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: ACC_LONG_EN
+    // @DisplayName: ACC_LONG_EN
+    // @Description: Displays the aircraft's longitudinal acceleration in g
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: ACC_LONG_X
+    // @DisplayName: ACC_LONG_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: ACC_LONG_Y
+    // @DisplayName: ACC_LONG_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(acc_long, "ACC_LONG", 60, AP_OSD_Screen, AP_OSD_Setting),
+
+    // @Param: ACC_LAT_EN
+    // @DisplayName: ACC_LAT_EN
+    // @Description: Displays the aircraft's lateral acceleration in g
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: ACC_LAT_X
+    // @DisplayName: ACC_LAT_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: ACC_LAT_Y
+    // @DisplayName: ACC_LAT_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(acc_lat, "ACC_LAT", 59, AP_OSD_Screen, AP_OSD_Setting),
+
+    // @Param: ACC_VERT_EN
+    // @DisplayName: ACC_VERT_EN
+    // @Description: Displays the aircraft's vertical acceleration in g
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: ACC_VERT_X
+    // @DisplayName: ACC_VERT_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: ACC_VERT_Y
+    // @DisplayName: ACC_VERT_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(acc_vert, "ACC_VERT", 58, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -2083,13 +2131,60 @@ void AP_OSD_Screen::draw_pitch_angle(uint8_t x, uint8_t y)
     }
 }
 
+void AP_OSD_Screen::draw_acc(uint8_t x, uint8_t y, float acc, uint8_t neg_symbol, uint8_t zero_symbol, uint8_t pos_symbol, float warn)
+{
+    const float acc_abs = fabsf(acc);
+    const char *format = acc_abs < 9.95 ? "%c %1.1f" : "%c%2.1f";
+    const uint8_t symbol = SYMBOL(acc_abs < 0.05 ? zero_symbol : (signbit(acc) ? neg_symbol : pos_symbol));
+    backend->write(x, y, warn > 0 && acc_abs > warn, format, symbol, acc_abs);
+}
+
+void AP_OSD_Screen::draw_acc_long(uint8_t x, uint8_t y) {
+    AP_AHRS &ahrs = AP::ahrs();
+    WITH_SEMAPHORE(ahrs.get_semaphore());
+    const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
+    const float acc = _acc_long_filter.apply(rotMat.c.x * GRAVITY_MSS + AP::ins().get_accel().x) / GRAVITY_MSS;
+
+    const char *format;
+    uint8_t spaces;
+    const float acc_abs = fabsf(acc);
+    if (acc_abs < 9.95) {
+        spaces = 2;
+        format = "%1.1f";
+    } else {
+        spaces = 1;
+        format = "%2.1f";
+    }
+
+    if (signbit(acc)) {
+        spaces -= 1;
+    }
+
+    backend->write(x + spaces, y, false, format, acc);
+}
+
+void AP_OSD_Screen::draw_acc_lat(uint8_t x, uint8_t y) {
+    AP_AHRS &ahrs = AP::ahrs();
+    WITH_SEMAPHORE(ahrs.get_semaphore());
+    const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
+    const float acc = _acc_lat_filter.apply(rotMat.c.y * GRAVITY_MSS + AP::ins().get_accel().y) / GRAVITY_MSS;
+    draw_acc(x, y, acc, SYM_ROLLR, SYM_ROLL0, SYM_ROLLL, 0);
+}
+
+void AP_OSD_Screen::draw_acc_vert(uint8_t x, uint8_t y) {
+    AP_AHRS &ahrs = AP::ahrs();
+    WITH_SEMAPHORE(ahrs.get_semaphore());
+    const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
+    const float acc = _acc_vert_filter.apply(rotMat.c.z * GRAVITY_MSS + AP::ins().get_accel().z) / GRAVITY_MSS;
+    draw_acc(x, y, acc, SYM_PTCHUP, SYM_PTCH0, SYM_PTCHDWN, osd->warn_vert_acc);
+}
+
 void AP_OSD_Screen::draw_temp(uint8_t x, uint8_t y)
 {
     AP_Baro &barometer = AP::baro();
     float tmp = barometer.get_temperature();
     backend->write(x, y, false, "%3d%c", (int)u_scale(TEMPERATURE, tmp), u_icon(TEMPERATURE));
 }
-
 
 void AP_OSD_Screen::draw_hdop(uint8_t x, uint8_t y)
 {
@@ -2471,6 +2566,9 @@ void AP_OSD_Screen::draw(void)
 #endif
     DRAW_SETTING(roll_angle);
     DRAW_SETTING(pitch_angle);
+    DRAW_SETTING(acc_long);
+    DRAW_SETTING(acc_lat);
+    DRAW_SETTING(acc_vert);
     DRAW_SETTING(temp);
 #if BARO_MAX_INSTANCES > 1
     DRAW_SETTING(btemp);

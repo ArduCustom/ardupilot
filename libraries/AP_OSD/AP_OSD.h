@@ -28,6 +28,7 @@
 #include <AP_Baro/AP_Baro.h>
 #include <GCS_MAVLink/GCS_MAVLink.h>
 #include <AC_Fence/AC_Fence.h>
+#include <Filter/Filter.h>
 
 #ifndef OSD_ENABLED
 #define OSD_ENABLED !HAL_MINIMIZE_FEATURES
@@ -226,6 +227,9 @@ private:
     AP_OSD_Setting energy{false, 0, 0};
     AP_OSD_Setting rc_throttle{false, 0, 0};
     AP_OSD_Setting aspd_dem{false, 0, 0};
+    AP_OSD_Setting acc_long{false, 0, 0};
+    AP_OSD_Setting acc_lat{false, 0, 0};
+    AP_OSD_Setting acc_vert{false, 0, 0};
 
     // MSP OSD only
     AP_OSD_Setting crosshair{false, 0, 0};
@@ -290,6 +294,10 @@ private:
     void draw_gps_longitude(uint8_t x, uint8_t y);
     void draw_roll_angle(uint8_t x, uint8_t y);
     void draw_pitch_angle(uint8_t x, uint8_t y);
+    void draw_acc(uint8_t x, uint8_t y, float acc, uint8_t neg_symbol, uint8_t zero_symbol, uint8_t pos_symbol, float warn);
+    void draw_acc_long(uint8_t x , uint8_t y);
+    void draw_acc_lat(uint8_t x , uint8_t y);
+    void draw_acc_vert(uint8_t x , uint8_t y);
     void draw_temp(uint8_t x, uint8_t y);
 #if BARO_MAX_INSTANCES > 1
     void draw_btemp(uint8_t x, uint8_t y);
@@ -321,6 +329,10 @@ private:
         bool load_attempted;
         const char *str;
     } callsign_data;
+
+    AverageFilter<float,float,10> _acc_long_filter;
+    AverageFilter<float,float,10> _acc_lat_filter;
+    AverageFilter<float,float,10> _acc_vert_filter;
 };
 #endif // OSD_ENABLED
 
@@ -523,6 +535,7 @@ public:
     AP_Float warn_bat2volt;
     AP_Float warn_aspd_low;
     AP_Float warn_aspd_high;
+    AP_Float warn_vert_acc;
     AP_Int8 msgtime_s;
     AP_Int8 arm_scr;
     AP_Int8 disarm_scr;
