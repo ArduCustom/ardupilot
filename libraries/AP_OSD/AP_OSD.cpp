@@ -199,6 +199,14 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_W_RESTVOLT", 25, AP_OSD, warn_restvolt, 10.0f),
 
+    // @Param: _W_VERT_ACC
+    // @DisplayName: Underspeed warn speed
+    // @Description: Set speed under which ASPDx items will flash
+    // @Range: 0 1000
+    // @Units: m/s
+    // @User: Standard
+    AP_GROUPINFO("_W_VERT_ACC", 60, AP_OSD, warn_vert_acc, 0),
+
     // @Param: _W_ASPD_LOW
     // @DisplayName: Underspeed warn speed
     // @Description: Set speed under which ASPDx items will flash
