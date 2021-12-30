@@ -2046,7 +2046,7 @@ void AP_OSD_Screen::draw_gps_longitude(uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_roll_angle(uint8_t x, uint8_t y)
 {
     AP_AHRS &ahrs = AP::ahrs();
-    uint16_t roll = abs(ahrs.roll_sensor) / 100;
+    const float roll = abs(ahrs.roll_sensor) / 100.0f;
     char r;
     if (ahrs.roll_sensor > 50) {
         r = SYMBOL(SYM_ROLLR);
@@ -2055,13 +2055,18 @@ void AP_OSD_Screen::draw_roll_angle(uint8_t x, uint8_t y)
     } else {
         r = SYMBOL(SYM_ROLL0);
     }
-    backend->write(x, y, false, "%c%3d%c", r, roll, SYMBOL(SYM_DEGR));
+    if (osd->options & AP_OSD::OPTION_ONE_DECIMAL_ATTITUDE) {
+        const char *format = roll < 9.95 ? "%c  %.1f%c" : (roll < 99.95 ? "%c %.1f%c" : "%c%.1f%c");
+        backend->write(x, y, false, format, r, roll, SYMBOL(SYM_DEGR));
+    } else {
+        backend->write(x, y, false, "%c%3d%c", r, (int16_t)lrintf(roll), SYMBOL(SYM_DEGR));
+    }
 }
 
 void AP_OSD_Screen::draw_pitch_angle(uint8_t x, uint8_t y)
 {
     AP_AHRS &ahrs = AP::ahrs();
-    uint16_t pitch = abs(ahrs.pitch_sensor) / 100;
+    const float pitch = abs(ahrs.pitch_sensor) / 100.0f;
     char p;
     if (ahrs.pitch_sensor > 50) {
         p = SYMBOL(SYM_PTCHUP);
@@ -2070,7 +2075,12 @@ void AP_OSD_Screen::draw_pitch_angle(uint8_t x, uint8_t y)
     } else {
         p = SYMBOL(SYM_PTCH0);
     }
-    backend->write(x, y, false, "%c%3d%c", p, pitch, SYMBOL(SYM_DEGR));
+    if (osd->options & AP_OSD::OPTION_ONE_DECIMAL_ATTITUDE) {
+        const char *format = pitch < 9.95 ? "%c %.1f%c" : "%c%.1f%c";
+        backend->write(x, y, false, format, p, pitch, SYMBOL(SYM_DEGR));
+    } else {
+        backend->write(x, y, false, "%c%2d%c", p, (int16_t)lrintf(pitch), SYMBOL(SYM_DEGR));
+    }
 }
 
 void AP_OSD_Screen::draw_temp(uint8_t x, uint8_t y)
