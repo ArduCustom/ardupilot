@@ -1093,6 +1093,7 @@ private:
     void channel_function_mixer(SRV_Channel::Aux_servo_function_t func1_in, SRV_Channel::Aux_servo_function_t func2_in,
                                 SRV_Channel::Aux_servo_function_t func1_out, SRV_Channel::Aux_servo_function_t func2_out) const;
     void flaperon_update();
+    float auto_flap_percent(void) const override { return SRV_Channels::get_output_scaled(SRV_Channel::k_flap_auto); }
 
     // is_flying.cpp
     void update_is_flying_5Hz(void);

@@ -59,10 +59,10 @@ public:
         k_param_reverse_elevons, // unused
         k_param_reverse_ch1_elevon, // unused
         k_param_reverse_ch2_elevon, // unused
-        k_param_flap_1_percent,
-        k_param_flap_1_speed,
-        k_param_flap_2_percent,
-        k_param_flap_2_speed,
+        k_param_flap_deployed_percent, // was flap_1_percent
+        k_param_flap_retracted_speed, // was flap_1_speed
+        k_param_flap_2_percent,  // unused
+        k_param_flap_deployed_speed, // was flap_2_speed
         k_param_reset_switch_chan, // unused - moved to RC option
         k_param_manual_level, // unused
         k_param_land_pitch_cd,  // unused - moved to AP_Landing
@@ -439,10 +439,9 @@ public:
     AP_Int16 pitch_trim_cd;
     AP_Int16 FBWB_min_altitude_cm;
 
-    AP_Int8 flap_1_percent;
-    AP_Int8 flap_1_speed;
-    AP_Int8 flap_2_percent;
-    AP_Int8 flap_2_speed;
+    AP_Int8 flap_deployed_percent;
+    AP_Float flap_retracted_speed;
+    AP_Float flap_deployed_speed;
     AP_Int8 takeoff_flap_percent;  
     AP_Enum<StickMixing> stick_mixing;
     AP_Float takeoff_throttle_min_speed;

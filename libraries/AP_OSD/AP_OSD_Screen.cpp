@@ -1184,6 +1184,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(acc_vert, "ACC_VERT", 58, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: AUTO_FLP_EN
+    // @DisplayName: AUTO_FLAPS_EN
+    // @Description: Displays the requested auto flaps position
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: AUTO_FLP_X
+    // @DisplayName: AUTO_FLAPS_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: AUTO_FLP_Y
+    // @DisplayName: AUTO_FLAPS_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(auto_flaps, "AUTO_FLP", 57, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -2163,6 +2179,16 @@ void AP_OSD_Screen::draw_acc_long(uint8_t x, uint8_t y) {
     backend->write(x + spaces, y, false, format, acc);
 }
 
+void AP_OSD_Screen::draw_auto_flaps(uint8_t x, uint8_t y)
+{
+    if (!AP_Notify::flags.armed) {
+        backend->write(x, y, false, "---%c", SYMBOL(SYM_PCNT));
+    } else if (AP::vehicle()->control_mode_does_auto_throttle()) {
+        uint8_t flaps_pcnt = AP::vehicle()->auto_flap_percent();
+        backend->write(x, y, false, "%3u%c", (uint)lrintf(flaps_pcnt), SYMBOL(SYM_PCNT));
+    }
+}
+
 void AP_OSD_Screen::draw_acc_lat(uint8_t x, uint8_t y) {
     AP_AHRS &ahrs = AP::ahrs();
     WITH_SEMAPHORE(ahrs.get_semaphore());
@@ -2601,6 +2627,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(current2);
     DRAW_SETTING(rc_throttle);
     DRAW_SETTING(aspd_dem);
+    DRAW_SETTING(auto_flaps);
 }
 #endif
 #endif // OSD_ENABLED

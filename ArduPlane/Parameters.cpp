@@ -675,41 +675,32 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Standard
     GSCALAR(FBWB_min_altitude_cm,   "ALT_HOLD_FBWCM", ALT_HOLD_FBW_CM),
 
-    // @Param: FLAP_1_PERCNT
-    // @DisplayName: Flap 1 percentage
-    // @Description: The percentage change in flap position when FLAP_1_SPEED is reached. Use zero to disable flaps
+    // @Param: FLAP_EXTED_PCT
+    // @DisplayName: Auto flaps extended position percentage of max deployment
+    // @Description: The maximum percentage of flap deployment in automatic throttle modes. It is the flaps position used when target airspeed is lower or equal to FLAP_EXTED_SPEED. Use zero to disable auto flaps
     // @Range: 0 100
     // @Increment: 1
     // @Units: %
     // @User: Advanced
-    GSCALAR(flap_1_percent,         "FLAP_1_PERCNT",  FLAP_1_PERCENT),
+    GSCALAR(flap_deployed_percent,   "FLAP_EXTED_PCT",  FLAP_EXTED_PCNT),
 
-    // @Param: FLAP_1_SPEED
-    // @DisplayName: Flap 1 speed
-    // @Description: The speed in meters per second at which to engage FLAP_1_PERCENT of flaps. Note that FLAP_1_SPEED should be greater than or equal to FLAP_2_SPEED
+    // @Param: FLAP_RETED_SPD
+    // @DisplayName: Auto flaps retracted speed
+    // @Description: The speed in meters per second at which the flaps will start to be automatically extended in automatic throttle modes.
     // @Range: 0 100
-	// @Increment: 1
+	// @Increment: 0.1
     // @Units: m/s
     // @User: Advanced
-    GSCALAR(flap_1_speed,           "FLAP_1_SPEED",   FLAP_1_SPEED),
+    GSCALAR(flap_retracted_speed,    "FLAP_RETED_SPD",   FLAP_RETED_SPD),
 
-    // @Param: FLAP_2_PERCNT
-    // @DisplayName: Flap 2 percentage
-    // @Description: The percentage change in flap position when FLAP_2_SPEED is reached. Use zero to disable flaps
-    // @Range: 0 100
-	// @Units: %
-    // @Increment: 1
-    // @User: Advanced
-    GSCALAR(flap_2_percent,         "FLAP_2_PERCNT",  FLAP_2_PERCENT),
-
-    // @Param: FLAP_2_SPEED
-    // @DisplayName: Flap 2 speed
-    // @Description: The speed in meters per second at which to engage FLAP_2_PERCENT of flaps. Note that FLAP_1_SPEED should be greater than or equal to FLAP_2_SPEED
+    // @Param: FLAP_EXTED_SPD
+    // @DisplayName: Auto flaps deployed speed
+    // @Description: The speed in meters per second at which the flaps will be extended to FLAP_EXTED_PCT of the maximum deployment in automatic throttle modes.
     // @Range: 0 100
 	// @Units: m/s
-	// @Increment: 1
+	// @Increment: 0.1
     // @User: Advanced
-    GSCALAR(flap_2_speed,           "FLAP_2_SPEED",   FLAP_2_SPEED),
+    GSCALAR(flap_deployed_speed,     "FLAP_EXTED_SPD",   FLAP_EXTED_SPD),
 
 #if HAL_WITH_IO_MCU
     // @Param: OVERRIDE_CHAN
