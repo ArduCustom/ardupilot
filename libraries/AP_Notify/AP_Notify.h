@@ -181,6 +181,10 @@ public:
     void set_plane_demanded_airspeed(const float aspd) { _plane_arsp_dem = aspd; }
     float get_plane_demanded_airspeed(void) { return _plane_arsp_dem; }
 
+    // get/set plane auto requested flaps position
+    void set_plane_auto_flaps(const uint8_t auto_flaps) { _plane_auto_flaps = auto_flaps; }
+    uint8_t get_plane_auto_flaps(void) { return _plane_auto_flaps; }
+
     // send text to display
     void send_text(const char *str);
     const char* get_text() const { return _send_text; }
@@ -223,6 +227,7 @@ private:
     char _flight_mode_str[5];
 
     float _plane_arsp_dem; // plane demanded airspeed if in auto throttle mode
+    uint8_t _plane_auto_flaps; // plane auto requested flaps position
 
     static NotifyDevice* _devices[];
     static uint8_t _num_devices;

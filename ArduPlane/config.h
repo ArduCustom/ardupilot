@@ -40,17 +40,14 @@
 //////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef FLAP_1_PERCENT
- # define FLAP_1_PERCENT 0
+#ifndef FLAP_EXTED_PCNT
+ # define FLAP_EXTED_PCNT 0
 #endif
-#ifndef FLAP_1_SPEED
- # define FLAP_1_SPEED 0
+#ifndef FLAP_RETED_SPD
+ # define FLAP_RETED_SPD 0
 #endif
-#ifndef FLAP_2_PERCENT
- # define FLAP_2_PERCENT 0
-#endif
-#ifndef FLAP_2_SPEED
- # define FLAP_2_SPEED 0
+#ifndef FLAP_EXTED_SPD
+ # define FLAP_EXTED_SPD 0
 #endif
 //////////////////////////////////////////////////////////////////////////////
 // FLIGHT_MODE
