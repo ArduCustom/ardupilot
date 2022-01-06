@@ -97,6 +97,8 @@ public:
     virtual bool control_mode_does_auto_throttle(void) const { return false; }
     virtual float demanded_airspeed(void) const { return 0; }
 
+    virtual float auto_flap_percent(void) const { return 0; }
+
     // perform any notifications required to indicate a mode change
     // failed due to a bad mode number being supplied.  This can
     // happen for many reasons - bad mavlink packet and bad mode
