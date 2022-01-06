@@ -639,8 +639,8 @@ void Plane::set_servos_controlled(void)
 void Plane::set_servos_flaps(void)
 {
     // Auto flap deployment
-    int8_t auto_flap_percent = 0;
-    int8_t manual_flap_percent = 0;
+    float auto_flap_percent = 0;
+    float manual_flap_percent = 0;
 
     // work out any manual flap input
     if (channel_flap != nullptr && rc().has_valid_input()) {
@@ -648,16 +648,14 @@ void Plane::set_servos_flaps(void)
     }
 
     if (control_mode->does_auto_throttle()) {
-        int16_t flapSpeedSource = 0;
+        float flapSpeedSource = 0;
         if (ahrs.airspeed_sensor_enabled()) {
-            flapSpeedSource = target_airspeed_cm * 0.01f;
+            flapSpeedSource = TECS_controller.get_target_airspeed();
         } else {
             flapSpeedSource = aparm.throttle_cruise;
         }
-        if (g.flap_2_speed != 0 && flapSpeedSource <= g.flap_2_speed) {
-            auto_flap_percent = g.flap_2_percent;
-        } else if ( g.flap_1_speed != 0 && flapSpeedSource <= g.flap_1_speed) {
-            auto_flap_percent = g.flap_1_percent;
+        if (g.flap_deployed_percent != 0) {
+            auto_flap_percent = linear_interpolate(0, g.flap_deployed_percent, flapSpeedSource, g.flap_retracted_speed, g.flap_deployed_speed);
         } //else flaps stay at default zero deflection
 
 #if HAL_SOARING_ENABLED
@@ -698,6 +696,8 @@ void Plane::set_servos_flaps(void)
     if (abs(manual_flap_percent) > auto_flap_percent) {
         auto_flap_percent = manual_flap_percent;
     }
+
+    notify.set_plane_auto_flaps(lrintf(auto_flap_percent));
 
     SRV_Channels::set_output_scaled(SRV_Channel::k_flap_auto, auto_flap_percent);
     SRV_Channels::set_output_scaled(SRV_Channel::k_flap, manual_flap_percent);
