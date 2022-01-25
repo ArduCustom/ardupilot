@@ -577,6 +577,8 @@ public:
     AP_Int8 flight_mode10;
     AP_Int8 flight_mode11;
     AP_Int8 flight_mode12;
+
+    AP_Int8 arming_mode_sw;
 };
 
 extern const AP_Param::Info var_info[];

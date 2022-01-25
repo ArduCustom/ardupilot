@@ -318,6 +318,17 @@ bool AP_Arming_Plane::arm(const AP_Arming::Method method, const bool do_arming_c
 
     gcs().send_text(MAV_SEVERITY_INFO, "Throttle armed");
 
+    switch (plane.g2.arming_mode_sw) {
+        case ARMING_MODE_SWITCH_DISABLED:
+            break;
+        case ARMING_MODE_SWITCH_TKOFF:
+            plane.set_mode(plane.mode_takeoff , ModeReason::ARMING_MODE_SW);
+            break;
+        case ARMING_MODE_SWITCH_AUTO:
+            plane.set_mode(plane.mode_auto , ModeReason::ARMING_MODE_SW);
+            break;
+    }
+
     return true;
 }
 

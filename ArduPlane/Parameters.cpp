@@ -1289,6 +1289,13 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("FLTMODE12", 63, ParametersG2, flight_mode12, FLIGHT_MODE_12),
 
+    // @Param: ARMING_MODE_SW
+    // @DisplayName: Selects what mode to switch to after arming
+    // @Description: Selects what mode to switch to after arming
+    // @Values: 0:Disabled,1:Takeoff,2:Auto
+    // @User: Advanced
+    AP_GROUPINFO("ARMING_MODE_SW", 40, ParametersG2, arming_mode_sw, ARMING_MODE_SWITCH_DISABLED),
+
     AP_GROUPEND
 };
 
