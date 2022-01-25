@@ -766,8 +766,9 @@ void Plane::calc_nav_roll()
 void Plane::adjust_nav_pitch_throttle(void)
 {
     int8_t throttle = throttle_percentage();
-    if (throttle >= 0 && throttle < aparm.throttle_cruise && flight_stage != AP_Vehicle::FixedWing::FLIGHT_VTOL) {
-        float p = (aparm.throttle_cruise - throttle) / (float)aparm.throttle_cruise;
+    float pitch_down_throttle = is_zero(g.stab_pitch_down_throttle) ? aparm.throttle_cruise : g.stab_pitch_down_throttle;
+    if (throttle >= 0 && throttle < pitch_down_throttle && flight_stage != AP_Vehicle::FixedWing::FLIGHT_VTOL) {
+        float p = (pitch_down_throttle - throttle) / pitch_down_throttle;
         nav_pitch_cd -= g.stab_pitch_down * 100.0f * p;
     }
 }
