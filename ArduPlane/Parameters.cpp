@@ -85,6 +85,15 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Advanced
     GSCALAR(stab_pitch_down, "STAB_PITCH_DOWN",   2.0f),
 
+    // @Param: STAB_PTCHDN_THR
+    // @DisplayName: Throttle under which to start pitching down to avoid stalling
+    // @Description: Throttle under which to start pitching down to avoid stalling. The applied down pitch scales linearly from 0 to STAB_PITCH_DOWN with throttle between STAB_PTCHDN_THR and 0. If set to 0 (default) then TRIM_THROTTLE is used.
+    // @Range: 0 100
+    // @Increment: 0.1
+    // @Units: %
+    // @User: Advanced
+    GSCALAR(stab_pitch_down_throttle, "STAB_PTCHDN_THR", 0.0f),
+
     // @Param: GLIDE_SLOPE_MIN
     // @DisplayName: Glide slope minimum
     // @Description: This controls the minimum altitude change for a waypoint before a glide slope will be used instead of an immediate altitude change. The default value is 15 meters, which helps to smooth out waypoint missions where small altitude changes happen near waypoints. If you don't want glide slopes to be used in missions then you can set this to zero, which will disable glide slope calculations. Otherwise you can set it to a minimum number of meters of altitude error to the destination waypoint before a glide slope will be used to change altitude.
