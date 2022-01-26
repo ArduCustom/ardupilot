@@ -59,6 +59,11 @@ public:
         return _throttle_dem * 100.0f;
     }
 
+    void set_throttle_demand(float throttle_demand) {
+        _last_throttle_dem = _throttle_dem = throttle_demand * 0.01f;
+        _throttle_dem_ext_update_last_msec = AP_HAL::millis();
+    }
+
     // demanded pitch angle in centi-degrees
     // should return between -9000 to +9000
     int32_t get_pitch_demand(void) {
@@ -153,6 +158,8 @@ private:
 
     // Last time update_pitch_throttle was called
     uint64_t _update_pitch_throttle_last_usec;
+
+    uint32_t _throttle_dem_ext_update_last_msec;
 
     // reference to the AHRS object
     AP_AHRS &_ahrs;
