@@ -989,7 +989,9 @@ void AP_TECS::_initialise_states(int32_t ptchMinCO_cd, float hgt_afe)
     if (_DT > 1.0f || _need_reset) {
         _integTHR_state      = 0.0f;
         _integSEB_state      = 0.0f;
-        _last_throttle_dem = aparm.throttle_cruise * 0.01f;
+        if (AP_HAL::millis() - _throttle_dem_ext_update_last_msec > 200) {
+            _throttle_dem = aparm.throttle_cruise * 0.01f;
+        }
         _last_pitch_dem    = _ahrs.pitch;
         _hgt_dem_adj_last  = hgt_afe;
         _hgt_dem_adj       = _hgt_dem_adj_last;
