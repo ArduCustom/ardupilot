@@ -1184,6 +1184,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(auto_flaps, "AUTO_FLP", 57, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: AOA_EN
+    // @DisplayName: AOA_EN
+    // @Description: Displays the estimated angle of attack
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: AOA_X
+    // @DisplayName: AOA_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: AOA_Y
+    // @DisplayName: AOA_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(aoa, "AOA", 56, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -2120,16 +2136,8 @@ void AP_OSD_Screen::draw_roll_angle(uint8_t x, uint8_t y)
     }
 }
 
-void AP_OSD_Screen::draw_pitch_angle(uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_pitch(uint8_t x, uint8_t y, float pitch)
 {
-    float roll;
-    float pitch;
-    {
-        AP_AHRS &ahrs = AP::ahrs();
-        WITH_SEMAPHORE(ahrs.get_semaphore());
-        AP::vehicle()->get_osd_roll_pitch_rad(roll, pitch);
-    }
-    pitch = ToDeg(pitch);
     const bool one_decimal = osd->options & AP_OSD::OPTION_ONE_DECIMAL_ATTITUDE;
     const float level_symbol_max_angle = one_decimal ? 0.049f : 0.45f;
     const float pitch_abs = abs(pitch);
@@ -2146,6 +2154,18 @@ void AP_OSD_Screen::draw_pitch_angle(uint8_t x, uint8_t y)
         const char *format = pitch_abs < 9.5 ? "%c %.0f%c" : "%c%.0f%c";
         backend->write(x, y, false, format, p, pitch_abs, SYMBOL(SYM_DEGR));
     }
+}
+
+void AP_OSD_Screen::draw_pitch_angle(uint8_t x, uint8_t y)
+{
+    float roll;
+    float pitch;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        AP::vehicle()->get_osd_roll_pitch_rad(roll, pitch);
+    }
+    draw_pitch(x, y, ToDeg(pitch));
 }
 
 void AP_OSD_Screen::draw_acc(uint8_t x, uint8_t y, float acc, uint8_t neg_symbol, uint8_t zero_symbol, uint8_t pos_symbol, float warn)
@@ -2188,6 +2208,14 @@ void AP_OSD_Screen::draw_auto_flaps(uint8_t x, uint8_t y)
         uint8_t flaps_pcnt = AP_Notify::get_singleton()->get_plane_auto_flaps();
         backend->write(x, y, false, "%3d%c", flaps_pcnt, SYMBOL(SYM_PCNT));
     }
+}
+
+void AP_OSD_Screen::draw_aoa(uint8_t x, uint8_t y)
+{
+    AP_AHRS &ahrs = AP::ahrs();
+    WITH_SEMAPHORE(ahrs.get_semaphore());
+    float aoa_val = ahrs.getAOA();
+    draw_pitch(x, y, aoa_val);
 }
 
 void AP_OSD_Screen::draw_acc_lat(uint8_t x, uint8_t y) {
@@ -2626,6 +2654,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(rc_throttle);
     DRAW_SETTING(aspd_dem);
     DRAW_SETTING(auto_flaps);
+    DRAW_SETTING(aoa);
 }
 #endif
 #endif // OSD_ENABLED
