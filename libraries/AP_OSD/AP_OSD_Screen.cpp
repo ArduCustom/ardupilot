@@ -2127,41 +2127,55 @@ void AP_OSD_Screen::draw_gps_longitude(uint8_t x, uint8_t y)
 
 void AP_OSD_Screen::draw_roll_angle(uint8_t x, uint8_t y)
 {
-    AP_AHRS &ahrs = AP::ahrs();
-    const float roll = abs(ahrs.roll_sensor) / 100.0f;
+    float roll;
+    float pitch;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        AP::vehicle()->get_osd_roll_pitch_rad(roll, pitch);
+    }
+    roll = ToDeg(roll);
+    const bool one_decimal = osd->options & AP_OSD::OPTION_ONE_DECIMAL_ATTITUDE;
+    const float level_symbol_max_angle = one_decimal ? 0.049f : 0.45f;
     char r;
-    if (ahrs.roll_sensor > 50) {
-        r = SYMBOL(SYM_ROLLR);
-    } else if (ahrs.roll_sensor < -50) {
-        r = SYMBOL(SYM_ROLLL);
+    if (abs(roll) > level_symbol_max_angle) {
+        r = signbit(roll) ? SYMBOL(SYM_ROLLL) : SYMBOL(SYM_ROLLR);
     } else {
         r = SYMBOL(SYM_ROLL0);
     }
-    if (osd->options & AP_OSD::OPTION_ONE_DECIMAL_ATTITUDE) {
+    if (one_decimal) {
         const char *format = roll < 9.95 ? "%c  %.1f%c" : (roll < 99.95 ? "%c %.1f%c" : "%c%.1f%c");
-        backend->write(x, y, false, format, r, roll, SYMBOL(SYM_DEGR));
+        backend->write(x, y, false, format, r, abs(roll), SYMBOL(SYM_DEGR));
     } else {
-        backend->write(x, y, false, "%c%3d%c", r, (int16_t)lrintf(roll), SYMBOL(SYM_DEGR));
+        const char *format = roll < 9.95 ? "%c  %.0f%c" : (roll < 99.95 ? "%c %.0f%c" : "%c%.0f%c");
+        backend->write(x, y, false, format, r, abs(roll), SYMBOL(SYM_DEGR));
     }
 }
 
 void AP_OSD_Screen::draw_pitch_angle(uint8_t x, uint8_t y)
 {
-    AP_AHRS &ahrs = AP::ahrs();
-    const float pitch = abs(ahrs.pitch_sensor) / 100.0f;
+    float roll;
+    float pitch;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        AP::vehicle()->get_osd_roll_pitch_rad(roll, pitch);
+    }
+    pitch = ToDeg(pitch);
+    const bool one_decimal = osd->options & AP_OSD::OPTION_ONE_DECIMAL_ATTITUDE;
+    const float level_symbol_max_angle = one_decimal ? 0.049f : 0.45f;
     char p;
-    if (ahrs.pitch_sensor > 50) {
-        p = SYMBOL(SYM_PTCHUP);
-    } else if (ahrs.pitch_sensor < -50) {
-        p = SYMBOL(SYM_PTCHDWN);
+    if (abs(pitch) > level_symbol_max_angle) {
+        p = signbit(pitch) ? SYMBOL(SYM_PTCHDWN) : SYMBOL(SYM_PTCHUP);
     } else {
         p = SYMBOL(SYM_PTCH0);
     }
-    if (osd->options & AP_OSD::OPTION_ONE_DECIMAL_ATTITUDE) {
+    if (one_decimal) {
         const char *format = pitch < 9.95 ? "%c %.1f%c" : "%c%.1f%c";
-        backend->write(x, y, false, format, p, pitch, SYMBOL(SYM_DEGR));
+        backend->write(x, y, false, format, p, abs(pitch), SYMBOL(SYM_DEGR));
     } else {
-        backend->write(x, y, false, "%c%2d%c", p, (int16_t)lrintf(pitch), SYMBOL(SYM_DEGR));
+        const char *format = pitch < 9.5 ? "%c %.0f%c" : "%c%.0f%c";
+        backend->write(x, y, false, format, p, abs(pitch), SYMBOL(SYM_DEGR));
     }
 }
 
