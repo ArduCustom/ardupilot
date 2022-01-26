@@ -1184,6 +1184,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(auto_flaps, "AUTO_FLP", 57, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: AOA_EN
+    // @DisplayName: AOA_EN
+    // @Description: Displays the estimated angle of attack
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: AOA_X
+    // @DisplayName: AOA_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: AOA_Y
+    // @DisplayName: AOA_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(aoa, "AOA", 56, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -2174,6 +2190,29 @@ void AP_OSD_Screen::draw_auto_flaps(uint8_t x, uint8_t y)
     }
 }
 
+void AP_OSD_Screen::draw_aoa(uint8_t x, uint8_t y)
+{
+    AP_AHRS &ahrs = AP::ahrs();
+    WITH_SEMAPHORE(ahrs.get_semaphore());
+    float aoa_val = ahrs.getAOA();
+    // const char *format = aoa_val < 9.95 ? " %.1f%c" : "%.1f%c";
+    char p;
+    if (aoa_val > 0.5f) {
+        p = SYMBOL(SYM_PTCHUP);
+    } else if (aoa_val < -0.5f) {
+        p = SYMBOL(SYM_PTCHDWN);
+    } else {
+        p = SYMBOL(SYM_PTCH0);
+    }
+    if (osd->options & AP_OSD::OPTION_ONE_DECIMAL_ATTITUDE) {
+        const char *format = aoa_val < 9.95 ? "%c %.1f%c" : "%c%.1f%c";
+        backend->write(x, y, false, format, p, fabsf(aoa_val), SYMBOL(SYM_DEGR));
+    } else {
+        backend->write(x, y, false, "%c%2d%c", p, (int16_t)lrintf(fabsf(aoa_val)), SYMBOL(SYM_DEGR));
+    }
+    // backend->write(x, y, false, format, aoa_val, SYMBOL(SYM_DEGR));
+}
+
 void AP_OSD_Screen::draw_acc_lat(uint8_t x, uint8_t y) {
     AP_AHRS &ahrs = AP::ahrs();
     WITH_SEMAPHORE(ahrs.get_semaphore());
@@ -2610,6 +2649,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(rc_throttle);
     DRAW_SETTING(aspd_dem);
     DRAW_SETTING(auto_flaps);
+    DRAW_SETTING(aoa);
 }
 #endif
 #endif // OSD_ENABLED
