@@ -488,6 +488,8 @@ bool AP_RCProtocol_CRSF::process_telemetry(bool check_constraint)
     return true;
 }
 
+constexpr uint16_t AP_RCProtocol_CRSF::tx_powers[];
+
 // process link statistics to get RSSI
 void AP_RCProtocol_CRSF::process_link_stats_frame(const void* data)
 {
@@ -515,6 +517,7 @@ void AP_RCProtocol_CRSF::process_link_stats_frame(const void* data)
     }
 
     _link_status.rf_mode = MIN(link->rf_mode, 7U);
+    _link_status.tx_power = link->uplink_tx_power < sizeof(AP_RCProtocol_CRSF::tx_powers) ? AP_RCProtocol_CRSF::tx_powers[link->uplink_tx_power] : -1;
 }
 
 // process link statistics to get RX RSSI
