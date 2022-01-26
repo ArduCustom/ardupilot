@@ -231,6 +231,7 @@ private:
     AP_OSD_Setting acc_long{false, 0, 0};
     AP_OSD_Setting acc_lat{false, 0, 0};
     AP_OSD_Setting acc_vert{false, 0, 0};
+    AP_OSD_Setting aoa{false, 0, 0};
 
     // MSP OSD only
     AP_OSD_Setting crosshair{false, 0, 0};
@@ -326,6 +327,8 @@ private:
     void draw_rc_throttle(uint8_t x, uint8_t y);
     void draw_aspd_dem(uint8_t x, uint8_t y);
     void draw_auto_flaps(uint8_t x, uint8_t y);
+    void draw_aoa(uint8_t x, uint8_t y);
+    void draw_pitch(uint8_t x , uint8_t y , float pitch);
 
     struct {
         bool load_attempted;
