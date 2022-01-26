@@ -232,6 +232,7 @@ private:
     AP_OSD_Setting acc_lat{false, 0, 0};
     AP_OSD_Setting acc_vert{false, 0, 0};
     AP_OSD_Setting aoa{false, 0, 0};
+    AP_OSD_Setting crsf_tx_power{false, 0, 0};
 
     // MSP OSD only
     AP_OSD_Setting crosshair{false, 0, 0};
@@ -329,6 +330,7 @@ private:
     void draw_auto_flaps(uint8_t x, uint8_t y);
     void draw_aoa(uint8_t x, uint8_t y);
     void draw_pitch(uint8_t x , uint8_t y , float pitch);
+    void draw_crsf_tx_power(uint8_t x, uint8_t y);
 
     struct {
         bool load_attempted;
