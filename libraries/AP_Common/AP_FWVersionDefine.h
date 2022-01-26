@@ -23,7 +23,7 @@
 #include <AP_Common/AP_FWVersion.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 
-#define AP_CUSTOM_FIRMWARE_STRING "Custom v9.0"
+#define AP_CUSTOM_FIRMWARE_STRING "CustomLight v9.0"
 
 /*
   allow vendors to set AP_CUSTOM_FIRMWARE_STRING in hwdef.dat
