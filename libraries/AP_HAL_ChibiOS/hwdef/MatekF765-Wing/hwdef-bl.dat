@@ -20,11 +20,7 @@ FLASH_BOOTLOADER_LOAD_KB 96
 
 
 # order of UARTs (and USB). Allow bootloading on USB and telem1
-SERIAL_ORDER OTG1 UART7
-
-# UART7 (telem1)
-PE7 UART7_RX UART7
-PE8 UART7_TX UART7
+SERIAL_ORDER OTG1
 
 # PA10 IO-debug-console
 PA11 OTG_FS_DM OTG1
