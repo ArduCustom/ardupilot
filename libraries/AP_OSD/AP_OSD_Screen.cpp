@@ -40,6 +40,7 @@
 #include <AP_Terrain/AP_Terrain.h>
 #include <AP_RangeFinder/AP_RangeFinder.h>
 #include <AP_Vehicle/AP_Vehicle.h>
+#include <AP_RCProtocol/AP_RCProtocol_CRSF.h>
 #if APM_BUILD_TYPE(APM_BUILD_Rover)
 #include <AP_WindVane/AP_WindVane.h>
 #endif
@@ -1216,6 +1217,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(aoa, "AOA", 56, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: CRSFPWR_EN
+    // @DisplayName: CRSFPWR_EN
+    // @Description: Displays the TX power when using the CRSF RC protocol
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: CRSFPWR_X
+    // @DisplayName: CRSFPWR_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: CRSFPWR_Y
+    // @DisplayName: CRSFPWR_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(crsf_tx_power, "CRSFPWR", 55, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -2233,6 +2250,16 @@ void AP_OSD_Screen::draw_aoa(uint8_t x, uint8_t y)
     draw_pitch(x, y, aoa_val);
 }
 
+void AP_OSD_Screen::draw_crsf_tx_power(uint8_t x, uint8_t y)
+{
+    const int16_t tx_power = AP::crsf()->get_link_status().tx_power;
+    if (tx_power > 0) {
+        backend->write(x, y, false, "%4d%c", tx_power, SYMBOL(SYM_MW));
+    } else {
+        backend->write(x, y, false, "----%c", SYMBOL(SYM_MW));
+    }
+}
+
 void AP_OSD_Screen::draw_acc_lat(uint8_t x, uint8_t y) {
     AP_AHRS &ahrs = AP::ahrs();
     WITH_SEMAPHORE(ahrs.get_semaphore());
@@ -2673,6 +2700,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(aspd_dem);
     DRAW_SETTING(auto_flaps);
     DRAW_SETTING(aoa);
+    DRAW_SETTING(crsf_tx_power);
 }
 #endif
 #endif // OSD_ENABLED
