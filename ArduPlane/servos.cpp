@@ -567,7 +567,9 @@ void Plane::set_servos_controlled(void)
         }
         if (g.throttle_suppress_manual) {
             // manual pass through of throttle while throttle is suppressed
-            SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, get_throttle_input(true));
+            float throttle_input = get_throttle_input(true);
+            SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle_input);
+            TECS_controller.set_throttle_demand(throttle_input);
         }
     } else if (control_mode == &mode_stabilize ||
                control_mode == &mode_training ||
