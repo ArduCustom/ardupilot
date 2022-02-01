@@ -27,6 +27,7 @@
 #include <AP_RSSI/AP_RSSI.h>
 #include <AP_RTC/AP_RTC.h>
 #include <GCS_MAVLink/GCS.h>
+#include <AP_Vehicle/AP_Vehicle.h>
 
 #include "AP_MSP.h"
 #include "AP_MSP_Telem_Backend.h"
@@ -857,17 +858,24 @@ MSPCommandResult AP_MSP_Telem_Backend::msp_process_out_osd_config(sbuf_t *dst)
 
 MSPCommandResult AP_MSP_Telem_Backend::msp_process_out_attitude(sbuf_t *dst)
 {
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
+    float roll;
+    float pitch;
+    float yaw;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        AP::vehicle()->get_osd_roll_pitch_rad(roll, pitch);
+        yaw = ahrs.yaw_sensor;
+    }
 
     const struct PACKED {
         int16_t roll;
         int16_t pitch;
         int16_t yaw;
     } attitude {
-        roll : int16_t(ahrs.roll_sensor * 0.1),     // centidegress to decidegrees
-        pitch : int16_t(ahrs.pitch_sensor * 0.1),   // centidegress to decidegrees
-        yaw : int16_t(ahrs.yaw_sensor * 0.01)       // centidegress to degrees
+        roll : int16_t(lrintf(ToDeg(roll) * 10)),   // radian to decidegrees
+        pitch : int16_t(lrintf(ToDeg(pitch) * 10)), // radian to decidegrees
+        yaw : int16_t(lrintf(yaw * 0.01))           // centidegress to degrees
     };
 
     sbuf_write_data(dst, &attitude, sizeof(attitude));
