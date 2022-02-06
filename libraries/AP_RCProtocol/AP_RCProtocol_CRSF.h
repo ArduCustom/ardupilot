@@ -237,8 +237,11 @@ public:
     struct LinkStatus {
         int16_t rssi = -1;
         int16_t link_quality = -1;
-        uint8_t rf_mode;
+        int8_t rf_mode = -1;
         int16_t tx_power = -1;
+        uint8_t rssi_dbm = 0;
+        int8_t snr = 0;
+        uint8_t active_antenna = 0;
     };
 
     // this will be used by AP_CRSF_Telem to access link status data
