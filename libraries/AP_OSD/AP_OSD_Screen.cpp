@@ -1057,7 +1057,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
 
     // @Param: LINK_Q_EN
     // @DisplayName: LINK_Q_EN
-    // @Description: Displays Receiver link quality
+    // @Description: Displays Receiver link quality and also RF mode if bit 20 of OSD_OPTIONS is set
     // @Values: 0:Disabled,1:Enabled
 
     // @Param: LINK_Q_X
@@ -1591,17 +1591,17 @@ void AP_OSD_Screen::draw_link_quality(uint8_t x, uint8_t y)
 
         // rf_mode of 0 of higher indicates we are using the CRSF protocol
         // Display the RF mode at the start of the LQ element
-        if (rf_mode >= 0) {
+        if (check_option(AP_OSD::OPTION_RF_MODE_ALONG_WITH_LQ) && rf_mode >= 0) {
             if (lqv < 0) {
-                backend->write(x, y, false, "%c-:---", SYMBOL(SYM_LQ));
+                backend->write(x, y, false, "%c-:---%c", SYMBOL(SYM_LQ), SYMBOL(SYM_PCNT));
             } else {
-                backend->write(x, y, false, "%c%d:%2d", SYMBOL(SYM_LQ), rf_mode, lqv);
+                backend->write(x, y, false, "%c%d:%2d%c", SYMBOL(SYM_LQ), rf_mode, lqv, SYMBOL(SYM_PCNT));
             }
         } else {
             if (lqv < 0) {
-                backend->write(x, y, false, "%c---", SYMBOL(SYM_LQ));
+                backend->write(x, y, false, "%c---%c", SYMBOL(SYM_LQ), SYMBOL(SYM_PCNT));
             } else {
-                backend->write(x, y, false, "%c%2d", SYMBOL(SYM_LQ), lqv);
+                backend->write(x, y, false, "%c%2d%c", SYMBOL(SYM_LQ), lqv, SYMBOL(SYM_PCNT));
             }
         }
         
@@ -2312,20 +2312,32 @@ void AP_OSD_Screen::draw_crsf_tx_power(uint8_t x, uint8_t y)
 
 void AP_OSD_Screen::draw_crsf_rssi_dbm(uint8_t x, uint8_t y)
 {
-    const uint8_t rssidbm = AP::crsf()->get_link_status().rssi_dbm;
-    backend->write(x, y, rssidbm > osd->warn_rssi, "-%d%c", rssidbm, SYMBOL(SYM_DBM));
+    const int8_t rssidbm = AP::crsf()->get_link_status().rssi_dbm;
+    if (rssidbm >= 0) {
+        backend->write(x, y, rssidbm > osd->warn_rssi, "%c%4d%c", SYMBOL(SYM_RSSI), -rssidbm, SYMBOL(SYM_DBM));
+    } else {
+        backend->write(x, y, false, "%c----%c", SYMBOL(SYM_RSSI), SYMBOL(SYM_DBM));
+    }
 }
 
 void AP_OSD_Screen::draw_crsf_snr(uint8_t x, uint8_t y)
 {
     const int8_t snr = AP::crsf()->get_link_status().snr;
-    backend->write(x, y, false, "%c%d%c", SYMBOL(SYM_SNR), snr, SYMBOL(SYM_DB));
+    if (snr == INT8_MIN) {
+        backend->write(x, y, false, "%c---%c", SYMBOL(SYM_SNR), SYMBOL(SYM_DB));
+    } else {
+        backend->write(x, y, false, "%c%3d%c", SYMBOL(SYM_SNR), snr, SYMBOL(SYM_DB));
+    }
 }
 
 void AP_OSD_Screen::draw_crsf_active_antenna(uint8_t x, uint8_t y)
 {
-    const uint8_t active_antenna = AP::crsf()->get_link_status().active_antenna;
-    backend->write(x, y, false, "%c%d", SYMBOL(SYM_ANT), active_antenna);
+    const int8_t active_antenna = AP::crsf()->get_link_status().active_antenna;
+    if (active_antenna < 0) {
+        backend->write(x, y, false, "%c-", SYMBOL(SYM_ANT));
+    } else {
+        backend->write(x, y, false, "%c%d", SYMBOL(SYM_ANT), active_antenna + 1);
+    }
 }
 
 void AP_OSD_Screen::draw_acc_lat(uint8_t x, uint8_t y) {
