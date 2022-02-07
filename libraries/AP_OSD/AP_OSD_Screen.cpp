@@ -2313,19 +2313,19 @@ void AP_OSD_Screen::draw_crsf_tx_power(uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_crsf_rssi_dbm(uint8_t x, uint8_t y)
 {
     const uint8_t rssidbm = AP::crsf()->get_link_status().rssi_dbm;
-    backend->write(x, y, rssidbm > osd->warn_rssi, "%c-%d", SYMBOL(SYM_RSSI), rssidbm);
+    backend->write(x, y, rssidbm > osd->warn_rssi, "-%d%c", rssidbm, SYMBOL(SYM_DBM));
 }
 
 void AP_OSD_Screen::draw_crsf_snr(uint8_t x, uint8_t y)
 {
     const int8_t snr = AP::crsf()->get_link_status().snr;
-    backend->write(x, y, false, "%d", snr);
+    backend->write(x, y, false, "%c%d%c", SYMBOL(SYM_SNR), snr, SYMBOL(SYM_DB));
 }
 
 void AP_OSD_Screen::draw_crsf_active_antenna(uint8_t x, uint8_t y)
 {
     const uint8_t active_antenna = AP::crsf()->get_link_status().active_antenna;
-    backend->write(x, y, false, "ANT%d", active_antenna);
+    backend->write(x, y, false, "%c%d", SYMBOL(SYM_ANT), active_antenna);
 }
 
 void AP_OSD_Screen::draw_acc_lat(uint8_t x, uint8_t y) {
