@@ -1344,6 +1344,12 @@ uint8_t AP_OSD_AbstractScreen::symbols_lookup_table[AP_OSD_NUM_SYMBOLS];
 
 #define SYM_WATT 91
 #define SYM_WH 92
+#define SYM_DB 93
+#define SYM_DBM 94
+#define SYM_SNR 95
+#define SYM_ANT 96
+#define SYM_ARROW_RIGHT 97
+#define SYM_ARROW_LEFT 98
 
 #define SYMBOL(n) AP_OSD_AbstractScreen::symbols_lookup_table[n]
 
@@ -2265,7 +2271,7 @@ void AP_OSD_Screen::draw_acc_lat(uint8_t x, uint8_t y) {
     WITH_SEMAPHORE(ahrs.get_semaphore());
     const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
     const float acc = _acc_lat_filter.apply(rotMat.c.y * GRAVITY_MSS + AP::ins().get_accel().y) / GRAVITY_MSS;
-    draw_acc(x, y, acc, SYM_ROLLR, SYM_ROLL0, SYM_ROLLL, 0);
+    draw_acc(x, y, acc, SYM_ARROW_LEFT, SYM_ROLL0, SYM_ARROW_RIGHT, 0);
 }
 
 void AP_OSD_Screen::draw_acc_vert(uint8_t x, uint8_t y) {
