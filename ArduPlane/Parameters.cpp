@@ -611,7 +611,7 @@ const AP_Param::Info Plane::var_info[] = {
 
     // @Param: MIXING_OFFSET
     // @DisplayName: Mixing Offset
-    // @Description: The offset for the Vtail and elevon output mixers, as a percentage. This can be used in combination with MIXING_GAIN to configure how the control surfaces respond to input. The response to aileron or elevator input can be increased by setting this parameter to a positive or negative value. A common usage is to enter a positive value to increase the aileron response of the elevons of a flying wing. The default value of zero will leave the aileron-input response equal to the elevator-input response.
+    // @Description: The offset for the Vtail and elevon output mixers, as a percentage. This parameters shifts the balance between aileron and elevator throws. For elevon planes: a positive value makes the elevator throws larger than aileron throws and a negative value makes the aileron throws larger than the elevator throws.
     // @Units: %
     // @Range: -50 50
     // @User: Standard
