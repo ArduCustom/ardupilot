@@ -501,7 +501,10 @@ void AP_RCProtocol_CRSF::process_link_stats_frame(const void* data)
     } else {
         rssi_dbm = link->uplink_rssi_ant2;
     }
+
+    _link_status.rssi_dbm = rssi_dbm;
     _link_status.link_quality = link->uplink_status;
+
     if (_use_lq_for_rssi) {
         _link_status.rssi = derive_scaled_lq_value(link->uplink_status);
     } else{
@@ -518,6 +521,8 @@ void AP_RCProtocol_CRSF::process_link_stats_frame(const void* data)
 
     _link_status.rf_mode = MIN(link->rf_mode, 7U);
     _link_status.tx_power = link->uplink_tx_power < sizeof(AP_RCProtocol_CRSF::tx_powers) ? AP_RCProtocol_CRSF::tx_powers[link->uplink_tx_power] : -1;
+    _link_status.snr = link->uplink_snr;
+    _link_status.active_antenna = link->active_antenna;
 }
 
 // process link statistics to get RX RSSI
