@@ -291,7 +291,7 @@ uint16_t AP_CRSF_Telem::get_telemetry_rate() const
     // the 1:n ratio is user selected
     // RC rate is measured by get_avg_packet_rate()
     // telemetry rate = air rate - RC rate
-    return uint16_t(AP_RCProtocol_CRSF::elrs_air_rates[MIN(crsf->get_link_status().rf_mode, 7U)] - get_avg_packet_rate());
+    return uint16_t(AP_RCProtocol_CRSF::elrs_air_rates[MIN(crsf->get_link_status().rf_mode, 7)] - get_avg_packet_rate());
 }
 
 void AP_CRSF_Telem::queue_message(MAV_SEVERITY severity, const char *text)
