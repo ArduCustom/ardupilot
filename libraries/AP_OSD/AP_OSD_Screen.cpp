@@ -2691,7 +2691,7 @@ void AP_OSD_Screen::draw_rngf(uint8_t x, uint8_t y)
     if (rangefinder == nullptr) {
        return;
     }
-    if (rangefinder->status_orient(ROTATION_PITCH_270) <= RangeFinder::Status::NoData) {
+    if (rangefinder->status_orient(ROTATION_PITCH_270) < RangeFinder::Status::Good) {
         backend->write(x, y, false, "----%c%c", u_icon(ALTITUDE), SYMBOL(SYM_RNGFD));
     } else {
         AP_AHRS &ahrs = AP::ahrs();
