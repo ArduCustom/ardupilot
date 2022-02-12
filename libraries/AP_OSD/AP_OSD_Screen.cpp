@@ -2694,11 +2694,32 @@ void AP_OSD_Screen::draw_rngf(uint8_t x, uint8_t y)
     if (rangefinder->status_orient(ROTATION_PITCH_270) < RangeFinder::Status::Good) {
         backend->write(x, y, false, "----%c%c", u_icon(ALTITUDE), SYMBOL(SYM_RNGFD));
     } else {
-        AP_AHRS &ahrs = AP::ahrs();
-        WITH_SEMAPHORE(ahrs.get_semaphore());
-        const float distance = rangefinder->distance_orient(ROTATION_PITCH_270) * ahrs.get_rotation_body_to_ned().c.z;
-        const char *format = distance < 9.995 ? " %1.2f%c%c" : "%2.2f%c%c";
-        backend->write(x, y, false, format, u_scale(ALTITUDE, distance), u_icon(ALTITUDE), SYMBOL(SYM_RNGFD));
+        float attitude_angle;
+        {
+            AP_AHRS &ahrs = AP::ahrs();
+            WITH_SEMAPHORE(ahrs.get_semaphore());
+            attitude_angle = ahrs.get_rotation_body_to_ned().c.z;
+        }
+        const float distance = (rangefinder->distance_orient(ROTATION_PITCH_270) - rangefinder->ground_clearance_cm_orient(ROTATION_PITCH_270) * 0.01f) * attitude_angle;
+        const float distance_abs = abs(distance);
+
+        uint8_t spaces;
+        const char *format;
+        if (distance_abs < 9.995) {
+            spaces = 1;
+            format = "%1.2f%c%c";
+        } else if (distance_abs < 99.95) {
+            spaces = 0;
+            format = "%2.2f%c%c";
+        } else {
+            spaces = 0;
+            format = "%3.1f%c%c";
+        }
+        if (signbit(distance)) {
+            spaces -= 1;
+        }
+
+        backend->write(x + spaces, y, false, format, u_scale(ALTITUDE, distance), u_icon(ALTITUDE), SYMBOL(SYM_RNGFD));
     }
 }
 
