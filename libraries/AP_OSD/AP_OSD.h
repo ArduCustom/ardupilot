@@ -533,6 +533,7 @@ public:
     AP_Int8 failsafe_scr;
     AP_Int32 button_delay_ms;
     AP_Int8 efficiency_unit_base;
+    AP_Int8 batt_bar_type;
 
 #if HAL_WITH_ESC_TELEM
     AP_Float warn_blh_high_rpm;
@@ -559,9 +560,15 @@ public:
         UNITS_AVIATION=3,
         UNITS_LAST=4,
     };
+
     enum efficiency_unit_base {
         EFF_UNIT_BASE_MAH=0,
         EFF_UNIT_BASE_WH=1,
+    };
+
+    enum batt_bar_type_e {
+        BATT_BAR_BASE_MAH=0,
+        BATT_BAR_BASE_WH=1,
     };
 
     AP_Int8 units;

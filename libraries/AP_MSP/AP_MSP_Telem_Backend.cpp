@@ -226,8 +226,12 @@ void AP_MSP_Telem_Backend::update_battery_state(battery_state_t &battery_state)
     if (!_battery.consumed_mah(battery_state.batt_consumed_mah)) {
         battery_state.batt_consumed_mah = 0;
     }
+    if (!_battery.consumed_wh(battery_state.batt_consumed_wh)) {
+        battery_state.batt_consumed_wh = 0;
+    }
     battery_state.batt_voltage_v =_battery.voltage();
     battery_state.batt_capacity_mah = _battery.pack_capacity_mah();
+    battery_state.batt_capacity_wh = _battery.pack_capacity_wh();
 
     const AP_Notify& notify = AP::notify();
     if (notify.flags.failsafe_battery) {
