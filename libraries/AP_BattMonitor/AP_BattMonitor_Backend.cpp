@@ -35,8 +35,19 @@ AP_BattMonitor_Backend::AP_BattMonitor_Backend(AP_BattMonitor &mon, AP_BattMonit
 // return false if the battery is unhealthy, does not have current monitoring, or the pack_capacity is too small
 bool AP_BattMonitor_Backend::capacity_remaining_pct(uint8_t &percentage) const
 {
+    float pack_capacity;
+    float pack_consumed;
+
+    if (_params._options & uint32_t(AP_BattMonitor_Params::Options::Use_Wh_for_remaining_percent_calc)) {
+        pack_capacity = _params._pack_capacity_wh;
+        pack_consumed = _state.consumed_wh;
+    } else {
+        pack_capacity = _params._pack_capacity;
+        pack_consumed = _state.consumed_mah;
+    }
+
     // we consider anything under 10 mAh as being an invalid capacity and so will be our measurement of remaining capacity
-    if ( _params._pack_capacity <= 10) {
+    if (!is_positive(pack_capacity)) {
         return false;
     }
 
@@ -45,8 +56,8 @@ bool AP_BattMonitor_Backend::capacity_remaining_pct(uint8_t &percentage) const
         return false;
     }
 
-    const float mah_remaining = _params._pack_capacity - _state.consumed_mah;
-    percentage = constrain_float(100 * mah_remaining / _params._pack_capacity, 0, UINT8_MAX);
+    const float remaining = pack_capacity - pack_consumed;
+    percentage = constrain_float(100 * remaining / pack_capacity, 0, UINT8_MAX);
     return true;
 }
 
@@ -168,11 +179,16 @@ bool AP_BattMonitor_Backend::arming_checks(char * buffer, size_t buflen) const
 
     bool below_arming_voltage = is_positive(_params._arming_minimum_voltage) &&
                                 (_state.voltage < _params._arming_minimum_voltage);
-    bool below_arming_capacity = (_params._arming_minimum_capacity > 0) &&
-                                 ((_params._pack_capacity - _state.consumed_mah) < _params._arming_minimum_capacity);
-    bool fs_capacity_inversion = is_positive(_params._critical_capacity) &&
+    bool below_arming_capacity = ((_params._arming_minimum_capacity > 0) &&
+                                 ((_params._pack_capacity - _state.consumed_mah) < _params._arming_minimum_capacity)) ||
+                                 ((_params._arming_minimum_capacity_wh > 0) &&
+                                 ((_params._pack_capacity_wh - _state.consumed_wh) < _params._arming_minimum_capacity_wh));
+    bool fs_capacity_inversion = (is_positive(_params._critical_capacity) &&
                                  is_positive(_params._low_capacity) &&
-                                 (_params._low_capacity < _params._critical_capacity);
+                                 (_params._low_capacity < _params._critical_capacity)) ||
+                                 (is_positive(_params._critical_capacity_wh) &&
+                                 is_positive(_params._low_capacity_wh) &&
+                                 (_params._low_capacity_wh < _params._critical_capacity_wh));
     bool fs_voltage_inversion = is_positive(_params._critical_voltage) &&
                                 is_positive(_params._low_voltage) &&
                                 (_params._low_voltage < _params._critical_voltage);
@@ -212,8 +228,10 @@ void AP_BattMonitor_Backend::check_failsafe_types(bool &low_voltage, bool &low_c
     }
 
     // check capacity failsafe if current monitoring is enabled
-    if (has_current() && (_params._critical_capacity > 0) &&
-        ((_params._pack_capacity - _state.consumed_mah) < _params._critical_capacity)) {
+    if (has_current() && (((_params._critical_capacity > 0) &&
+        ((_params._pack_capacity - _state.consumed_mah) < _params._critical_capacity)) ||
+        ((_params._critical_capacity_wh > 0) &&
+        ((_params._pack_capacity_wh - _state.consumed_wh) < _params._critical_capacity_wh)))) {
         critical_capacity = true;
     } else {
         critical_capacity = false;
@@ -226,8 +244,10 @@ void AP_BattMonitor_Backend::check_failsafe_types(bool &low_voltage, bool &low_c
     }
 
     // check capacity if current monitoring is enabled
-    if (has_current() && (_params._low_capacity > 0) &&
-        ((_params._pack_capacity - _state.consumed_mah) < _params._low_capacity)) {
+    if (has_current() && (((_params._low_capacity > 0) &&
+        ((_params._pack_capacity - _state.consumed_mah) < _params._low_capacity)) ||
+        ((_params._low_capacity_wh > 0) &&
+        ((_params._pack_capacity_wh - _state.consumed_wh) < _params._low_capacity_wh)))) {
         low_capacity = true;
     } else {
         low_capacity = false;

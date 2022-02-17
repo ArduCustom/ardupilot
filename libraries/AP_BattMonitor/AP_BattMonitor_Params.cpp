@@ -145,7 +145,39 @@ const AP_Param::GroupInfo AP_BattMonitor_Params::var_info[] = {
     // @Description: This sets options to change the behaviour of the battery monitor
     // @Bitmask: 0:Ignore DroneCAN SoC, 1:MPPT reports input voltage and current, 2:MPPT Powered off when disarmed, 3:MPPT Powered on when armed, 4:MPPT Powered off at boot, 5:MPPT Powered on at boot, 6:Send resistance compensated voltage to GCS
     // @User: Advanced
-    AP_GROUPINFO("OPTIONS", 21, AP_BattMonitor_Params, _options, 0),
+    AP_GROUPINFO("OPTIONS", 21, AP_BattMonitor_Params, _options, float(Options::Use_Wh_for_remaining_percent_calc)),
+
+    // @Param: CAPA_WH
+    // @DisplayName: Battery capacity in Wh
+    // @Description: Capacity of the battery in Wh when full
+    // @Units: Wh
+    // @Increment: 0.1
+    // @User: Standard
+    AP_GROUPINFO("CAPA_WH", 58, AP_BattMonitor_Params, _pack_capacity_wh, 20),
+
+    // @Param: LOW_WH
+    // @DisplayName: Low battery capacity
+    // @Description: Battery capacity at which the low battery failsafe is triggered. Set to 0 to disable battery remaining failsafe. If the battery capacity drops below this level the vehicle will perform the failsafe specified by the @PREFIX@FS_LOW_ACT parameter.
+    // @Units: Wh
+    // @Increment: 0.1
+    // @User: Standard
+    AP_GROUPINFO("LOW_WH", 59, AP_BattMonitor_Params, _low_capacity_wh, 0),
+
+    // @Param: CRT_WH
+    // @DisplayName: Battery critical capacity
+    // @Description: Battery capacity at which the critical battery failsafe is triggered. Set to 0 to disable battery remaining failsafe. If the battery capacity drops below this level the vehicle will perform the failsafe specified by the @PREFIX@_FS_CRT_ACT parameter.
+    // @Units: Wh
+    // @Increment: 0.1
+    // @User: Standard
+    AP_GROUPINFO("CRT_WH", 60, AP_BattMonitor_Params, _critical_capacity_wh, 0),
+
+    // @Param: ARM_WH
+    // @DisplayName: Required arming remaining capacity
+    // @Description: Battery capacity remaining which is required to arm the aircraft. Set to 0 to allow arming at any capacity. Note that execept for smart batteries rebooting the vehicle will always reset the remaining capacity estimate, which can lead to this check not providing sufficent protection, it is recommended to always use this in conjunction with the @PREFIX@_ARM_VOLT parameter.
+    // @Units: Wh
+    // @Increment: 0.1
+    // @User: Advanced
+    AP_GROUPINFO("ARM_WH", 61, AP_BattMonitor_Params, _arming_minimum_capacity_wh, 0),
 
     // @Param: CELL_DT_V
     // @DisplayName: Battery cell max voltage
