@@ -220,6 +220,20 @@ public:
     /// pack_capacity_mah - returns the capacity of the battery pack in mAh when the pack is full
     int32_t pack_capacity_mah(uint8_t instance) const;
     int32_t pack_capacity_mah() const { return pack_capacity_mah(AP_BATT_PRIMARY_INSTANCE); }
+
+    float low_capacity_mah(uint8_t instance) const;
+    float low_capacity_mah() const { return low_capacity_mah(AP_BATT_PRIMARY_INSTANCE); }
+    float critical_capacity_mah(uint8_t instance) const;
+    float critical_capacity_mah() const { return critical_capacity_mah(AP_BATT_PRIMARY_INSTANCE); }
+ 
+    /// pack_capacity_wh - returns the capacity of the battery pack in Wh when the pack is full
+    float pack_capacity_wh(uint8_t instance) const;
+    float pack_capacity_wh() const { return pack_capacity_wh(AP_BATT_PRIMARY_INSTANCE); }
+
+    float low_capacity_wh(uint8_t instance) const;
+    float low_capacity_wh() const { return low_capacity_wh(AP_BATT_PRIMARY_INSTANCE); }
+    float critical_capacity_wh(uint8_t instance) const;
+    float critical_capacity_wh() const { return critical_capacity_wh(AP_BATT_PRIMARY_INSTANCE); }
  
     /// returns true if a battery failsafe has ever been triggered
     bool has_failsafed(void) const { return _has_triggered_failsafe; };
