@@ -1281,6 +1281,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(crsf_active_antenna, "CRSFANT", 52, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: BAT_PCT_EN
+    // @DisplayName: BAT_PCT_EN
+    // @Description: Displays the remaining battery capacity as a percentage
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: BAT_PCT_X
+    // @DisplayName: BAT_PCT_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: BAT_PCT_Y
+    // @DisplayName: BAT_PCT_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(bat_pct, "BAT_PCT", 51, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -1587,6 +1603,34 @@ void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
     }
     uint8_t p = (100 - pct) / 16.6;
     backend->write(x,y, v < osd->warn_batvolt, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p, (double)v, SYMBOL(SYM_VOLT));
+}
+
+void AP_OSD_Screen::draw_bat_pct(uint8_t x, uint8_t y)
+{
+    AP_BattMonitor &battery = AP::battery();
+
+    float v = battery.voltage();
+    float consumed_mah;
+    float consumed_wh;
+    bool has_consumed_mah = false;
+    bool has_consumed_wh = false;
+    if (battery.consumed_mah(consumed_mah)) {
+        has_consumed_mah = true;
+    }
+    if (battery.consumed_wh(consumed_wh)) {
+        has_consumed_wh = true;
+    }
+
+    const bool blink = v < osd->warn_batvolt ||
+                       (is_positive(battery.low_capacity_mah()) && (!has_consumed_mah || ((battery.pack_capacity_mah() - consumed_mah) < battery.low_capacity_mah()))) ||
+                       (is_positive(battery.low_capacity_wh()) && (!has_consumed_wh || ((battery.pack_capacity_wh() - consumed_wh) < battery.low_capacity_wh())));
+
+    uint8_t pct;
+    if (!battery.capacity_remaining_pct(pct)) {
+        backend->write(x, y, blink, "---%c", SYMBOL(SYM_PCNT));
+        return;
+    }
+    backend->write(x, y, blink, "%3d%c", pct, SYMBOL(SYM_PCNT));
 }
 
 void AP_OSD_Screen::draw_rssi(uint8_t x, uint8_t y)
@@ -2827,6 +2871,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(crsf_rssi_dbm);
     DRAW_SETTING(crsf_snr);
     DRAW_SETTING(crsf_active_antenna);
+    DRAW_SETTING(bat_pct);
 }
 #endif
 #endif // OSD_ENABLED
