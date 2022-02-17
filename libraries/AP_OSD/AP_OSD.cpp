@@ -203,7 +203,7 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @DisplayName: Underspeed warn speed
     // @Description: Set speed under which ASPDx items will flash
     // @Range: 0 1000
-    // @Units: m/s
+    // @Units: gravities
     // @User: Standard
     AP_GROUPINFO("_W_VERT_ACC", 60, AP_OSD, warn_vert_acc, 0),
 
