@@ -1415,6 +1415,8 @@ uint8_t AP_OSD_AbstractScreen::symbols_lookup_table[AP_OSD_NUM_SYMBOLS];
 #define SYM_ARROW_RIGHT 97
 #define SYM_ARROW_LEFT 98
 
+#define SYM_G 99
+
 #define SYMBOL(n) AP_OSD_AbstractScreen::symbols_lookup_table[n]
 
 // constructor
@@ -2319,9 +2321,9 @@ void AP_OSD_Screen::draw_pitch_angle(uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_acc(uint8_t x, uint8_t y, float acc, uint8_t neg_symbol, uint8_t zero_symbol, uint8_t pos_symbol, float warn)
 {
     const float acc_abs = fabsf(acc);
-    const char *format = acc_abs < 9.95 ? "%c %1.1f" : "%c%2.1f";
+    const char *format = acc_abs < 9.95 ? "%c %1.1f%c" : "%c%2.1f%c";
     const uint8_t symbol = SYMBOL(acc_abs < 0.05 ? zero_symbol : (signbit(acc) ? neg_symbol : pos_symbol));
-    backend->write(x, y, warn > 0 && acc_abs > warn, format, symbol, acc_abs);
+    backend->write(x, y, warn > 0 && acc_abs > warn, format, symbol, acc_abs, SYMBOL(SYM_G));
 }
 
 void AP_OSD_Screen::draw_acc_long(uint8_t x, uint8_t y) {
@@ -2335,17 +2337,17 @@ void AP_OSD_Screen::draw_acc_long(uint8_t x, uint8_t y) {
     const float acc_abs = fabsf(acc);
     if (acc_abs < 9.95) {
         spaces = 2;
-        format = "%1.1f";
+        format = "%1.1f%c";
     } else {
         spaces = 1;
-        format = "%2.1f";
+        format = "%2.1f%c";
     }
 
     if (signbit(acc)) {
         spaces -= 1;
     }
 
-    backend->write(x + spaces, y, false, format, acc);
+    backend->write(x + spaces, y, false, format, acc, SYMBOL(SYM_G));
 }
 
 void AP_OSD_Screen::draw_auto_flaps(uint8_t x, uint8_t y)
