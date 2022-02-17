@@ -115,6 +115,7 @@ known_units = {
              'kRPM'     : 'Thousands of revolutions Per Minute',
              'kg/m/m'  : 'kilograms per square meter', # metre is the SI unit name, meter is the american spelling of it
              'kg/m/m/m': 'kilograms per cubic meter',
+             'Wh'      : 'Watt hour'
              }
 
 required_param_fields = [
