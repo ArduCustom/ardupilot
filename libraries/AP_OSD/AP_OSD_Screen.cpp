@@ -1663,10 +1663,13 @@ void AP_OSD_Screen::draw_energy(uint8_t x, uint8_t y)
     AP_BattMonitor &battery = AP::battery();
     float energy_wh;
     if (!battery.consumed_wh(energy_wh)) {
-        energy_wh = 0;
+        // consumed energy unavailable
+        backend->write(x, y, false, "----%c", SYMBOL(SYM_WH));
+        return;
     }
     const char* const fmt = (energy_wh < 9.9995 ? "%1.3f%c" : (energy_wh < 99.995 ? "%2.2f%c" : "%3.1f%c"));
-    backend->write(x, y, false, fmt, energy_wh, SYMBOL(SYM_WH));
+    const bool blink = is_positive(battery.low_capacity_wh()) && (battery.pack_capacity_wh() - energy_wh) < battery.low_capacity_wh();
+    backend->write(x, y, blink, fmt, energy_wh, SYMBOL(SYM_WH));
 }
 
 void AP_OSD_Screen::draw_fltmode(uint8_t x, uint8_t y)
@@ -1695,14 +1698,16 @@ void AP_OSD_Screen::draw_sats(uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_batused(uint8_t instance, uint8_t x, uint8_t y)
 {
     float mah;
-    if (!AP::battery().consumed_mah(mah, instance)) {
+    AP_BattMonitor &battery = AP::battery();
+    if (!battery.consumed_mah(mah, instance)) {
         mah = 0;
     }
+    const bool blink = is_positive(battery.low_capacity_mah()) && (battery.pack_capacity_mah() - mah) < battery.low_capacity_mah();
     if (mah <= 9999) {
-        backend->write(x,y, false, "%4d%c", (int)mah, SYMBOL(SYM_MAH));
+        backend->write(x,y, blink, "%4d%c", (int)mah, SYMBOL(SYM_MAH));
     } else {
         const float ah = mah * 1e-3f;
-        backend->write(x,y, false, "%2.2f%c", (double)ah, SYMBOL(SYM_AH));
+        backend->write(x,y, blink, "%2.2f%c", (double)ah, SYMBOL(SYM_AH));
     }
 }
 

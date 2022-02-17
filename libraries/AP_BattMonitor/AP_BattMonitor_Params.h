@@ -16,7 +16,7 @@ public:
         BattMonitor_LowVoltageSource_Raw            = 0,
         BattMonitor_LowVoltageSource_SagCompensated = 1
     };
-    enum class Options : uint8_t {
+    enum class Options : uint32_t {
         Ignore_UAVCAN_SoC                   = (1U<<0),  // Ignore UAVCAN State-of-Charge (charge %) supplied value from the device and use the internally calculated one
         MPPT_Use_Input_Value                = (1U<<1),  // MPPT reports voltage and current from Input (usually solar panel) instead of the output
         MPPT_Power_Off_At_Disarm            = (1U<<2),  // MPPT Disabled when vehicle is disarmed, if HW supports it
@@ -24,17 +24,22 @@ public:
         MPPT_Power_Off_At_Boot              = (1U<<4),  // MPPT Disabled at startup (aka boot), if HW supports it
         MPPT_Power_On_At_Boot               = (1U<<5),  // MPPT Enabled at startup (aka boot), if HW supports it. If Power_Off_at_Boot is also set, the behavior is Power_Off_at_Boot
         GCS_Resting_Voltage                 = (1U<<6),  // send resistance resting voltage to GCS
+        Use_Wh_for_remaining_percent_calc   = (1U<<23),
     };
 
     BattMonitor_LowVoltage_Source failsafe_voltage_source(void) const { return (enum BattMonitor_LowVoltage_Source)_failsafe_voltage_source.get(); }
 
     AP_Int32 _pack_capacity;            /// battery pack capacity less reserve in mAh
+    AP_Float _pack_capacity_wh;         /// battery pack capacity in Wh
     AP_Int32 _serial_number;            /// battery serial number, automatically filled in on SMBus batteries
     AP_Float _low_voltage;              /// voltage level used to trigger a low battery failsafe
     AP_Float _low_capacity;             /// capacity level used to trigger a low battery failsafe
+    AP_Float _low_capacity_wh;          /// capacity level used to trigger a low battery failsafe
     AP_Float _critical_voltage;         /// voltage level used to trigger a critical battery failsafe
     AP_Float _critical_capacity;        /// capacity level used to trigger a critical battery failsafe
+    AP_Float _critical_capacity_wh;        /// capacity level used to trigger a critical battery failsafe
     AP_Int32 _arming_minimum_capacity;  /// capacity level required to arm
+    AP_Float _arming_minimum_capacity_wh;  /// capacity level required to arm
     AP_Float _arming_minimum_voltage;   /// voltage level required to arm
     AP_Int32 _options;                  /// Options
     AP_Int16 _watt_max;                 /// max battery power allowed. Reduce max throttle to reduce current to satisfy t    his limit
