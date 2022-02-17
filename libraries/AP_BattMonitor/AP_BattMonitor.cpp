@@ -570,6 +570,52 @@ int32_t AP_BattMonitor::pack_capacity_mah(uint8_t instance) const
     }
 }
 
+float AP_BattMonitor::low_capacity_mah(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return _params[instance]._low_capacity;
+    } else {
+        return 0;
+    }
+}
+
+float AP_BattMonitor::critical_capacity_mah(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return _params[instance]._critical_capacity;
+    } else {
+        return 0;
+    }
+}
+
+/// pack_capacity_wh - returns the capacity of the battery pack in Wh when the pack is full
+float AP_BattMonitor::pack_capacity_wh(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return _params[instance]._pack_capacity_wh;
+    } else {
+        return 0;
+    }
+}
+
+float AP_BattMonitor::low_capacity_wh(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return _params[instance]._low_capacity_wh;
+    } else {
+        return 0;
+    }
+}
+
+float AP_BattMonitor::critical_capacity_wh(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return _params[instance]._critical_capacity_wh;
+    } else {
+        return 0;
+    }
+}
+
 void AP_BattMonitor::check_failsafes(void)
 {
     if (hal.util->get_soft_armed()) {
