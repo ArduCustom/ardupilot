@@ -100,7 +100,8 @@ AP_BattMonitor_Analog::read()
         if (_state.last_time_micros != 0 && dt < 2000000.0f) {
             float mah = calculate_mah(_state.current_amps, dt);
             _state.consumed_mah += mah;
-            _state.consumed_wh  += 0.001f * mah * _state.voltage;
+            const uint32_t options = uint32_t(_params._options.get());
+            _state.consumed_wh  += 0.001f * mah * (options & uint32_t(AP_BattMonitor_Params::Options::ANA_INCLUDE_UPSTREAM_ENERGY_LOSSES) ? _state.voltage_resting_estimate : _state.voltage);
         }
 
         // record time
