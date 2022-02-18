@@ -285,6 +285,7 @@ void AP_BattMonitor_Backend::update_consumed(AP_BattMonitor::BattMonitor_State &
     if (state.last_time_micros != 0 && dt_us < 2000000) {
         const float mah = calculate_mah(state.current_amps, dt_us);
         state.consumed_mah += mah;
-        state.consumed_wh  += 0.001 * mah * state.voltage;
+        const uint32_t options = uint32_t(_params._options.get());
+        _state.consumed_wh  += 0.001f * mah * (options & uint32_t(AP_BattMonitor_Params::Options::ANA_INCLUDE_UPSTREAM_ENERGY_LOSSES) ? _state.voltage_resting_estimate : _state.voltage);
     }
 }
