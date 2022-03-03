@@ -1584,7 +1584,7 @@ void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
     uint8_t pct;
     if (!battery.capacity_remaining_pct(pct)) {
         // Do not show battery percentage
-        backend->write(x,y, v < osd->warn_batvolt, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+        backend->write(x+1,y, v < osd->warn_batvolt, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
         return;
     }
     uint8_t p = (100 - pct) / 16.6;
