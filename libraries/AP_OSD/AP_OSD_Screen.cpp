@@ -1569,13 +1569,13 @@ void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
         if (pct_available) {
             backend->write(x,y, v < osd->warn_avgcellvolt, "%c%1.2f%c", pct_symbol, v, SYMBOL(SYM_VOLT));
         } else {
-            backend->write(x,y, v < osd->warn_avgcellvolt, "%1.2f%c", v, SYMBOL(SYM_VOLT));
+            backend->write(x+1,y, v < osd->warn_avgcellvolt, "%1.2f%c", v, SYMBOL(SYM_VOLT));
         }
     } else {
         if (pct_available) {
             backend->write(x,y, false, "%c---%c", pct_symbol, SYMBOL(SYM_VOLT));
         } else {
-            backend->write(x,y, false, "---%c", SYMBOL(SYM_VOLT));
+            backend->write(x+1,y, false, "---%c", SYMBOL(SYM_VOLT));
         }
     }
 }
@@ -1586,7 +1586,7 @@ void AP_OSD_Screen::draw_restvolt(uint8_t x, uint8_t y)
     float v = battery.voltage_resting_estimate();
     uint8_t pct;
     if (!battery.capacity_remaining_pct(pct)) {
-        backend->write(x, y, v < osd->warn_restvolt, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+        backend->write(x+1, y, v < osd->warn_restvolt, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
         return;
     }
     uint8_t p = (100 - pct) / 16.6;
@@ -1600,7 +1600,7 @@ void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
     uint8_t pct;
     if (!battery.capacity_remaining_pct(pct)) {
         // Do not show battery percentage
-        backend->write(x,y, v < osd->warn_batvolt, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+        backend->write(x+1,y, v < osd->warn_batvolt, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
         return;
     }
     uint8_t p = (100 - pct) / 16.6;
@@ -2590,7 +2590,7 @@ void AP_OSD_Screen::draw_bat2_vlt(uint8_t x, uint8_t y)
     float v2 = battery.voltage(1);
     if (!battery.capacity_remaining_pct(pct2, 1)) {
         // Do not show battery percentage
-        backend->write(x,y, v2 < osd->warn_bat2volt, "%2.1f%c", (double)v2, SYMBOL(SYM_VOLT));
+        backend->write(x+1,y, v2 < osd->warn_bat2volt, "%2.1f%c", (double)v2, SYMBOL(SYM_VOLT));
         return;
     }
     uint8_t p2 = (100 - pct2) / 16.6;
