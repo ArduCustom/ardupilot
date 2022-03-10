@@ -50,7 +50,7 @@ const AP_Param::GroupInfo AP_Frsky_Parameters::var_info[] = {
     // @Description: A bitmask to set some FRSky Telemetry specific options
     // @Bitmask: 0:EnableAirspeedAndGroundspeed
     // @User: Standard
-    AP_GROUPINFO("OPTIONS", 5, AP_Frsky_Parameters, _options, 0),
+    AP_GROUPINFO("OPTIONS", 5, AP_Frsky_Parameters, _options, 1),
     AP_GROUPEND
 };
 
