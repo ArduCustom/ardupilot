@@ -661,15 +661,12 @@ uint32_t AP_Frsky_SPort_Passthrough::calc_velandyaw(void)
     // airspeed estimate + airspeed option enabled => alternate airspeed/groundspeed, i.e send airspeed only when _passthrough.send_airspeed==true
     if (airspeed_estimate_true && (!option_airspeed_enabled || _passthrough.send_airspeed)) {
         hspeed_m = airspeed_m;
+        velandyaw |= 1U<<VELANDYAW_ARSPD_OFFSET;
     }
     // horizontal velocity in dm/s
     velandyaw |= prep_number(roundf(hspeed_m * 10), 2, 1)<<VELANDYAW_XYVEL_OFFSET;
     // yaw from [0;36000] centidegrees to .2 degree increments [0;1800] (just in case, limit to 2047 (0x7FF) since the value is stored on 11 bits)
     velandyaw |= ((uint16_t)roundf(_ahrs.yaw_sensor * 0.05f) & VELANDYAW_YAW_LIMIT)<<VELANDYAW_YAW_OFFSET;
-    // flag the airspeed bit if required
-    if (airspeed_estimate_true && option_airspeed_enabled && _passthrough.send_airspeed) {
-        velandyaw |= 1U<<VELANDYAW_ARSPD_OFFSET;
-    }
     // toggle air/ground speed selector
     _passthrough.send_airspeed = !_passthrough.send_airspeed;
     return velandyaw;
