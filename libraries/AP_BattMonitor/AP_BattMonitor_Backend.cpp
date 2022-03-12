@@ -28,7 +28,7 @@ AP_BattMonitor_Backend::AP_BattMonitor_Backend(AP_BattMonitor &mon, AP_BattMonit
         _state(mon_state),
         _params(params)
 {
-    _state.cell_count = _params._cell_count;
+    _state.cell_count = _params._cell_count < 0 ? 1 : _params._cell_count;
 }
 
 bool AP_BattMonitor_Backend::capacity_has_been_configured() const

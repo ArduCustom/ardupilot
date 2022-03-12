@@ -1550,23 +1550,13 @@ void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
         pct_symbol = SYMBOL(SYM_BATT_FULL) + p;
     }
     const bool blink = battery.voltage_is_low();
-    if (battery.cell_count() > 0) {
-        float v = battery.cell_avg_voltage();
-        if (pct_available) {
-            backend->write(x,y, blink, "%c%1.2f%c", pct_symbol, v, SYMBOL(SYM_VOLT));
-        } else if (battery.capacity_has_been_configured()) {
-            backend->write(x,y, blink, "%c%1.2f%c", SYMBOL(SYM_BATT_UNKNOWN), v, SYMBOL(SYM_VOLT));
-        } else {
-            backend->write(x+1,y, blink, "%1.2f%c", v, SYMBOL(SYM_VOLT));
-        }
+    float v = battery.cell_avg_voltage();
+    if (pct_available) {
+        backend->write(x, y, blink, "%c%1.2f%c", pct_symbol, v, SYMBOL(SYM_VOLT));
+    } else if (battery.capacity_has_been_configured()) {
+        backend->write(x, y, blink, "%c%1.2f%c", SYMBOL(SYM_BATT_UNKNOWN), v, SYMBOL(SYM_VOLT));
     } else {
-        if (pct_available) {
-            backend->write(x,y, false, "%c---%c", pct_symbol, SYMBOL(SYM_VOLT));
-        } else if (battery.capacity_has_been_configured()) {
-            backend->write(x,y, false, "%c---%c", SYMBOL(SYM_BATT_UNKNOWN), SYMBOL(SYM_VOLT));
-        } else {
-            backend->write(x+1,y, false, "---%c", SYMBOL(SYM_VOLT));
-        }
+        backend->write(x + 1, y, blink, "%1.2f%c", v, SYMBOL(SYM_VOLT));
     }
 }
 

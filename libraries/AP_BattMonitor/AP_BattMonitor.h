@@ -123,7 +123,7 @@ public:
     // The BattMonitor_State structure is filled in by the backend driver
     struct BattMonitor_State {
         int8_t      cell_count;
-        bool        battery_full_when_plugged_in;
+        int8_t      battery_full_when_plugged_in = -1;
         cells       cell_voltages;             // battery cell voltages in millivolts, 10 cells matches the MAVLink spec
         float       voltage;                   // voltage in volts
         float       current_amps;              // current in amperes
