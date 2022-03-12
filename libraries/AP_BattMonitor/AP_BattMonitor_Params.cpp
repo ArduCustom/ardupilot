@@ -147,6 +147,30 @@ const AP_Param::GroupInfo AP_BattMonitor_Params::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("OPTIONS", 21, AP_BattMonitor_Params, _options, float(int32_t(Options::Use_Wh_for_remaining_percent_calc) | int32_t(Options::ANA_INCLUDE_UPSTREAM_ENERGY_LOSSES))),
 
+    // @Param: LOW_CV
+    // @DisplayName: Minimum battery cell voltage to consider the battery full
+    // @Description: Minimum battery cell voltage to consider the battery full
+    // @Units: V
+    // @Increment: 0.01
+    // @User: Advanced
+    AP_GROUPINFO("LOW_CV", 55, AP_BattMonitor_Params, _low_cell_voltage, 3.15f),
+
+    // @Param: CRT_CV
+    // @DisplayName: Minimum battery cell voltage to consider the battery full
+    // @Description: Minimum battery cell voltage to consider the battery full
+    // @Units: V
+    // @Increment: 0.01
+    // @User: Advanced
+    AP_GROUPINFO("CRT_CV", 56, AP_BattMonitor_Params, _critical_cell_voltage, 3.0f),
+
+    // @Param: CELL_VFULL
+    // @DisplayName: Minimum battery cell voltage to consider the battery full
+    // @Description: Minimum battery cell voltage to consider the battery full
+    // @Units: V
+    // @Increment: 0.01
+    // @User: Advanced
+    AP_GROUPINFO("CELL_VFULL", 57, AP_BattMonitor_Params, _cell_full_voltage, 4.15f),
+
     // @Param: CAPA_WH
     // @DisplayName: Battery capacity in Wh
     // @Description: Capacity of the battery in Wh when full

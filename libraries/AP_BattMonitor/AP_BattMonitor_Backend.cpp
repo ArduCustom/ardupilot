@@ -31,6 +31,19 @@ AP_BattMonitor_Backend::AP_BattMonitor_Backend(AP_BattMonitor &mon, AP_BattMonit
     _state.cell_count = _params._cell_count;
 }
 
+bool AP_BattMonitor_Backend::capacity_has_been_configured() const
+{
+    float pack_capacity;
+
+    if (_params._options & uint32_t(AP_BattMonitor_Params::Options::Use_Wh_for_remaining_percent_calc)) {
+        pack_capacity = _params._pack_capacity_wh;
+    } else {
+        pack_capacity = _params._pack_capacity;
+    }
+
+    return is_positive(pack_capacity);
+}
+
 // capacity_remaining_pct - returns true if the battery % is available and writes to the percentage argument
 // return false if the battery is unhealthy, does not have current monitoring, or the pack_capacity is too small
 bool AP_BattMonitor_Backend::capacity_remaining_pct(uint8_t &percentage) const
@@ -47,7 +60,7 @@ bool AP_BattMonitor_Backend::capacity_remaining_pct(uint8_t &percentage) const
     }
 
     // we consider anything under 10 mAh as being an invalid capacity and so will be our measurement of remaining capacity
-    if (!is_positive(pack_capacity)) {
+    if (!is_positive(pack_capacity) || !_state.battery_full_when_plugged_in) {
         return false;
     }
 
@@ -116,6 +129,24 @@ float AP_BattMonitor_Backend::voltage_resting_estimate() const
 {
     // resting voltage should always be greater than or equal to the raw voltage
     return MAX(_state.voltage, _state.voltage_resting_estimate);
+}
+
+/// voltage - returns average cell battery voltage in volts
+float AP_BattMonitor_Backend::cell_avg_voltage() const
+{
+    float cells_total = 0;
+    if (has_cell_voltages()) {
+        for (uint16_t i = 0; i < AP_BATT_MONITOR_CELLS_MAX; ++i) {
+            auto cell_voltage = _state.cell_voltages.cells[i];
+            if (cell_voltage != 0xFFFF) {
+                cells_total += cell_voltage;
+            }
+        }
+    } else {
+        cells_total = _state.voltage;
+    }
+
+    return cells_total / _state.cell_count;
 }
 
 AP_BattMonitor::Failsafe AP_BattMonitor_Backend::update_failsafes(void)
@@ -189,9 +220,12 @@ bool AP_BattMonitor_Backend::arming_checks(char * buffer, size_t buflen) const
                                  (is_positive(_params._critical_capacity_wh) &&
                                  is_positive(_params._low_capacity_wh) &&
                                  (_params._low_capacity_wh < _params._critical_capacity_wh));
-    bool fs_voltage_inversion = is_positive(_params._critical_voltage) &&
+    bool fs_voltage_inversion = (is_positive(_params._critical_voltage) &&
                                 is_positive(_params._low_voltage) &&
-                                (_params._low_voltage < _params._critical_voltage);
+                                (_params._low_voltage < _params._critical_voltage)) ||
+                                (is_positive(_params._critical_cell_voltage) &&
+                                is_positive(_params._low_cell_voltage) &&
+                                (_params._low_cell_voltage < _params._critical_cell_voltage));
 
     bool result =      update_check(buflen, buffer, below_arming_voltage, "below minimum arming voltage");
     result = result && update_check(buflen, buffer, below_arming_capacity, "below minimum arming capacity");
@@ -220,7 +254,9 @@ void AP_BattMonitor_Backend::check_failsafe_types(bool &low_voltage, bool &low_c
     }
 
     // check critical battery levels
-    if ((voltage_used > 0) && (_params._critical_voltage > 0) && (voltage_used < _params._critical_voltage)) {
+    if ((voltage_used > 0) &&
+        (((_params._critical_voltage > 0) && (voltage_used < _params._critical_voltage)) ||
+        ((_params._critical_cell_voltage > 0) && (cell_avg_voltage() < _params._critical_cell_voltage)))) {
         critical_voltage = true;
     } else {
         critical_voltage = false;
@@ -236,7 +272,9 @@ void AP_BattMonitor_Backend::check_failsafe_types(bool &low_voltage, bool &low_c
         critical_capacity = false;
     }
 
-    if ((voltage_used > 0) && (_params._low_voltage > 0) && (voltage_used < _params._low_voltage)) {
+    if ((voltage_used > 0) &&
+        (((_params._low_voltage > 0) && (voltage_used < _params._low_voltage)) ||
+        ((_params._low_cell_voltage > 0) && (cell_avg_voltage() < _params._low_cell_voltage)))) {
         low_voltage = true;
     } else {
         low_voltage = false;

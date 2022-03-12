@@ -1400,6 +1400,7 @@ uint8_t AP_OSD_AbstractScreen::symbols_lookup_table[AP_OSD_NUM_SYMBOLS];
 #define SYM_ARROW_LEFT 98
 
 #define SYM_G 99
+#define SYM_BATT_UNKNOWN 100
 
 #define SYMBOL(n) AP_OSD_AbstractScreen::symbols_lookup_table[n]
 
@@ -1552,12 +1553,16 @@ void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
         float v = battery.cell_avg_voltage();
         if (pct_available) {
             backend->write(x,y, v < osd->warn_avgcellvolt, "%c%1.2f%c", pct_symbol, v, SYMBOL(SYM_VOLT));
+        } else if (battery.capacity_has_been_configured()) {
+            backend->write(x,y, v < osd->warn_avgcellvolt, "%c%1.2f%c", SYMBOL(SYM_BATT_UNKNOWN), v, SYMBOL(SYM_VOLT));
         } else {
             backend->write(x+1,y, v < osd->warn_avgcellvolt, "%1.2f%c", v, SYMBOL(SYM_VOLT));
         }
     } else {
         if (pct_available) {
             backend->write(x,y, false, "%c---%c", pct_symbol, SYMBOL(SYM_VOLT));
+        } else if (battery.capacity_has_been_configured()) {
+            backend->write(x,y, false, "%c---%c", SYMBOL(SYM_BATT_UNKNOWN), SYMBOL(SYM_VOLT));
         } else {
             backend->write(x+1,y, false, "---%c", SYMBOL(SYM_VOLT));
         }
@@ -1583,8 +1588,12 @@ void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
     float v = battery.voltage();
     uint8_t pct;
     if (!battery.capacity_remaining_pct(pct)) {
-        // Do not show battery percentage
-        backend->write(x+1,y, v < osd->warn_batvolt, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+        if (battery.capacity_has_been_configured()) {
+            backend->write(x,y, v < osd->warn_batvolt, "%c%2.1f%c", SYMBOL(SYM_BATT_UNKNOWN), (double)v, SYMBOL(SYM_VOLT));
+        } else {
+            // Do not show battery percentage
+            backend->write(x+1,y, v < osd->warn_batvolt, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+        }
         return;
     }
     uint8_t p = (100 - pct) / 16.6;
@@ -1613,7 +1622,9 @@ void AP_OSD_Screen::draw_bat_pct(uint8_t x, uint8_t y)
 
     uint8_t pct;
     if (!battery.capacity_remaining_pct(pct)) {
-        backend->write(x, y, blink, "---%c", SYMBOL(SYM_PCNT));
+        if (!AP_Notify::flags.armed) {
+            backend->write(x , y , false , "---%c" , SYMBOL(SYM_PCNT));
+        }
         return;
     }
     backend->write(x, y, blink, "%3d%c", pct, SYMBOL(SYM_PCNT));
