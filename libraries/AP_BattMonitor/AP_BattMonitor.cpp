@@ -581,6 +581,33 @@ float AP_BattMonitor::critical_capacity_wh(uint8_t instance) const
     }
 }
 
+float AP_BattMonitor::low_voltage(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return _params[instance]._low_voltage;
+    } else {
+        return 0;
+    }
+}
+
+float AP_BattMonitor::low_cell_voltage(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return _params[instance]._low_voltage;
+    } else {
+        return 0;
+    }
+}
+
+bool AP_BattMonitor::voltage_is_low(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return voltage(instance) < low_voltage(instance) || cell_avg_voltage(instance) < low_cell_voltage(instance);
+    } else {
+        return false;
+    }
+}
+
 void AP_BattMonitor::check_failsafes(void)
 {
     if (hal.util->get_soft_armed()) {

@@ -520,10 +520,7 @@ public:
     AP_Int8 warn_rssi;
     AP_Int8 warn_nsat;
     AP_Int32 warn_terr;
-    AP_Float warn_avgcellvolt;
     AP_Float warn_restvolt;
-    AP_Float warn_batvolt;
-    AP_Float warn_bat2volt;
     AP_Float warn_aspd_low;
     AP_Float warn_aspd_high;
     AP_Float warn_vert_acc;

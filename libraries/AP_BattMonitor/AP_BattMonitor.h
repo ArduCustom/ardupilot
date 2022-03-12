@@ -221,6 +221,14 @@ public:
     float low_capacity_wh() const { return low_capacity_wh(AP_BATT_PRIMARY_INSTANCE); }
     float critical_capacity_wh(uint8_t instance) const;
     float critical_capacity_wh() const { return critical_capacity_wh(AP_BATT_PRIMARY_INSTANCE); }
+
+    float low_voltage(uint8_t instance) const;
+    float low_voltage() const { return low_voltage(AP_BATT_PRIMARY_INSTANCE); }
+    float low_cell_voltage(uint8_t instance) const;
+    float low_cell_voltage() const { return low_voltage(AP_BATT_PRIMARY_INSTANCE); }
+
+    bool voltage_is_low(uint8_t instance) const;
+    bool voltage_is_low() const { return voltage_is_low(AP_BATT_PRIMARY_INSTANCE); }
  
     /// returns true if a battery failsafe has ever been triggered
     bool has_failsafed(void) const { return _has_triggered_failsafe; };
