@@ -252,7 +252,7 @@ public:
 
     // Throttle
     //
-    AP_Int8     throttle_cruise;
+    AP_Float    throttle_cruise;
     AP_Int8     pilot_steer_type;
 
     // failsafe control
