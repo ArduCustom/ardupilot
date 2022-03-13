@@ -400,7 +400,7 @@ const AP_Param::Info Plane::var_info[] = {
     // @Description: Target percentage of throttle to apply for flight in automatic throttle modes and throttle percentage that maintains TRIM_ARSPD_CM. Caution: low battery voltages at the end of flights may require higher throttle to maintain airspeed.
     // @Units: %
     // @Range: 0 100
-    // @Increment: 1
+    // @Increment: 0.1
     // @User: Standard
     ASCALAR(throttle_cruise,        "TRIM_THROTTLE",  THROTTLE_CRUISE),
 
