@@ -187,7 +187,8 @@ float Plane::stabilize_pitch_get_pitch_out(float speed_scaler)
     const bool quadplane_in_transition = false;
 #endif
 
-    int32_t demanded_pitch = nav_pitch_cd + g.pitch_trim_cd + SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) * g.kff_throttle_to_pitch;
+    const float throttle_pitch_mix_ratio = linear_interpolate(0, 100, SRV_Channels::get_output_scaled(SRV_Channel::k_throttle), aparm.throttle_cruise, 100);
+    int32_t demanded_pitch = nav_pitch_cd + g.pitch_trim_cd + throttle_pitch_mix_ratio  * g.kff_throttle_above_trim_to_pitch;
     bool disable_integrator = false;
     if (control_mode == &mode_stabilize && !is_zero(channel_pitch->get_control_in())) {
         disable_integrator = true;
