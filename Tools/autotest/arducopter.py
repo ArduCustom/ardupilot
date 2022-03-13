@@ -965,6 +965,7 @@ class AutoTestCopter(AutoTest):
         # Trigger low battery condition with failsafe disabled. Verify
         # no action taken.
         self.start_subtest("Batt failsafe disabled test")
+        self.set_parameter('BATT_FS_VOLTSRC', 0)
         self.takeoffAndMoveAway()
         m = self.mav.recv_match(type='BATTERY_STATUS', blocking=True, timeout=1)
         if m.charge_state != mavutil.mavlink.MAV_BATTERY_CHARGE_STATE_OK:
