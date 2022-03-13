@@ -457,24 +457,21 @@ float AP_BattMonitor::voltage(uint8_t instance) const
 /// voltage - returns average cell battery voltage in volts
 float AP_BattMonitor::cell_avg_voltage(uint8_t instance) const
 {
-    if ((instance >= _num_instances) || (state[instance].cell_count < 1)) {
+    if (instance < _num_instances && drivers[instance] != nullptr) {
+        return drivers[instance]->cell_avg_voltage();
+    } else {
         return 0.0f;
     }
+}
 
-    auto istate = state[instance];
-    float cells_total = 0;
-    if (has_cell_voltages(instance)) {
-        for (uint16_t i = 0; i < AP_BATT_MONITOR_CELLS_MAX; ++i) {
-            auto cell_voltage = istate.cell_voltages.cells[i];
-            if (cell_voltage != 0xFFFF) {
-                cells_total += cell_voltage;
-            }
-        }
+/// full_when_plugged_in - returns true if battery was fully charged when plugged in
+bool AP_BattMonitor::full_when_plugged_in(uint8_t instance) const
+{
+    if (instance < _num_instances && drivers[instance] != nullptr) {
+        return drivers[instance]->full_when_plugged_in();
     } else {
-        cells_total = istate.voltage;
+        return 0.0f;
     }
-
-    return cells_total / istate.cell_count;
 }
 
 // returns cell count - result could be 0 if autodetection is enabled and not possible or -1 if autodetection is disabled
@@ -550,6 +547,14 @@ bool AP_BattMonitor::capacity_remaining_pct(uint8_t &percentage, uint8_t instanc
     return false;
 }
 
+bool AP_BattMonitor::capacity_has_been_configured(uint8_t instance) const
+{
+    if (instance < _num_instances && drivers[instance] != nullptr) {
+        return drivers[instance]->capacity_has_been_configured();
+    }
+    return false;
+}
+
 /// time_remaining - returns remaining battery time
 bool AP_BattMonitor::time_remaining(uint32_t &seconds, uint8_t instance) const
 {
@@ -613,6 +618,33 @@ float AP_BattMonitor::critical_capacity_wh(uint8_t instance) const
         return _params[instance]._critical_capacity_wh;
     } else {
         return 0;
+    }
+}
+
+float AP_BattMonitor::low_voltage(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return _params[instance]._low_voltage;
+    } else {
+        return 0;
+    }
+}
+
+float AP_BattMonitor::low_cell_voltage(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return _params[instance]._low_cell_voltage;
+    } else {
+        return 0;
+    }
+}
+
+bool AP_BattMonitor::voltage_is_low(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return (is_positive(low_voltage(instance)) && voltage(instance) < low_voltage(instance)) || (is_positive(low_cell_voltage(instance)) && cell_avg_voltage(instance) < low_cell_voltage(instance));
+    } else {
+        return false;
     }
 }
 
