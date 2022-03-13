@@ -78,10 +78,14 @@ AP_BattMonitor_Analog::read()
 
     // get voltage
     _state.voltage = (_volt_pin_analog_source->voltage_average() - _volt_offset) * _volt_multiplier;
-
+    
     // calculate cell count - WARNING this can be inaccurate if the cell detection voltage is not right or the battery is far from fully charged
     if (!_state.cell_count && _params._cell_detect_volt > 0) {
         _state.cell_count = (uint8_t)(_state.voltage / _params._cell_detect_volt + 1);
+    }
+
+    if (_state.battery_full_when_plugged_in < 0) {
+        _state.battery_full_when_plugged_in = _state.voltage / _state.cell_count >= _params._cell_full_voltage;
     }
 
     // read current

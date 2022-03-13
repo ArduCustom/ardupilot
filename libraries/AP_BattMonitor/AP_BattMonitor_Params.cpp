@@ -64,7 +64,7 @@ const AP_Param::GroupInfo AP_BattMonitor_Params::var_info[] = {
     // @Description: Voltage type used for detection of low voltage event
     // @Values: 0:Raw Voltage, 1:Sag Compensated Voltage
     // @User: Advanced
-    AP_GROUPINFO("FS_VOLTSRC", 11, AP_BattMonitor_Params, _failsafe_voltage_source, BattMonitor_LowVoltageSource_Raw),
+    AP_GROUPINFO("FS_VOLTSRC", 11, AP_BattMonitor_Params, _failsafe_voltage_source, BattMonitor_LowVoltageSource_SagCompensated),
 
     // @Param: LOW_VOLT
     // @DisplayName: Low battery voltage
@@ -146,6 +146,30 @@ const AP_Param::GroupInfo AP_BattMonitor_Params::var_info[] = {
     // @Bitmask: 0:Ignore DroneCAN SoC, 1:MPPT reports input voltage and current, 2:MPPT Powered off when disarmed, 3:MPPT Powered on when armed, 4:MPPT Powered off at boot, 5:MPPT Powered on at boot, 6:Send resistance compensated voltage to GCS, 22:Use Wh for remaining battery percentage calculation, 23:Include energy losses upstream of the flight controller when using analog battery monitor
     // @User: Advanced
     AP_GROUPINFO("OPTIONS", 21, AP_BattMonitor_Params, _options, float(int32_t(Options::Use_Wh_for_remaining_percent_calc) | int32_t(Options::ANA_INCLUDE_UPSTREAM_ENERGY_LOSSES))),
+
+    // @Param: LOW_CV
+    // @DisplayName: Minimum battery cell voltage to consider the battery full
+    // @Description: Minimum battery cell voltage to consider the battery full
+    // @Units: V
+    // @Increment: 0.01
+    // @User: Advanced
+    AP_GROUPINFO("LOW_CV", 55, AP_BattMonitor_Params, _low_cell_voltage, 3.15f),
+
+    // @Param: CRT_CV
+    // @DisplayName: Minimum battery cell voltage to consider the battery full
+    // @Description: Minimum battery cell voltage to consider the battery full
+    // @Units: V
+    // @Increment: 0.01
+    // @User: Advanced
+    AP_GROUPINFO("CRT_CV", 56, AP_BattMonitor_Params, _critical_cell_voltage, 3.0f),
+
+    // @Param: CELL_VFULL
+    // @DisplayName: Minimum battery cell voltage to consider the battery full
+    // @Description: Minimum battery cell voltage to consider the battery full
+    // @Units: V
+    // @Increment: 0.01
+    // @User: Advanced
+    AP_GROUPINFO("CELL_VFULL", 57, AP_BattMonitor_Params, _cell_full_voltage, 4.12f),
 
     // @Param: CAPA_WH
     // @DisplayName: Battery capacity in Wh
