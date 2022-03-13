@@ -125,13 +125,6 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_W_NSAT", 13, AP_OSD, warn_nsat, 9),
 
-    // @Param: _W_BATVOLT
-    // @DisplayName: BAT_VOLT warn level
-    // @Description: Set level at which BAT_VOLT item will flash
-    // @Range: 0 100
-    // @User: Standard
-    AP_GROUPINFO("_W_BATVOLT", 14, AP_OSD, warn_batvolt, 10.0f),
-
     // @Param: _UNITS
     // @DisplayName: Display Units
     // @Description: Sets the units to use in displaying items
@@ -184,20 +177,6 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_W_TERR", 23, AP_OSD, warn_terr, -1),
 #endif
-
-    // @Param: _W_AVGCELLV
-    // @DisplayName: AVGCELLV warn level
-    // @Description: Set level at which AVGCELLV item will flash
-    // @Range: 0 100
-    // @User: Standard
-    AP_GROUPINFO("_W_AVGCELLV", 24, AP_OSD, warn_avgcellvolt, 3.6f),
-
-    // @Param: _W_RESTVOLT
-    // @DisplayName: RESTVOLT warn level
-    // @Description: Set level at which RESTVOLT item will flash
-    // @Range: 0 100
-    // @User: Standard
-    AP_GROUPINFO("_W_RESTVOLT", 25, AP_OSD, warn_restvolt, 10.0f),
 
     // @Param: _W_VERT_ACC
     // @DisplayName: Underspeed warn speed

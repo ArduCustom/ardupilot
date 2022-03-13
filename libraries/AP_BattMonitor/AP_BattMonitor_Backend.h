@@ -59,6 +59,16 @@ public:
     /// this will always be greater than or equal to the raw voltage
     float voltage_resting_estimate() const;
 
+    /// cell_avg_voltage - returns average cell battery voltage in volts
+    float cell_avg_voltage() const;
+
+    /// voltage - returns average resting battery cell voltage in volts
+    float resting_cell_avg_voltage() const;
+
+    bool full_when_plugged_in() const { return _state.battery_full_when_plugged_in; }
+
+    bool capacity_has_been_configured() const;
+
     // update battery resistance estimate and voltage_resting_estimate
     void update_resistance_estimate();
 

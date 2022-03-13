@@ -60,7 +60,7 @@ class AP_MSP;
 #define PARAM_INDEX(key, idx, group) (uint32_t(uint32_t(key) << 23 | uint32_t(idx) << 18 | uint32_t(group)))
 #define PARAM_TOKEN_INDEX(token) PARAM_INDEX(AP_Param::get_persistent_key(token.key), token.idx, token.group_element)
 
-#define AP_OSD_NUM_SYMBOLS 100
+#define AP_OSD_NUM_SYMBOLS 101
 /*
   class to hold one setting
  */
@@ -544,10 +544,7 @@ public:
     AP_Int8 warn_rssi;
     AP_Int8 warn_nsat;
     AP_Int32 warn_terr;
-    AP_Float warn_avgcellvolt;
     AP_Float warn_restvolt;
-    AP_Float warn_batvolt;
-    AP_Float warn_bat2volt;
     AP_Float warn_aspd_low;
     AP_Float warn_aspd_high;
     AP_Float warn_vert_acc;

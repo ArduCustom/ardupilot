@@ -34,9 +34,11 @@ public:
     AP_Float _pack_capacity_wh;         /// battery pack capacity in Wh
     AP_Int32 _serial_number;            /// battery serial number, automatically filled in on SMBus batteries
     AP_Float _low_voltage;              /// voltage level used to trigger a low battery failsafe
+    AP_Float _low_cell_voltage;         /// voltage level used to trigger a low battery failsafe
     AP_Float _low_capacity;             /// capacity level used to trigger a low battery failsafe
     AP_Float _low_capacity_wh;          /// capacity level used to trigger a low battery failsafe
     AP_Float _critical_voltage;         /// voltage level used to trigger a critical battery failsafe
+    AP_Float _critical_cell_voltage;    /// voltage level used to trigger a critical battery failsafe
     AP_Float _critical_capacity;        /// capacity level used to trigger a critical battery failsafe
     AP_Float _critical_capacity_wh;        /// capacity level used to trigger a critical battery failsafe
     AP_Int32 _arming_minimum_capacity;  /// capacity level required to arm
@@ -50,5 +52,6 @@ public:
     AP_Int8  _failsafe_low_action;      /// action to preform on a low battery failsafe
     AP_Int8  _failsafe_critical_action; /// action to preform on a critical battery failsafe
     AP_Float _cell_detect_volt;         /// cell detection voltage
+    AP_Float _cell_full_voltage;         /// cell detection voltage
     AP_Int8  _cell_count;               /// cell count override
 };
