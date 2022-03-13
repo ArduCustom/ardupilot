@@ -101,6 +101,7 @@ protected:
     static const uint8_t SYM_ALT_M = 0xB1;
     static const uint8_t SYM_ALT_FT = 0xB3;
     static const uint8_t SYM_BATT_FULL = 0x90;
+    static const uint8_t SYM_BATT_UNKNOWN = 0x97;
     static const uint8_t SYM_RSSI = 0x01;
 
     static const uint8_t SYM_VOLT = 0x06;
@@ -305,6 +306,7 @@ protected:
         SYM_ANT,
         SYM_ARROW_RIGHT,
         SYM_ARROW_LEFT,
-        SYM_G
+        SYM_G,
+        SYM_BATT_UNKNOWN
     };
 };

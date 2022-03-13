@@ -132,7 +132,8 @@ public:
 
     // The BattMonitor_State structure is filled in by the backend driver
     struct BattMonitor_State {
-        int8_t     cell_count;
+        int8_t      cell_count;
+        int8_t      battery_full_when_plugged_in = -1;
         cells       cell_voltages;             // battery cell voltages in millivolts, 10 cells matches the MAVLink spec
         float       voltage;                   // voltage in volts
         float       current_amps;              // current in amperes
@@ -183,6 +184,10 @@ public:
     float cell_avg_voltage(uint8_t instance) const;
     float cell_avg_voltage() const { return cell_avg_voltage(AP_BATT_PRIMARY_INSTANCE); }
 
+    /// battery_full_when_plugged_in - returns true if battery was fully charged when plugged in
+    bool full_when_plugged_in(uint8_t instance) const;
+    bool full_when_plugged_in() const { return full_when_plugged_in(AP_BATT_PRIMARY_INSTANCE); }
+
     // returns cell count - result could be 0 if autodetection is enabled and not possible or -1 if autodetection is disabled
     int8_t cell_count(uint8_t instance) const;
     int8_t cell_count() const { return cell_count(AP_BATT_PRIMARY_INSTANCE); }
@@ -209,6 +214,9 @@ public:
     virtual bool capacity_remaining_pct(uint8_t &percentage, uint8_t instance) const WARN_IF_UNUSED;
     bool capacity_remaining_pct(uint8_t &percentage) const WARN_IF_UNUSED { return capacity_remaining_pct(percentage, AP_BATT_PRIMARY_INSTANCE); }
 
+    virtual bool capacity_has_been_configured(uint8_t instance) const;
+    bool capacity_has_been_configured() const { return capacity_has_been_configured(AP_BATT_PRIMARY_INSTANCE); }
+
     /// time_remaining - returns remaining battery time
     bool time_remaining(uint32_t &seconds, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
 
@@ -229,6 +237,14 @@ public:
     float low_capacity_wh() const { return low_capacity_wh(AP_BATT_PRIMARY_INSTANCE); }
     float critical_capacity_wh(uint8_t instance) const;
     float critical_capacity_wh() const { return critical_capacity_wh(AP_BATT_PRIMARY_INSTANCE); }
+
+    float low_voltage(uint8_t instance) const;
+    float low_voltage() const { return low_voltage(AP_BATT_PRIMARY_INSTANCE); }
+    float low_cell_voltage(uint8_t instance) const;
+    float low_cell_voltage() const { return low_voltage(AP_BATT_PRIMARY_INSTANCE); }
+
+    bool voltage_is_low(uint8_t instance) const;
+    bool voltage_is_low() const { return voltage_is_low(AP_BATT_PRIMARY_INSTANCE); }
  
     /// returns true if a battery failsafe has ever been triggered
     bool has_failsafed(void) const { return _has_triggered_failsafe; };

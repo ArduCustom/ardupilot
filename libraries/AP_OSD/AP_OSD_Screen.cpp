@@ -1416,6 +1416,7 @@ uint8_t AP_OSD_AbstractScreen::symbols_lookup_table[AP_OSD_NUM_SYMBOLS];
 #define SYM_ARROW_LEFT 98
 
 #define SYM_G 99
+#define SYM_BATT_UNKNOWN 100
 
 #define SYMBOL(n) AP_OSD_AbstractScreen::symbols_lookup_table[n]
 
@@ -1564,19 +1565,14 @@ void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
         uint8_t p = (100 - pct) / 16.6;
         pct_symbol = SYMBOL(SYM_BATT_FULL) + p;
     }
-    if (battery.cell_count() > 0) {
-        float v = battery.cell_avg_voltage();
-        if (pct_available) {
-            backend->write(x,y, v < osd->warn_avgcellvolt, "%c%1.2f%c", pct_symbol, v, SYMBOL(SYM_VOLT));
-        } else {
-            backend->write(x+1,y, v < osd->warn_avgcellvolt, "%1.2f%c", v, SYMBOL(SYM_VOLT));
-        }
+    const bool blink = battery.voltage_is_low();
+    float v = battery.cell_avg_voltage();
+    if (pct_available) {
+        backend->write(x, y, blink, "%c%1.2f%c", pct_symbol, v, SYMBOL(SYM_VOLT));
+    } else if (battery.capacity_has_been_configured()) {
+        backend->write(x, y, blink, "%c%1.2f%c", SYMBOL(SYM_BATT_UNKNOWN), v, SYMBOL(SYM_VOLT));
     } else {
-        if (pct_available) {
-            backend->write(x,y, false, "%c---%c", pct_symbol, SYMBOL(SYM_VOLT));
-        } else {
-            backend->write(x+1,y, false, "---%c", SYMBOL(SYM_VOLT));
-        }
+        backend->write(x + 1, y, blink, "%1.2f%c", v, SYMBOL(SYM_VOLT));
     }
 }
 
@@ -1584,13 +1580,14 @@ void AP_OSD_Screen::draw_restvolt(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
     float v = battery.voltage_resting_estimate();
+    const bool blink = battery.resting_voltage_is_low();
     uint8_t pct;
     if (!battery.capacity_remaining_pct(pct)) {
-        backend->write(x+1, y, v < osd->warn_restvolt, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+        backend->write(x+1, y, blink, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
         return;
     }
     uint8_t p = (100 - pct) / 16.6;
-    backend->write(x,y, v < osd->warn_restvolt, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p, (double)v, SYMBOL(SYM_VOLT));
+    backend->write(x,y, blink, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p, (double)v, SYMBOL(SYM_VOLT));
 }
 
 void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
@@ -1598,20 +1595,24 @@ void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
     AP_BattMonitor &battery = AP::battery();
     float v = battery.voltage();
     uint8_t pct;
+    const bool blink = battery.voltage_is_low();
     if (!battery.capacity_remaining_pct(pct)) {
-        // Do not show battery percentage
-        backend->write(x+1,y, v < osd->warn_batvolt, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+        if (battery.capacity_has_been_configured()) {
+            backend->write(x,y, blink, "%c%2.1f%c", SYMBOL(SYM_BATT_UNKNOWN), (double)v, SYMBOL(SYM_VOLT));
+        } else {
+            // Do not show battery percentage
+            backend->write(x+1,y, blink, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+        }
         return;
     }
     uint8_t p = (100 - pct) / 16.6;
-    backend->write(x,y, v < osd->warn_batvolt, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p, (double)v, SYMBOL(SYM_VOLT));
+    backend->write(x,y, blink, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p, (double)v, SYMBOL(SYM_VOLT));
 }
 
 void AP_OSD_Screen::draw_bat_pct(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
 
-    float v = battery.voltage();
     float consumed_mah;
     float consumed_wh;
     bool has_consumed_mah = false;
@@ -1623,16 +1624,18 @@ void AP_OSD_Screen::draw_bat_pct(uint8_t x, uint8_t y)
         has_consumed_wh = true;
     }
 
-    const bool blink = v < osd->warn_batvolt ||
+    const bool blink = battery.voltage_is_low() ||
                        (is_positive(battery.low_capacity_mah()) && (!has_consumed_mah || ((battery.pack_capacity_mah() - consumed_mah) < battery.low_capacity_mah()))) ||
                        (is_positive(battery.low_capacity_wh()) && (!has_consumed_wh || ((battery.pack_capacity_wh() - consumed_wh) < battery.low_capacity_wh())));
 
     uint8_t pct;
     if (!battery.capacity_remaining_pct(pct)) {
-        backend->write(x, y, blink, "---%c", SYMBOL(SYM_PCNT));
+        if (!AP_Notify::flags.armed) {
+            backend->write(x , y , false , "---%c" , SYMBOL(SYM_PCNT));
+        }
         return;
     }
-    backend->write(x, y, blink, "%3d%c", pct, SYMBOL(SYM_PCNT));
+    backend->write(x, y, blink, "%3d%c", (uint16_t)lrintf(pct), SYMBOL(SYM_PCNT));
 }
 
 void AP_OSD_Screen::draw_rssi(uint8_t x, uint8_t y)
@@ -2588,13 +2591,14 @@ void AP_OSD_Screen::draw_bat2_vlt(uint8_t x, uint8_t y)
     AP_BattMonitor &battery = AP::battery();
     uint8_t pct2 = 0;
     float v2 = battery.voltage(1);
+    const bool blink = battery.voltage_is_low(1);
     if (!battery.capacity_remaining_pct(pct2, 1)) {
         // Do not show battery percentage
-        backend->write(x+1,y, v2 < osd->warn_bat2volt, "%2.1f%c", (double)v2, SYMBOL(SYM_VOLT));
+        backend->write(x+1,y, blink, "%2.1f%c", (double)v2, SYMBOL(SYM_VOLT));
         return;
     }
     uint8_t p2 = (100 - pct2) / 16.6;
-    backend->write(x,y, v2 < osd->warn_bat2volt, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p2, (double)v2, SYMBOL(SYM_VOLT));
+    backend->write(x,y, blink, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p2, (double)v2, SYMBOL(SYM_VOLT));
 }
 
 void AP_OSD_Screen::draw_bat2used(uint8_t x, uint8_t y)
