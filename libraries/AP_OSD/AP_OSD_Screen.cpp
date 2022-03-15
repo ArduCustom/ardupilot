@@ -1297,6 +1297,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(bat_pct, "BAT_PCT", 51, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: R_AVG_CV_EN
+    // @DisplayName: AVGCELLV_EN
+    // @Description: Displays average resting cell voltage. WARNING: this can be inaccurate if the cell count is not detected properly. If the cell count detection voltage is not right or the battery is far from fully charged the detected cell count might not be accurate. Use BATT_CELL_COUNT to force the number of cells.
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: R_AVG_CV_X
+    // @DisplayName: R_AVG_CV_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: R_AVG_CV_Y
+    // @DisplayName: R_AVG_CV_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(resting_avgcellvolt, "R_AVG_CV", 50, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -1555,7 +1571,7 @@ void AP_OSD_Screen::draw_altitude(uint8_t x, uint8_t y)
     backend->write(x, y, false, "%4d%c", (int)u_scale(ALTITUDE, alt), u_icon(ALTITUDE));
 }
 
-void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_cellvolt(uint8_t x, uint8_t y, const float cell_voltage, const bool blink)
 {
     AP_BattMonitor &battery = AP::battery();
     uint8_t pct;
@@ -1565,15 +1581,29 @@ void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
         uint8_t p = (100 - pct) / 16.6;
         pct_symbol = SYMBOL(SYM_BATT_FULL) + p;
     }
-    const bool blink = battery.voltage_is_low();
-    float v = battery.cell_avg_voltage();
     if (pct_available) {
-        backend->write(x, y, blink, "%c%1.2f%c", pct_symbol, v, SYMBOL(SYM_VOLT));
+        backend->write(x, y, blink, "%c%1.2f%c", pct_symbol, cell_voltage, SYMBOL(SYM_VOLT));
     } else if (battery.capacity_has_been_configured()) {
-        backend->write(x, y, blink, "%c%1.2f%c", SYMBOL(SYM_BATT_UNKNOWN), v, SYMBOL(SYM_VOLT));
+        backend->write(x, y, blink, "%c%1.2f%c", SYMBOL(SYM_BATT_UNKNOWN), cell_voltage, SYMBOL(SYM_VOLT));
     } else {
-        backend->write(x + 1, y, blink, "%1.2f%c", v, SYMBOL(SYM_VOLT));
+        backend->write(x + 1, y, blink, "%1.2f%c", cell_voltage, SYMBOL(SYM_VOLT));
     }
+}
+
+void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
+{
+    AP_BattMonitor &battery = AP::battery();
+    const float cell_voltage = battery.cell_avg_voltage();
+    const bool blink = battery.voltage_is_low();
+    draw_cellvolt(x, y, cell_voltage, blink);
+}
+
+void AP_OSD_Screen::draw_resting_avgcellvolt(uint8_t x, uint8_t y)
+{
+    AP_BattMonitor &battery = AP::battery();
+    const float cell_voltage = battery.resting_cell_avg_voltage();
+    const bool blink = battery.resting_voltage_is_low();
+    draw_cellvolt(x, y, cell_voltage, blink);
 }
 
 void AP_OSD_Screen::draw_restvolt(uint8_t x, uint8_t y)
