@@ -167,6 +167,7 @@ private:
     AP_OSD_Setting bat_volt{true, 24, 1};
     AP_OSD_Setting restvolt{false, 24, 2};
     AP_OSD_Setting avgcellvolt{false, 24, 3};
+    AP_OSD_Setting resting_avgcellvolt{false, 24, 3};
     AP_OSD_Setting rssi{true, 1, 1};
     AP_OSD_Setting link_quality{false,1,1};
     AP_OSD_Setting current{true, 25, 2};
@@ -254,7 +255,9 @@ private:
 
     void draw_altitude(uint8_t x, uint8_t y);
     void draw_bat_volt(uint8_t x, uint8_t y);
+    void draw_cellvolt(uint8_t x , uint8_t y , const float cell_voltage , const bool blink);
     void draw_avgcellvolt(uint8_t x, uint8_t y);
+    void draw_resting_avgcellvolt(uint8_t x , uint8_t y);
     void draw_restvolt(uint8_t x, uint8_t y);
     void draw_rssi(uint8_t x, uint8_t y);
     void draw_link_quality(uint8_t x, uint8_t y);
