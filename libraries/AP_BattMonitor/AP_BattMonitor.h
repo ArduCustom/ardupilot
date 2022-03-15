@@ -184,6 +184,10 @@ public:
     float cell_avg_voltage(uint8_t instance) const;
     float cell_avg_voltage() const { return cell_avg_voltage(AP_BATT_PRIMARY_INSTANCE); }
 
+    /// resting_cell_avg_voltage - returns average resting cell battery voltage in volts
+    float resting_cell_avg_voltage(uint8_t instance) const;
+    float resting_cell_avg_voltage() const { return resting_cell_avg_voltage(AP_BATT_PRIMARY_INSTANCE); }
+
     /// battery_full_when_plugged_in - returns true if battery was fully charged when plugged in
     bool full_when_plugged_in(uint8_t instance) const;
     bool full_when_plugged_in() const { return full_when_plugged_in(AP_BATT_PRIMARY_INSTANCE); }
@@ -246,6 +250,9 @@ public:
     bool voltage_is_low(uint8_t instance) const;
     bool voltage_is_low() const { return voltage_is_low(AP_BATT_PRIMARY_INSTANCE); }
  
+    bool resting_voltage_is_low(uint8_t instance) const;
+    bool resting_voltage_is_low() const { return voltage_is_low(AP_BATT_PRIMARY_INSTANCE); }
+
     /// returns true if a battery failsafe has ever been triggered
     bool has_failsafed(void) const { return _has_triggered_failsafe; };
 
