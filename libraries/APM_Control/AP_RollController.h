@@ -17,7 +17,7 @@ public:
     AP_RollController &operator=(const AP_RollController&) = delete;
 
     float get_rate_out(float desired_rate, float scaler);
-    float get_servo_out(int32_t angle_err, float scaler, bool disable_integrator, bool ground_mode);
+    float get_servo_out(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode);
 
     void reset_I();
 
@@ -39,6 +39,11 @@ public:
         return _pid_info;
     }
 
+    const AP_Logger::PID_Info& get_angle_pid_info(void) const
+    {
+        return _angle_pid_info;
+    }
+
     static const struct AP_Param::GroupInfo var_info[];
 
 
@@ -53,6 +58,10 @@ public:
     AP_Float &kD(void) { return rate_pid.kD(); }
     AP_Float &kFF(void) { return rate_pid.ff(); }
 
+    AP_Float &angle_kP(void) { return angle_pid.kP(); }
+    AP_Float &angle_kI(void) { return angle_pid.kI(); }
+    AP_Float &angle_kD(void) { return angle_pid.kD(); }
+
     void convert_pid();
 
 private:
@@ -62,9 +71,11 @@ private:
     bool failed_autotune_alloc;
     float _last_out;
     AC_PID rate_pid{0.08, 0.15, 0, 0.345, 0.666, 3, 0, 12, 0.02, 150, 1};
+    AC_PID angle_pid{2, 0, 0, 0, 3, 3, 0, 12, 0.02, 0, 1}; // equivalent to old P only default
     float angle_err_deg;
 
     AP_Logger::PID_Info _pid_info;
+    AP_Logger::PID_Info _angle_pid_info;
 
     float _get_rate_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode);
 };
