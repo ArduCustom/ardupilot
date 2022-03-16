@@ -41,8 +41,10 @@ public:
     typedef struct battery_state_s {
         float batt_current_a;
         float batt_consumed_mah;
+        float batt_consumed_wh;
         float batt_voltage_v;
         int32_t batt_capacity_mah;
+        float batt_capacity_wh;
         uint8_t batt_cellcount;
         MSP::battery_state_e batt_state;
     } battery_state_t;

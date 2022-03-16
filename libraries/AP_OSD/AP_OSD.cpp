@@ -185,6 +185,13 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_W_RESTVOLT", 25, AP_OSD, warn_restvolt, 10.0f),
 
+    // @Param: _BATBAR_TYPE
+    // @DisplayName: DJI OSD battery bar type
+    // @Description: Allow to chose what type of data is used for displaying the DJI OSD battery bar. Either mAh or Wh
+    // @Values: 0:mAh,1:Wh
+    // @User: Standard
+    AP_GROUPINFO("_BATBAR_TYPE", 59, AP_OSD, batt_bar_type, AP_OSD::BATT_BAR_BASE_MAH),
+
     // @Param: _W_VERT_ACC
     // @DisplayName: Underspeed warn speed
     // @Description: Set speed under which ASPDx items will flash
