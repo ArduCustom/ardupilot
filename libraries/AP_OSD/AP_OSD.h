@@ -270,7 +270,8 @@ private:
     void draw_pluscode(uint8_t x, uint8_t y);
 #endif
     //helper functions
-    void draw_speed(uint8_t x, uint8_t y, float angle_rad, float magnitude);
+    void draw_speed(uint8_t x, uint8_t y, float magnitude);
+    void draw_speed_with_arrow(uint8_t x, uint8_t y, float angle_rad, float magnitude);
     void draw_distance(uint8_t x, uint8_t y, float distance, bool can_only_be_positive);
 #if HAL_WITH_ESC_TELEM
     void draw_highest_esc_temp(uint8_t x, uint8_t y);
