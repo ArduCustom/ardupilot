@@ -1925,16 +1925,30 @@ void AP_OSD_Screen::draw_message(uint8_t x, uint8_t y)
     }
 }
 
-// draw a arrow at the given angle, and print the given magnitude
-void AP_OSD_Screen::draw_speed(uint8_t x, uint8_t y, float angle_rad, float magnitude)
+void AP_OSD_Screen::draw_speed(uint8_t x, uint8_t y, float magnitude)
 {
-    static const int32_t interval = 36000 / SYMBOL(SYM_ARROW_COUNT);
-    char arrow = SYMBOL(SYM_ARROW_START) + ((int32_t(angle_rad*DEGX100) + interval / 2) / interval) % SYMBOL(SYM_ARROW_COUNT);
-    if (u_scale(SPEED, magnitude) < 9.95) {
-        backend->write(x, y, false, "%c %1.1f%c", arrow, u_scale(SPEED, magnitude), u_icon(SPEED));
+    const float magnitude_scaled = u_scale(SPEED, magnitude);
+    const char *fmt;
+    uint8_t spaces;
+    
+    if (magnitude_scaled < 9.95) {
+        fmt = "%.1f%c";
+        spaces = 1;
     } else {
-        backend->write(x, y, false, "%c%3d%c", arrow, (int)roundf(u_scale(SPEED, magnitude)), u_icon(SPEED));
+        fmt = "%.0f%c";
+        spaces = magnitude_scaled < 99.5 ? 1 : 0;
     }
+
+    backend->write(x+spaces, y, false, fmt, magnitude_scaled, u_icon(SPEED));
+}
+
+// draw a arrow at the given angle, and print the given magnitude
+void AP_OSD_Screen::draw_speed_with_arrow(uint8_t x, uint8_t y, float angle_rad, float magnitude)
+{
+    static const int32_t arrow_interval = 36000 / SYMBOL(SYM_ARROW_COUNT);
+    char arrow = SYMBOL(SYM_ARROW_START) + ((int32_t(angle_rad*DEGX100) + arrow_interval / 2) / arrow_interval) % SYMBOL(SYM_ARROW_COUNT);
+    backend->write(x, y, false, "%c", arrow);
+    draw_speed(x+1, y, magnitude);
 }
 
 void AP_OSD_Screen::draw_gspeed(uint8_t x, uint8_t y)
@@ -1950,7 +1964,7 @@ void AP_OSD_Screen::draw_gspeed(uint8_t x, uint8_t y)
         angle = wrap_2PI(atan2f(v.y, v.x) - ahrs.yaw);
     }
 
-    draw_speed(x + 1, y, angle, length);
+    draw_speed_with_arrow(x + 1, y, angle, length);
 }
 
 //Thanks to betaflight/inav for simple and clean artificial horizon visual design
@@ -2242,12 +2256,12 @@ void AP_OSD_Screen::draw_wind(uint8_t x, uint8_t y)
         }
         angle = wrap_2PI(angle + atan2f(v.y, v.x) - ahrs.yaw);
     }
-    draw_speed(x + 1, y, angle, length);
+    draw_speed_with_arrow(x + 1, y, angle, length);
 
 #else
     const AP_WindVane* windvane = AP_WindVane::get_singleton();
     if (windvane != nullptr) {
-        draw_speed(x + 1, y, wrap_2PI(windvane->get_apparent_wind_direction_rad() + M_PI), windvane->get_apparent_wind_speed());
+        draw_speed_with_arrow(x + 1, y, wrap_2PI(windvane->get_apparent_wind_direction_rad() + M_PI), windvane->get_apparent_wind_speed());
     }
 #endif
 
