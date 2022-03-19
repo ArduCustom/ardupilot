@@ -1664,11 +1664,11 @@ void AP_OSD_Screen::draw_restvolt(uint8_t x, uint8_t y)
     const bool blink = battery.resting_voltage_is_low();
     uint8_t pct;
     if (!battery.capacity_remaining_pct(pct)) {
-        backend->write(x+1, y, blink, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+        backend->write(x+1, y, blink, "%2.1f%c", v, SYMBOL(SYM_VOLT));
         return;
     }
     uint8_t p = (100 - pct) / 16.6;
-    backend->write(x,y, blink, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p, (double)v, SYMBOL(SYM_VOLT));
+    backend->write(x,y, blink, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p, v, SYMBOL(SYM_VOLT));
 }
 
 void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
@@ -1680,17 +1680,17 @@ void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
     if (!battery.capacity_remaining_pct(pct)) {
         if (battery.capacity_has_been_configured()) {
             backend->write(x, y, false, "%c", SYMBOL(SYM_BATT_UNKNOWN));
-            backend->write(x+1, y, volt_blink, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+            backend->write(x+1, y, volt_blink, "%2.1f%c", v, SYMBOL(SYM_VOLT));
         } else {
             // Do not show battery percentage
-            backend->write(x+1, y, volt_blink, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+            backend->write(x+1, y, volt_blink, "%2.1f%c", v, SYMBOL(SYM_VOLT));
         }
         return;
     }
     const bool batt_blink = battery.remaining_mah_is_low() || battery.remaining_wh_is_low();
     uint8_t p = (100 - pct) / 16.6;
     backend->write(x, y, batt_blink, "%c", SYMBOL(SYM_BATT_FULL) + p);
-    backend->write(x+1, y, volt_blink, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+    backend->write(x+1, y, volt_blink, "%2.1f%c", v, SYMBOL(SYM_VOLT));
 }
 
 void AP_OSD_Screen::draw_bat_pct(uint8_t x, uint8_t y)
@@ -2577,7 +2577,7 @@ void AP_OSD_Screen::draw_hdop(uint8_t x, uint8_t y)
 {
     AP_GPS & gps = AP::gps();
     float hdp = gps.get_hdop() * 0.01f;
-    backend->write(x, y, false, "%c%c%3.2f", SYMBOL(SYM_HDOP_L), SYMBOL(SYM_HDOP_R), (double)hdp);
+    backend->write(x, y, false, "%c%c%3.2f", SYMBOL(SYM_HDOP_L), SYMBOL(SYM_HDOP_R), hdp);
 }
 
 void AP_OSD_Screen::draw_waypoint(uint8_t x, uint8_t y)
@@ -2605,7 +2605,7 @@ void AP_OSD_Screen::draw_stat(uint8_t x, uint8_t y)
     backend->write(x+2, y, false, "%c%c%c", 0x4d,0x41,0x58);
     backend->write(x, y+1, false, "%c",SYMBOL(SYM_GSPD));
     backend->write(x+1, y+1, false, "%4d%c", (int)u_scale(SPEED, osd->_stats.max_speed_mps), u_icon(SPEED));
-    backend->write(x, y+2, false, "%5.1f%c", (double)osd->_stats.max_current_a, SYM_AMP);
+    backend->write(x, y+2, false, "%5.1f%c", osd->_stats.max_current_a, SYM_AMP);
     backend->write(x, y+3, false, "%5d%c", (int)u_scale(ALTITUDE, osd->_stats.max_alt_m), u_icon(ALTITUDE));
     backend->write(x, y+4, false, "%c", SYMBOL(SYM_HOME));
     draw_distance(x+1, y+4, osd->_stats.max_dist_m, true);
@@ -2760,11 +2760,11 @@ void AP_OSD_Screen::draw_bat2_vlt(uint8_t x, uint8_t y)
     const bool blink = battery.voltage_is_low(1);
     if (!battery.capacity_remaining_pct(pct2, 1)) {
         // Do not show battery percentage
-        backend->write(x+1,y, blink, "%2.1f%c", (double)v2, SYMBOL(SYM_VOLT));
+        backend->write(x+1,y, blink, "%2.1f%c", v2, SYMBOL(SYM_VOLT));
         return;
     }
     uint8_t p2 = (100 - pct2) / 16.6;
-    backend->write(x,y, blink, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p2, (double)v2, SYMBOL(SYM_VOLT));
+    backend->write(x,y, blink, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p2, v2, SYMBOL(SYM_VOLT));
 }
 
 void AP_OSD_Screen::draw_bat2used(uint8_t x, uint8_t y)
