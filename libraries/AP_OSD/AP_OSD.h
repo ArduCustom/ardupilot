@@ -188,8 +188,10 @@ private:
     AP_OSD_Setting stat{false,0,0};
     AP_OSD_Setting flightime{false, 23, 10};
     AP_OSD_Setting climbeff{false,0,0};
-    AP_OSD_Setting eff{false, 22, 10};
-    AP_OSD_Setting avg_eff{false, 22, 10};
+    AP_OSD_Setting eff_ground{false, 22, 10};
+    AP_OSD_Setting eff_air{false, 22, 10};
+    AP_OSD_Setting avg_eff_ground{false, 22, 10};
+    AP_OSD_Setting avg_eff_air{false, 22, 10};
     AP_OSD_Setting atemp{false, 0, 0};
     AP_OSD_Setting bat2_vlt{false, 0, 0};
     AP_OSD_Setting bat2used{false, 0, 0};
@@ -229,25 +231,28 @@ private:
     AP_OSD_Setting batt_bar{true, 1, 1};
     AP_OSD_Setting arming{true, 1, 1};
 
+    void draw_altitude(uint8_t x, uint8_t y, bool blink, float alt);
     void draw_altitude(uint8_t x, uint8_t y);
     void draw_bat_volt(uint8_t x, uint8_t y);
-    void draw_cellvolt(uint8_t x , uint8_t y , const float cell_voltage , const bool blink);
+    void draw_voltage(uint8_t x, uint8_t y, const float voltage, const bool two_decimals, const bool blink, const bool show_batt_symbol = true, const bool available = true);
     void draw_avgcellvolt(uint8_t x, uint8_t y);
     void draw_resting_avgcellvolt(uint8_t x , uint8_t y);
     void draw_restvolt(uint8_t x, uint8_t y);
     void draw_rssi(uint8_t x, uint8_t y);
     void draw_link_quality(uint8_t x, uint8_t y);
+    void draw_current(uint8_t x, uint8_t y, const bool available, const bool blink = false, const float value = 0);
     void draw_current(uint8_t x, uint8_t y);
     void draw_current(uint8_t instance, uint8_t x, uint8_t y);
+    void draw_power(uint8_t x, uint8_t y, const bool available, const bool blink = false, const float value = 0);
     void draw_power(uint8_t x, uint8_t y);
-    void draw_energy(uint8_t x, uint8_t y, bool available, bool blink, float energy_wh, bool can_be_negative);
+    void draw_energy(uint8_t x, uint8_t y, bool available, bool blink = false, float energy_wh = 0, bool can_be_negative = false);
     void draw_energy_consumed(uint8_t x, uint8_t y);
     void draw_energy_remaining(uint8_t x, uint8_t y);
+    void draw_mah(uint8_t x, uint8_t y, bool available, bool blink = false, uint mah = 0, bool can_be_negative = false);
     void draw_batused(uint8_t x, uint8_t y, uint8_t instance);
     void draw_batused(uint8_t x, uint8_t y);
     void draw_batrem(uint8_t x, uint8_t y, uint8_t instance);
     void draw_batrem(uint8_t x, uint8_t y);
-    void draw_mah(uint8_t x, uint8_t y, bool available, bool blink, float mah, bool can_be_negative);
     void draw_sats(uint8_t x, uint8_t y);
     void draw_fltmode(uint8_t x, uint8_t y);
     void draw_message(uint8_t x, uint8_t y);
@@ -270,9 +275,10 @@ private:
     void draw_pluscode(uint8_t x, uint8_t y);
 #endif
     //helper functions
-    void draw_speed(uint8_t x, uint8_t y, float magnitude);
-    void draw_speed_with_arrow(uint8_t x, uint8_t y, float angle_rad, float magnitude);
-    void draw_distance(uint8_t x, uint8_t y, float distance, bool can_only_be_positive);
+    void draw_speed(uint8_t x, uint8_t y, bool available, float magnitude = 0, bool blink = false);
+    void draw_speed_with_arrow(uint8_t x, uint8_t y, float angle_rad, float magnitude, bool blink = false);
+    void draw_distance(uint8_t x, uint8_t y, float distance, bool can_only_be_positive = true);
+    void draw_temperature(uint8_t x , uint8_t y , float value , bool blink);
 #if HAL_WITH_ESC_TELEM
     void draw_highest_esc_temp(uint8_t x, uint8_t y);
     void draw_rpm(uint8_t x, uint8_t y, float rpm); // helper
@@ -286,7 +292,8 @@ private:
     void draw_gps_longitude(uint8_t x, uint8_t y);
     void draw_roll_angle(uint8_t x, uint8_t y);
     void draw_pitch_angle(uint8_t x, uint8_t y);
-    void draw_acc(uint8_t x, uint8_t y, float acc, uint8_t neg_symbol, uint8_t zero_symbol, uint8_t pos_symbol, float warn);
+    void draw_acc_value(uint8_t x, uint8_t y, float value, bool blink, bool can_be_negative);
+    void draw_acc_vert_lat(uint8_t x, uint8_t y, float acc, uint8_t neg_symbol, uint8_t zero_symbol, uint8_t pos_symbol, float warn);
     void draw_acc_long(uint8_t x , uint8_t y);
     void draw_acc_lat(uint8_t x , uint8_t y);
     void draw_acc_vert(uint8_t x , uint8_t y);
@@ -301,8 +308,14 @@ private:
     void draw_stat(uint8_t x, uint8_t y);
     void draw_flightime(uint8_t x, uint8_t y);
     void draw_climbeff(uint8_t x, uint8_t y);
-    void draw_eff(uint8_t x, uint8_t y);
-    void draw_avg_eff(uint8_t x, uint8_t y);
+    void draw_eff_mah(uint8_t x, uint8_t y, uint16_t value);
+    void draw_eff_wh(uint8_t x, uint8_t y, float value);
+    void draw_eff(uint8_t x, uint8_t y, float speed);
+    void draw_eff_ground(uint8_t x, uint8_t y);
+    void draw_eff_air(uint8_t x, uint8_t y);
+    void draw_avg_eff(uint8_t x, uint8_t y, const float distance_travelled_m, const bool draw_eff_symbol = true);
+    void draw_avg_eff_ground(uint8_t x, uint8_t y, bool draw_eff_symbol = true);
+    void draw_avg_eff_air(uint8_t x, uint8_t y, bool draw_eff_symbol = true);
     void draw_atemp(uint8_t x, uint8_t y);
     void draw_bat2_vlt(uint8_t x, uint8_t y);
     void draw_bat2used(uint8_t x, uint8_t y);
@@ -585,15 +598,21 @@ public:
     };
 
     struct StatsInfo {
+        uint32_t samples;
         uint32_t last_update_ms;
-        float last_distance_m;
+        float last_ground_distance_m;
+        float last_air_distance_m;
         float max_dist_m;
         float max_alt_m;
-        float max_speed_mps;
-        float max_airspeed_mps;
+        float max_ground_speed_mps;
+        float max_air_speed_mps;
+        float max_wind_speed_mps;
         float max_current_a;
+        float max_power_w;
         float avg_current_a;
+        float avg_wind_speed_mps;
         float min_voltage_v = FLT_MAX;
+        float min_cell_voltage_v = FLT_MAX;
         float min_rssi = FLT_MAX;   // 0-1
         int16_t max_esc_temp;
     };

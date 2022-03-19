@@ -386,6 +386,32 @@ void AP_OSD::update_stats()
     // allow other threads to consume stats info
     WITH_SEMAPHORE(_sem);
 
+    AP_BattMonitor &battery = AP::battery();
+
+    // maximum current
+    float amps;
+    if (battery.current_amps(amps)) {
+        _stats.max_current_a = fmaxf(_stats.max_current_a, amps);
+    }
+
+    // maximum power
+    float power;
+    if (battery.power_watts(power)) {
+        _stats.max_power_w = fmaxf(_stats.max_power_w, power);
+    }
+
+    // minimum voltage
+    float voltage = battery.voltage();
+    if (voltage > 0) {
+        _stats.min_voltage_v = fminf(_stats.min_voltage_v, voltage);
+    }
+
+    // minimum cell voltage
+    float cell_voltage = battery.cell_avg_voltage();
+    if (cell_voltage > 0) {
+        _stats.min_cell_voltage_v = fminf(_stats.min_cell_voltage_v, cell_voltage);
+    }
+
     uint32_t now = AP_HAL::millis();
     if (!AP_Notify::flags.armed) {
         _stats.last_update_ms = now;
@@ -396,34 +422,46 @@ void AP_OSD::update_stats()
     uint32_t delta_ms = now - _stats.last_update_ms;
     _stats.last_update_ms = now;
 
-    Vector2f v;
+    Vector2f ground_speed_vector;
+    Vector3f wind_speed_vector;
     Location loc {};
     Location home_loc;
     bool home_is_set;
     bool have_airspeed_estimate;
     float alt;
-    float aspd_mps = 0.0f;
+    float air_speed_mps = 0.0f;
     {
         // minimize semaphore scope
         AP_AHRS &ahrs = AP::ahrs();
         WITH_SEMAPHORE(ahrs.get_semaphore());
-        v = ahrs.groundspeed_vector();
+        ground_speed_vector = ahrs.groundspeed_vector();
         home_is_set = ahrs.get_location(loc) && ahrs.home_is_set();
         if (home_is_set) {
             home_loc = ahrs.get_home();
         }
         ahrs.get_relative_position_D_home(alt);
-        have_airspeed_estimate = ahrs.airspeed_estimate(aspd_mps);
-    }
-    float speed = v.length();
-    if (speed < 0.178) {
-        speed = 0.0;
-    }
-    float dist_m = (speed * delta_ms)*0.001;
-    _stats.last_distance_m += dist_m;
+        have_airspeed_estimate = ahrs.airspeed_estimate(air_speed_mps);
 
-    // maximum ground speed
-    _stats.max_speed_mps = fmaxf(_stats.max_speed_mps,speed);
+        wind_speed_vector = ahrs.wind_estimate();
+    }
+
+    float wind_speed_mps = wind_speed_vector.length();
+    float ground_speed_mps = ground_speed_vector.length();
+    if (ground_speed_mps < 0.178) {
+        ground_speed_mps = 0.0;
+    }
+
+    // total distance travelled
+    float dist_ground_m = (ground_speed_mps * delta_ms)*0.001;
+    _stats.last_ground_distance_m += dist_ground_m;
+
+    // maximum ground and wind speed
+    _stats.max_ground_speed_mps = fmaxf(_stats.max_ground_speed_mps, ground_speed_mps);
+    _stats.max_wind_speed_mps = fmaxf(_stats.max_wind_speed_mps, wind_speed_mps);
+
+    // average wind speed
+    _stats.avg_wind_speed_mps = (_stats.avg_wind_speed_mps * _stats.samples + wind_speed_mps) / (_stats.samples + 1);
+    _stats.samples += 1;
 
     // maximum distance
     if (home_is_set) {
@@ -434,31 +472,28 @@ void AP_OSD::update_stats()
     // maximum altitude
     alt = -alt;
     _stats.max_alt_m = fmaxf(_stats.max_alt_m, alt);
-    // maximum current
-    AP_BattMonitor &battery = AP::battery();
-    float amps;
-    if (battery.current_amps(amps)) {
-        _stats.max_current_a = fmaxf(_stats.max_current_a, amps);
-    }
-    // minimum voltage
-    float voltage = battery.voltage();
-    if (voltage > 0) {
-        _stats.min_voltage_v = fminf(_stats.min_voltage_v, voltage);
-    }
+
     // minimum rssi
     AP_RSSI *ap_rssi = AP_RSSI::get_singleton();
     if (ap_rssi) {
         _stats.min_rssi = fminf(_stats.min_rssi, ap_rssi->read_receiver_rssi());
     }
-    // max airspeed either true or synthetic
+
+    // max airspeed / total air distance travelled using either true or synthetic air speed
     if (have_airspeed_estimate) {
-        _stats.max_airspeed_mps = fmaxf(_stats.max_airspeed_mps, aspd_mps);
+        _stats.max_air_speed_mps = fmaxf(_stats.max_air_speed_mps, air_speed_mps);
+
+        // XXX might be interesting to take into account AoA for better precision 
+        float air_dist_m = (air_speed_mps * delta_ms)*0.001;
+        _stats.last_air_distance_m += air_dist_m;
     }
+
 #if HAL_WITH_ESC_TELEM
     // max esc temp
     AP_ESC_Telem& telem = AP::esc_telem();
     int16_t highest_temperature = 0;
     telem.get_highest_temperature(highest_temperature);
+    highest_temperature /= 100;
     _stats.max_esc_temp = MAX(_stats.max_esc_temp, highest_temperature);
 #endif
 }

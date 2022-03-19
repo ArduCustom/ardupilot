@@ -565,6 +565,15 @@ bool AP_BattMonitor::time_remaining(uint32_t &seconds, uint8_t instance) const
     return false;
 }
 
+bool AP_BattMonitor::configured_cell_count_is_valid(uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
+        return _params[instance]._cell_count > -1;
+    } else {
+        return false;
+    }
+}
+
 /// pack_capacity_mah - returns the capacity of the battery pack in mAh when the pack is full
 int32_t AP_BattMonitor::pack_capacity_mah(uint8_t instance) const
 {

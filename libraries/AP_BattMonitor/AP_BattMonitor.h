@@ -177,6 +177,8 @@ public:
     bool full_when_plugged_in(uint8_t instance) const;
     bool full_when_plugged_in() const { return full_when_plugged_in(AP_BATT_PRIMARY_INSTANCE); }
 
+    bool configured_cell_count_is_valid(uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const;
+
     // returns cell count - result could be 0 if autodetection is enabled and not possible or -1 if autodetection is disabled
     int8_t cell_count(uint8_t instance) const;
     int8_t cell_count() const { return cell_count(AP_BATT_PRIMARY_INSTANCE); }
