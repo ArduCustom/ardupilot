@@ -548,6 +548,36 @@ bool AP_BattMonitor::consumed_wh(float &wh, const uint8_t instance) const {
     }
 }
 
+/// remaining_mah - returns energy remaining in milliampere.hours
+bool AP_BattMonitor::remaining_mah(float &mah, const uint8_t instance) const {
+    if (instance < _num_instances && drivers[instance] != nullptr && drivers[instance]->has_current() && _params[instance]._pack_capacity > 0) {
+        mah = _params[instance]._pack_capacity - state[instance].consumed_mah;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/// remaining_wh - returns energy remaining in watt.hours
+bool AP_BattMonitor::remaining_wh(float &wh, const uint8_t instance) const {
+    if (instance < _num_instances && drivers[instance] != nullptr && drivers[instance]->has_consumed_energy() && is_positive(_params[instance]._pack_capacity_wh)) {
+        wh = _params[instance]._pack_capacity_wh - state[instance].consumed_wh;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/// consumed_wh_without_losses - returns total energy drawn not including battery losses since start-up in watt.hours
+bool AP_BattMonitor::consumed_wh_without_losses(float &wh, const uint8_t instance) const {
+    if (instance < _num_instances && drivers[instance] != nullptr && drivers[instance]->has_consumed_energy()) {
+        wh = state[instance].consumed_wh_without_losses;
+        return true;
+    } else {
+        return false;
+    }
+}
+
 /// capacity_remaining_pct - returns true if the percentage is valid and writes to percentage argument
 bool AP_BattMonitor::capacity_remaining_pct(uint8_t &percentage, uint8_t instance) const
 {
@@ -667,6 +697,40 @@ bool AP_BattMonitor::resting_voltage_is_low(uint8_t instance) const
     }
 }
 
+/// remaining_mah_is_low - returns true if the remaining mah capacity is bellow the configured value
+bool AP_BattMonitor::remaining_mah_is_low(const uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES && is_positive(_params[instance]._low_capacity)) {
+        float remaining;
+        const bool remaining_is_available = remaining_mah(remaining, instance);
+
+        if (!remaining_is_available) {
+            return false;
+        }
+
+        return remaining < _params[instance]._low_capacity;
+    } else {
+        return false;
+    }
+}
+
+/// remaining_wh_is_low - returns true if the remaining Wh capacity is bellow the configured value
+bool AP_BattMonitor::remaining_wh_is_low(const uint8_t instance) const
+{
+    if (instance < AP_BATT_MONITOR_MAX_INSTANCES && is_positive(_params[instance]._low_capacity_wh)) {
+        float remaining;
+        const bool remaining_is_available = remaining_wh(remaining, instance);
+
+        if (!remaining_is_available) {
+            return false;
+        }
+
+        return remaining < _params[instance]._low_capacity_wh;
+    } else {
+        return false;
+    }
+}
+
 void AP_BattMonitor::check_failsafes(void)
 {
     if (hal.util->get_soft_armed()) {
@@ -738,7 +802,30 @@ float AP_BattMonitor::power_watts() const
     return total;
 }
 
+// returns the total power draw for all batteries
+float AP_BattMonitor::power_watts_without_losses() const
+{
+    float total = 0;
+    for (uint8_t instance = 0; instance < _num_instances; instance++) {
+        float instance_power;
+        if (power_watts_without_losses(instance_power, instance)) {
+            total += instance_power;
+        }
+    }
+    return total;
+}
+
 bool AP_BattMonitor::power_watts(float &power, uint8_t instance) const
+{
+    if ((instance < _num_instances) && (drivers[instance] != nullptr) && drivers[instance]->has_current()) {
+        power = state[instance].current_amps * state[instance].voltage_resting_estimate;
+        return true;
+    }
+
+    return false;
+}
+
+bool AP_BattMonitor::power_watts_without_losses(float &power, uint8_t instance) const
 {
     if ((instance < _num_instances) && (drivers[instance] != nullptr) && drivers[instance]->has_current()) {
         power = state[instance].current_amps * state[instance].voltage;
