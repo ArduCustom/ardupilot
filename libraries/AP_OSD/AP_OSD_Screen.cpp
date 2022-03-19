@@ -1930,28 +1930,58 @@ void AP_OSD_Screen::draw_horizon(uint8_t x, uint8_t y)
 
 }
 
-void AP_OSD_Screen::draw_distance(uint8_t x, uint8_t y, float distance)
+void AP_OSD_Screen::draw_distance(uint8_t x, uint8_t y, float distance, bool can_only_be_positive)
 {
     char unit_icon = u_icon(DISTANCE);
     float distance_scaled = u_scale(DISTANCE, distance);
-    const char *fmt = "%4.0f%c";
-    if (distance_scaled > 9999.0f || (osd->units == AP_OSD::UNITS_IMPERIAL && distance_scaled > 5280.0f && (osd->options & AP_OSD::OPTION_IMPERIAL_MILES))) {
+
+    const char *format;
+    uint8_t spaces;
+
+    if (distance_scaled < 9999.5f) {
+
+        const float distance_scaled_abs = abs(distance_scaled);
+
+        format = "%.0f%c";
+
+        if (distance_scaled_abs < 9.95) {
+            format = "%1.1f%c";
+            spaces = 3;
+        } else if (distance_scaled_abs < 99.5) {
+            spaces = 3;
+        } else if (distance_scaled_abs < 999.5) {
+            spaces = 2;
+        } else {
+            spaces = 1;
+        }
+
+    } else {
+
         distance_scaled = u_scale(DISTANCE_LONG, distance);
         unit_icon= u_icon(DISTANCE_LONG);
-        //try to pack as many useful info as possible
-        if (distance_scaled<9.0f) {
-            fmt = "%1.3f%c";
-        } else if (distance_scaled < 99.0f) {
-            fmt = "%2.2f%c";
-        } else if (distance_scaled < 999.0f) {
-            fmt = "%3.1f%c";
+
+        const float distance_scaled_abs = abs(distance_scaled);
+
+        if (distance_scaled_abs < 9.995) {
+            format = "%1.3f%c";
+        } else if (distance_scaled_abs < 99.95) {
+            format = "%2.2f%c";
+        } else if (distance_scaled_abs < 999.5) {
+            format = "%3.1f%c";
         } else {
-            fmt = "%4.0f%c";
+            format = "%4.0f%c";
         }
-    } else if (distance_scaled < 10.0f) {
-        fmt = "% 3.1f%c";
+
+        spaces = 1;
+
     }
-    backend->write(x, y, false, fmt, (double)distance_scaled, unit_icon);
+
+    // const uint8_t spaces = signbit(distance_scaled) ? 0 : 1;
+    if (can_only_be_positive || signbit(distance_scaled)) {
+        spaces -= 1;
+    }
+
+    backend->write(x+spaces, y, false, format, distance_scaled, unit_icon);
 }
 
 void AP_OSD_Screen::draw_home(uint8_t x, uint8_t y)
@@ -1970,7 +2000,7 @@ void AP_OSD_Screen::draw_home(uint8_t x, uint8_t y)
         }
         char arrow = SYMBOL(SYM_ARROW_START) + ((angle + interval / 2) / interval) % SYMBOL(SYM_ARROW_COUNT);
         backend->write(x, y, false, "%c%c", SYMBOL(SYM_HOME), arrow);
-        draw_distance(x+2, y, distance);
+        draw_distance(x+2, y, distance, true);
     } else {
         backend->write(x, y, true, "%c", SYMBOL(SYM_HOME));
     }
@@ -2485,13 +2515,13 @@ void AP_OSD_Screen::draw_waypoint(uint8_t x, uint8_t y)
     }
     char arrow = SYMBOL(SYM_ARROW_START) + ((angle + interval / 2) / interval) % SYMBOL(SYM_ARROW_COUNT);
     backend->write(x,y, false, "%c%2u%c",SYMBOL(SYM_WPNO), osd->nav_info.wp_number, arrow);
-    draw_distance(x+4, y, osd->nav_info.wp_distance);
+    draw_distance(x+4, y, osd->nav_info.wp_distance, true);
 }
 
 void AP_OSD_Screen::draw_xtrack_error(uint8_t x, uint8_t y)
 {
     backend->write(x, y, false, "%c", SYMBOL(SYM_XERR));
-    draw_distance(x+1, y, osd->nav_info.wp_xtrack_error);
+    draw_distance(x+1, y, osd->nav_info.wp_xtrack_error, false);
 }
 
 void AP_OSD_Screen::draw_stat(uint8_t x, uint8_t y)
@@ -2502,15 +2532,15 @@ void AP_OSD_Screen::draw_stat(uint8_t x, uint8_t y)
     backend->write(x, y+2, false, "%5.1f%c", (double)osd->_stats.max_current_a, SYM_AMP);
     backend->write(x, y+3, false, "%5d%c", (int)u_scale(ALTITUDE, osd->_stats.max_alt_m), u_icon(ALTITUDE));
     backend->write(x, y+4, false, "%c", SYMBOL(SYM_HOME));
-    draw_distance(x+1, y+4, osd->_stats.max_dist_m);
+    draw_distance(x+1, y+4, osd->_stats.max_dist_m, true);
     backend->write(x, y+5, false, "%c", SYMBOL(SYM_DIST));
-    draw_distance(x+1, y+5, osd->_stats.last_distance_m);
+    draw_distance(x+1, y+5, osd->_stats.last_distance_m, true);
 }
 
 void AP_OSD_Screen::draw_dist(uint8_t x, uint8_t y)
 {
     backend->write(x, y, false, "%c", SYMBOL(SYM_DIST));
-    draw_distance(x+1, y, osd->_stats.last_distance_m);
+    draw_distance(x+1, y, osd->_stats.last_distance_m, true);
 }
 
 void  AP_OSD_Screen::draw_flightime(uint8_t x, uint8_t y)
