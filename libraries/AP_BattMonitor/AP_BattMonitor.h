@@ -182,12 +182,12 @@ public:
     float gcs_voltage(void) const { return gcs_voltage(AP_BATT_PRIMARY_INSTANCE); }
 
     /// cell_avg_voltage - returns average cell battery voltage in volts
-    float cell_avg_voltage(uint8_t instance) const;
-    float cell_avg_voltage() const { return cell_avg_voltage(AP_BATT_PRIMARY_INSTANCE); }
+    bool cell_avg_voltage(uint8_t instance, float &voltage) const;
+    bool cell_avg_voltage(float &voltage) const { return cell_avg_voltage(AP_BATT_PRIMARY_INSTANCE, voltage); }
 
     /// resting_cell_avg_voltage - returns average resting cell battery voltage in volts
-    float resting_cell_avg_voltage(uint8_t instance) const;
-    float resting_cell_avg_voltage() const { return resting_cell_avg_voltage(AP_BATT_PRIMARY_INSTANCE); }
+    bool resting_cell_avg_voltage(uint8_t instance, float &voltage) const;
+    bool resting_cell_avg_voltage(float &voltage) const { return resting_cell_avg_voltage(AP_BATT_PRIMARY_INSTANCE, voltage); }
 
     /// battery_full_when_plugged_in - returns true if battery was fully charged when plugged in
     bool full_when_plugged_in(uint8_t instance) const;
@@ -207,11 +207,11 @@ public:
 
     /// power watt
     float power_watts() const;
-    bool power_watts(float &power, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const;
+    bool power_watts(float &power, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
 
     /// power watt
     float power_watts_without_losses() const;
-    bool power_watts_without_losses(float &power, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const;
+    bool power_watts_without_losses(float &power, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
 
     /// consumed_mah - returns total current drawn since start-up in milliampere.hours
     bool consumed_mah(float &mah, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
