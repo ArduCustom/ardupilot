@@ -178,6 +178,13 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     AP_GROUPINFO("_W_TERR", 23, AP_OSD, warn_terr, -1),
 #endif
 
+    // @Param: _AH_PITCH_MAX
+    // @DisplayName: Maximum pitch the artificial horizon can display
+    // @Description: Maximum pitch the artificial horizon can display
+    // @Range: 0 90
+    // @User: Standard
+    AP_GROUPINFO("_AH_PITCH_MAX", 59, AP_OSD, ah_pitch_max, 20),
+
     // @Param: _W_VERT_ACC
     // @DisplayName: Underspeed warn speed
     // @Description: Set speed under which ASPDx items will flash
