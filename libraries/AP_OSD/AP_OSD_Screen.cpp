@@ -1892,7 +1892,10 @@ void AP_OSD_Screen::draw_horizon(uint8_t x, uint8_t y)
         roll = -roll;
     }
 
-    pitch = constrain_float(pitch, -ah_max_pitch, ah_max_pitch);
+    const float ah_pitch_max = ToRad(osd->ah_pitch_max);
+    const float pitch_rad_to_char = 8.8f / (2 * ah_pitch_max); // 9 lines but remove a little bit so that half of the line doesn't disappear for very small roll angles
+
+    pitch = constrain_float(pitch, -ah_pitch_max, ah_pitch_max);
     float ky = sinf(roll);
     float kx = cosf(roll);
 
@@ -1900,7 +1903,7 @@ void AP_OSD_Screen::draw_horizon(uint8_t x, uint8_t y)
 
     if (fabsf(ky) < fabsf(kx)) {
         for (int dx = -4; dx <= 4; dx++) {
-            float fy = (ratio * dx) * (ky/kx) + pitch * ah_pitch_rad_to_char + 0.5f;
+            float fy = (ratio * dx) * (ky/kx) + pitch * pitch_rad_to_char + 0.5f;
             int dy = floorf(fy);
             char c = (fy - dy) * SYMBOL(SYM_AH_H_COUNT);
             //chars in font in reversed order
@@ -1911,7 +1914,7 @@ void AP_OSD_Screen::draw_horizon(uint8_t x, uint8_t y)
         }
     } else {
         for (int dy=-4; dy<=4; dy++) {
-            float fx = ((dy / ratio) - pitch * ah_pitch_rad_to_char) * (kx/ky) + 0.5f;
+            float fx = ((dy / ratio) - pitch * pitch_rad_to_char) * (kx/ky) + 0.5f;
             int dx = floorf(fx);
             char c = (fx - dx) * SYMBOL(SYM_AH_V_COUNT);
             c = SYMBOL(SYM_AH_V_START) + c;

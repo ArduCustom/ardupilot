@@ -159,10 +159,6 @@ private:
     static const uint8_t message_scroll_time_ms = 200;
     static const uint8_t message_scroll_delay = 5;
 
-    static constexpr float ah_max_pitch = DEG_TO_RAD * 20;
-    //typical fpv camera has 80deg vertical field of view, 16 row of chars
-    static constexpr float ah_pitch_rad_to_char = 16.0f/(DEG_TO_RAD * 80);
-
     AP_OSD_Setting altitude{true, 23, 8};
     AP_OSD_Setting bat_volt{true, 24, 1};
     AP_OSD_Setting restvolt{false, 24, 2};
@@ -551,6 +547,7 @@ public:
     AP_Float warn_aspd_low;
     AP_Float warn_aspd_high;
     AP_Float warn_vert_acc;
+    AP_Int8 ah_pitch_max;
     AP_Int8 msgtime_s;
     AP_Int8 arm_scr;
     AP_Int8 disarm_scr;
