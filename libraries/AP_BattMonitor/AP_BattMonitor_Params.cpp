@@ -143,9 +143,9 @@ const AP_Param::GroupInfo AP_BattMonitor_Params::var_info[] = {
     // @Param: OPTIONS
     // @DisplayName: Battery monitor options
     // @Description: This sets options to change the behaviour of the battery monitor
-    // @Bitmask: 0:Ignore DroneCAN SoC, 1:MPPT reports input voltage and current, 2:MPPT Powered off when disarmed, 3:MPPT Powered on when armed, 4:MPPT Powered off at boot, 5:MPPT Powered on at boot, 6:Send resistance compensated voltage to GCS, 22:Use Wh for remaining battery percentage calculation, 23:Include energy losses upstream of the flight controller when using analog battery monitor
+    // @Bitmask: 0:Ignore DroneCAN SoC, 1:MPPT reports input voltage and current, 2:MPPT Powered off when disarmed, 3:MPPT Powered on when armed, 4:MPPT Powered off at boot, 5:MPPT Powered on at boot, 6:Send resistance compensated voltage to GCS, 23:Use Wh for remaining battery percentage calculation
     // @User: Advanced
-    AP_GROUPINFO("OPTIONS", 21, AP_BattMonitor_Params, _options, float(int32_t(Options::Use_Wh_for_remaining_percent_calc) | int32_t(Options::ANA_INCLUDE_UPSTREAM_ENERGY_LOSSES))),
+    AP_GROUPINFO("OPTIONS", 21, AP_BattMonitor_Params, _options, float(int32_t(Options::Use_Wh_for_remaining_percent_calc))),
 
     // @Param: LOW_CV
     // @DisplayName: Minimum battery cell voltage to consider the battery full
