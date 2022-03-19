@@ -637,7 +637,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
 
     // @Param: EFF_EN
     // @DisplayName: EFF_EN
-    // @Description: Displays flight efficiency (mAh/km or /mi)
+    // @Description: Displays flight efficiency (mAh or Wh / km or mi)
     // @Values: 0:Disabled,1:Enabled
 
     // @Param: EFF_X
@@ -1089,21 +1089,21 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     AP_GROUPINFO("FONT", 4, AP_OSD_Screen, font_index, 0),
 #endif
 
-    // @Param: ENERGY_EN
-    // @DisplayName: ENERGY_EN
+    // @Param: NRG_CONS_EN
+    // @DisplayName: NRG_CONS_EN
     // @Description: Displays total energy consumed from primary battery
     // @Values: 0:Disabled,1:Enabled
 
-    // @Param: ENERGY_X
-    // @DisplayName: ENERGY_X
+    // @Param: NRG_CONS_X
+    // @DisplayName: NRG_CONS_X
     // @Description: Horizontal position on screen
     // @Range: 0 29
 
-    // @Param: ENERGY_Y
-    // @DisplayName: ENERGY_Y
+    // @Param: NRG_CONS_Y
+    // @DisplayName: NRG_CONS_Y
     // @Description: Vertical position on screen
     // @Range: 0 15
-    AP_SUBGROUPINFO(energy, "ENERGY", 63, AP_OSD_Screen, AP_OSD_Setting),
+    AP_SUBGROUPINFO(energy_consumed, "NRG_CONS", 63, AP_OSD_Screen, AP_OSD_Setting),
 
     // @Param: RC_THR_EN
     // @DisplayName: RC_THR_EN
@@ -1312,6 +1312,70 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Description: Vertical position on screen
     // @Range: 0 15
     AP_SUBGROUPINFO(resting_avgcellvolt, "R_AVG_CV", 50, AP_OSD_Screen, AP_OSD_Setting),
+
+    // @Param: NRG_REM_EN
+    // @DisplayName: NRG_REM_EN
+    // @Description: Displays energy remaining in primary battery
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: NRG_REM_X
+    // @DisplayName: NRG_REM_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: NRG_REM_Y
+    // @DisplayName: NRG_REM_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(energy_remaining, "NRG_REM", 49, AP_OSD_Screen, AP_OSD_Setting),
+
+    // @Param: AVG_EFF_EN
+    // @DisplayName: AVG_EFF_EN
+    // @Description: Displays average ground flight efficiency (mAh or Wh / km or mi)
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: AVG_EFF_X
+    // @DisplayName: AVG_EFF_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: AVG_EFF_Y
+    // @DisplayName: AVG_EFF_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(avg_eff, "AVG_EFF", 48, AP_OSD_Screen, AP_OSD_Setting),
+
+    // @Param: BATREM_EN
+    // @DisplayName: BATREM_EN
+    // @Description: Displays primary battery mAh remaining
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: BATREM_X
+    // @DisplayName: BATREM_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: BATREM_Y
+    // @DisplayName: BATREM_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(batrem, "BATREM", 47, AP_OSD_Screen, AP_OSD_Setting),
+
+    // @Param: BAT2REM_EN
+    // @DisplayName: BAT2REM_EN
+    // @Description: Displays secondary battery mAh consumed
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: BAT2REM_X
+    // @DisplayName: BAT2REM_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: BAT2REM_Y
+    // @DisplayName: BAT2REM_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(bat2rem, "BAT2REM", 46, AP_OSD_Screen, AP_OSD_Setting),
 
     AP_GROUPEND
 };
@@ -1571,22 +1635,25 @@ void AP_OSD_Screen::draw_altitude(uint8_t x, uint8_t y)
     backend->write(x, y, false, "%4d%c", (int)u_scale(ALTITUDE, alt), u_icon(ALTITUDE));
 }
 
-void AP_OSD_Screen::draw_cellvolt(uint8_t x, uint8_t y, const float cell_voltage, const bool blink)
+void AP_OSD_Screen::draw_cellvolt(uint8_t x, uint8_t y, const float cell_voltage, const bool volt_blink)
 {
     AP_BattMonitor &battery = AP::battery();
     uint8_t pct;
     bool pct_available = battery.capacity_remaining_pct(pct);
-    uint8_t pct_symbol;
+    uint8_t batt_symbol;
     if (pct_available) {
         uint8_t p = (100 - pct) / 16.6;
-        pct_symbol = SYMBOL(SYM_BATT_FULL) + p;
+        batt_symbol = SYMBOL(SYM_BATT_FULL) + p;
     }
     if (pct_available) {
-        backend->write(x, y, blink, "%c%1.2f%c", pct_symbol, cell_voltage, SYMBOL(SYM_VOLT));
+        const bool batt_blink = battery.remaining_mah_is_low() || battery.remaining_wh_is_low();
+        backend->write(x, y, batt_blink, "%c", batt_symbol);
+        backend->write(x+1, y, volt_blink, "%1.2f%c", cell_voltage, SYMBOL(SYM_VOLT));
     } else if (battery.capacity_has_been_configured()) {
-        backend->write(x, y, blink, "%c%1.2f%c", SYMBOL(SYM_BATT_UNKNOWN), cell_voltage, SYMBOL(SYM_VOLT));
+        backend->write(x, y, false, "%c", SYMBOL(SYM_BATT_UNKNOWN));
+        backend->write(x+1, y, volt_blink, "%1.2f%c", cell_voltage, SYMBOL(SYM_VOLT));
     } else {
-        backend->write(x + 1, y, blink, "%1.2f%c", cell_voltage, SYMBOL(SYM_VOLT));
+        backend->write(x + 1, y, volt_blink, "%1.2f%c", cell_voltage, SYMBOL(SYM_VOLT));
     }
 }
 
@@ -1594,16 +1661,16 @@ void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
     const float cell_voltage = battery.cell_avg_voltage();
-    const bool blink = battery.voltage_is_low();
-    draw_cellvolt(x, y, cell_voltage, blink);
+    const bool volt_blink = battery.voltage_is_low();
+    draw_cellvolt(x, y, cell_voltage, volt_blink);
 }
 
 void AP_OSD_Screen::draw_resting_avgcellvolt(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
     const float cell_voltage = battery.resting_cell_avg_voltage();
-    const bool blink = battery.resting_voltage_is_low();
-    draw_cellvolt(x, y, cell_voltage, blink);
+    const bool volt_blink = battery.resting_voltage_is_low();
+    draw_cellvolt(x, y, cell_voltage, volt_blink);
 }
 
 void AP_OSD_Screen::draw_restvolt(uint8_t x, uint8_t y)
@@ -1625,46 +1692,38 @@ void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
     AP_BattMonitor &battery = AP::battery();
     float v = battery.voltage();
     uint8_t pct;
-    const bool blink = battery.voltage_is_low();
+    const bool volt_blink = battery.voltage_is_low();
     if (!battery.capacity_remaining_pct(pct)) {
         if (battery.capacity_has_been_configured()) {
-            backend->write(x,y, blink, "%c%2.1f%c", SYMBOL(SYM_BATT_UNKNOWN), (double)v, SYMBOL(SYM_VOLT));
+            backend->write(x, y, false, "%c", SYMBOL(SYM_BATT_UNKNOWN));
+            backend->write(x+1, y, volt_blink, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
         } else {
             // Do not show battery percentage
-            backend->write(x+1,y, blink, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
+            backend->write(x+1, y, volt_blink, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
         }
         return;
     }
+    const bool batt_blink = battery.remaining_mah_is_low() || battery.remaining_wh_is_low();
     uint8_t p = (100 - pct) / 16.6;
-    backend->write(x,y, blink, "%c%2.1f%c", SYMBOL(SYM_BATT_FULL) + p, (double)v, SYMBOL(SYM_VOLT));
+    backend->write(x, y, batt_blink, "%c", SYMBOL(SYM_BATT_FULL) + p);
+    backend->write(x+1, y, volt_blink, "%2.1f%c", (double)v, SYMBOL(SYM_VOLT));
 }
 
 void AP_OSD_Screen::draw_bat_pct(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
 
-    float consumed_mah;
-    float consumed_wh;
-    bool has_consumed_mah = false;
-    bool has_consumed_wh = false;
-    if (battery.consumed_mah(consumed_mah)) {
-        has_consumed_mah = true;
-    }
-    if (battery.consumed_wh(consumed_wh)) {
-        has_consumed_wh = true;
-    }
-
-    const bool blink = battery.voltage_is_low() ||
-                       (is_positive(battery.low_capacity_mah()) && (!has_consumed_mah || ((battery.pack_capacity_mah() - consumed_mah) < battery.low_capacity_mah()))) ||
-                       (is_positive(battery.low_capacity_wh()) && (!has_consumed_wh || ((battery.pack_capacity_wh() - consumed_wh) < battery.low_capacity_wh())));
+    const bool blink = battery.voltage_is_low() || battery.remaining_mah_is_low() || battery.remaining_wh_is_low();
 
     uint8_t pct;
+
     if (!battery.capacity_remaining_pct(pct)) {
         if (!AP_Notify::flags.armed) {
             backend->write(x , y , false , "---%c" , SYMBOL(SYM_PCNT));
         }
         return;
     }
+
     backend->write(x, y, blink, "%3d%c", (uint16_t)lrintf(pct), SYMBOL(SYM_PCNT));
 }
 
@@ -1737,18 +1796,33 @@ void AP_OSD_Screen::draw_power(uint8_t x, uint8_t y)
     }
 }
 
-void AP_OSD_Screen::draw_energy(uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_energy(uint8_t x, uint8_t y, bool available, bool blink, float energy_wh, bool can_be_negative)
+{
+    if (!available) {
+        const char *fmt = can_be_negative ? "-----%c" : "----%c";
+        backend->write(x, y, false, fmt, SYMBOL(SYM_WH));
+        return;
+    }
+    // const uint8_t spaces = can_be_negative ? (signbit(energy_wh) ? 0 : 1) : 0;
+    const uint8_t spaces = !can_be_negative || signbit(energy_wh) ? 0 : 1;
+    const char* const fmt = (energy_wh < 9.9995 ? "%1.3f%c" : (energy_wh < 99.995 ? "%2.2f%c" : "%3.1f%c"));
+    backend->write(x + spaces, y, blink, fmt, energy_wh, SYMBOL(SYM_WH));
+}
+
+void AP_OSD_Screen::draw_energy_consumed(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
     float energy_wh;
-    if (!battery.consumed_wh(energy_wh)) {
-        // consumed energy unavailable
-        backend->write(x, y, false, "----%c", SYMBOL(SYM_WH));
-        return;
-    }
-    const char* const fmt = (energy_wh < 9.9995 ? "%1.3f%c" : (energy_wh < 99.995 ? "%2.2f%c" : "%3.1f%c"));
-    const bool blink = is_positive(battery.low_capacity_wh()) && (battery.pack_capacity_wh() - energy_wh) < battery.low_capacity_wh();
-    backend->write(x, y, blink, fmt, energy_wh, SYMBOL(SYM_WH));
+    const bool available = battery.consumed_wh(energy_wh);
+    draw_energy(x, y, available, battery.remaining_wh_is_low(), energy_wh, false);
+}
+
+void AP_OSD_Screen::draw_energy_remaining(uint8_t x, uint8_t y)
+{
+    AP_BattMonitor &battery = AP::battery();
+    float energy_wh;
+    const bool available = battery.remaining_wh(energy_wh);
+    draw_energy(x, y, available, battery.remaining_wh_is_low(), energy_wh, true);
 }
 
 void AP_OSD_Screen::draw_fltmode(uint8_t x, uint8_t y)
@@ -1774,25 +1848,43 @@ void AP_OSD_Screen::draw_sats(uint8_t x, uint8_t y)
     backend->write(x, y, flash, "%c%c%2u", SYMBOL(SYM_SAT_L), SYMBOL(SYM_SAT_R), nsat);
 }
 
-void AP_OSD_Screen::draw_batused(uint8_t instance, uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_mah(uint8_t x, uint8_t y, bool available, bool blink, float mah, bool can_be_negative)
+{
+    const uint8_t spaces = !can_be_negative || signbit(mah) ? 0 : 1;
+    if (mah < 9999.5) {
+        backend->write(x+spaces, y, blink, "%.0f%c", mah, SYMBOL(SYM_MAH));
+    } else {
+        const float ah = mah * 1e-3f;
+        backend->write(x+spaces, y, blink, "%2.2f%c", ah, SYMBOL(SYM_AH));
+    }
+}
+
+void AP_OSD_Screen::draw_batused(uint8_t x, uint8_t y, uint8_t instance)
 {
     float mah;
     AP_BattMonitor &battery = AP::battery();
-    if (!battery.consumed_mah(mah, instance)) {
-        mah = 0;
-    }
-    const bool blink = is_positive(battery.low_capacity_mah()) && (battery.pack_capacity_mah() - mah) < battery.low_capacity_mah();
-    if (mah <= 9999) {
-        backend->write(x,y, blink, "%4d%c", (int)mah, SYMBOL(SYM_MAH));
-    } else {
-        const float ah = mah * 1e-3f;
-        backend->write(x,y, blink, "%2.2f%c", (double)ah, SYMBOL(SYM_AH));
-    }
+    const bool consumed_mah_available = battery.consumed_mah(mah, instance);
+    const bool blink = battery.remaining_mah_is_low();
+    draw_mah(x, y, consumed_mah_available, blink, mah, false);
 }
 
 void AP_OSD_Screen::draw_batused(uint8_t x, uint8_t y)
 {
-    draw_batused(0, x, y);
+    draw_batused(x, y, 0);
+}
+
+void AP_OSD_Screen::draw_batrem(uint8_t x, uint8_t y, uint8_t instance)
+{
+    float mah;
+    AP_BattMonitor &battery = AP::battery();
+    const bool mah_available = battery.remaining_mah(mah, instance);
+    const bool blink = battery.remaining_mah_is_low();
+    draw_mah(x, y, mah_available, blink, mah, true);
+}
+
+void AP_OSD_Screen::draw_batrem(uint8_t x, uint8_t y)
+{
+    draw_batrem(x, y, 0);
 }
 
 //Autoscroll message is the same as in minimosd-extra.
@@ -2572,13 +2664,40 @@ void AP_OSD_Screen::draw_eff(uint8_t x, uint8_t y)
         backend->write(x, y, false, "%c%3d%c", SYMBOL(SYM_EFF), efficiency, SYMBOL(SYM_MAH));
     } else {
         float power_w;
-        if (!battery.power_watts(power_w) || is_negative(power_w)) goto invalid;
+        if (!battery.power_watts_without_losses(power_w) || is_negative(power_w)) goto invalid;
         const float efficiency = power_w / speed;
-        if (roundf(efficiency) > 999) goto invalid;
+        if (!isfinite(efficiency) || roundf(efficiency) > 999) goto invalid;
         const char* const fmt = (efficiency < 9.995 ? "%c%1.2f%c" : (efficiency < 99.95 ? "%c%2.1f%c" : "%c%3.0f%c"));
         backend->write(x, y, false, fmt, SYMBOL(SYM_EFF), efficiency, SYMBOL(SYM_WH));
     }
     return;
+invalid:
+    const uint8_t unit_symbol = SYMBOL(eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH ? SYM_MAH : SYM_WH);
+    backend->write(x, y, false, "%c---%c", SYMBOL(SYM_EFF), unit_symbol);
+}
+
+void AP_OSD_Screen::draw_avg_eff(uint8_t x, uint8_t y)
+{
+    int8_t eff_unit_base = osd->efficiency_unit_base;
+    const float distance_traveled_km = osd->_stats.last_distance_m * 0.001f;
+    if (is_positive(distance_traveled_km)) {
+        AP_BattMonitor& battery = AP::battery();
+        if (eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH) {
+            float consumed_mah;
+            if (!battery.consumed_mah(consumed_mah)) goto invalid;
+            const uint16_t efficiency = roundf(consumed_mah / distance_traveled_km);
+            if (efficiency > 999) goto invalid;
+            backend->write(x, y, false, "%c%3d%c", SYMBOL(SYM_EFF), efficiency, SYMBOL(SYM_MAH));
+        } else {
+            float consumed_wh;
+            if (!battery.consumed_wh_without_losses(consumed_wh)) goto invalid;
+            const float efficiency = consumed_wh / distance_traveled_km;
+            if (!isfinite(efficiency) || roundf(efficiency) > 999) goto invalid;
+            const char* const fmt = (efficiency < 9.995 ? "%c%1.2f%c" : (efficiency < 99.95 ? "%c%2.1f%c" : "%c%3.0f%c"));
+            backend->write(x, y, false, fmt, SYMBOL(SYM_EFF), efficiency, SYMBOL(SYM_WH));
+        }
+        return;
+    }
 invalid:
     const uint8_t unit_symbol = SYMBOL(eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH ? SYM_MAH : SYM_WH);
     backend->write(x, y, false, "%c---%c", SYMBOL(SYM_EFF), unit_symbol);
@@ -2666,7 +2785,12 @@ void AP_OSD_Screen::draw_bat2_vlt(uint8_t x, uint8_t y)
 
 void AP_OSD_Screen::draw_bat2used(uint8_t x, uint8_t y)
 {
-    draw_batused(1, x, y);
+    draw_batused(x, y, 1);
+}
+
+void AP_OSD_Screen::draw_bat2rem(uint8_t x, uint8_t y)
+{
+    draw_batrem(x, y, 1);
 }
 
 void AP_OSD_Screen::draw_aspd1(uint8_t x, uint8_t y)
@@ -2880,9 +3004,12 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(link_quality);
     DRAW_SETTING(current);
     DRAW_SETTING(power);
-    DRAW_SETTING(energy);
+    DRAW_SETTING(energy_consumed);
+    DRAW_SETTING(energy_remaining);
     DRAW_SETTING(batused);
+    DRAW_SETTING(batrem);
     DRAW_SETTING(bat2used);
+    DRAW_SETTING(bat2rem);
     DRAW_SETTING(sats);
     DRAW_SETTING(fltmode);
     DRAW_SETTING(gspeed);
@@ -2930,6 +3057,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(stat);
     DRAW_SETTING(climbeff);
     DRAW_SETTING(eff);
+    DRAW_SETTING(avg_eff);
     DRAW_SETTING(callsign);
     DRAW_SETTING(current2);
     DRAW_SETTING(rc_throttle);
