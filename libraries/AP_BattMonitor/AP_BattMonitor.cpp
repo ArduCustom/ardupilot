@@ -455,20 +455,20 @@ float AP_BattMonitor::voltage(uint8_t instance) const
 }
 
 /// voltage - returns average cell battery voltage in volts
-float AP_BattMonitor::cell_avg_voltage(uint8_t instance) const
+bool AP_BattMonitor::cell_avg_voltage(uint8_t instance, float &voltage) const
 {
     if (instance < _num_instances && drivers[instance] != nullptr) {
-        return drivers[instance]->cell_avg_voltage();
+        return drivers[instance]->cell_avg_voltage(voltage);
     } else {
         return 0.0f;
     }
 }
 
 /// voltage - returns average resting cell battery voltage in volts
-float AP_BattMonitor::resting_cell_avg_voltage(uint8_t instance) const
+bool AP_BattMonitor::resting_cell_avg_voltage(uint8_t instance, float &voltage) const
 {
     if (instance < _num_instances && drivers[instance] != nullptr) {
-        return drivers[instance]->resting_cell_avg_voltage();
+        return drivers[instance]->resting_cell_avg_voltage(voltage);
     } else {
         return 0.0f;
     }
@@ -682,7 +682,9 @@ float AP_BattMonitor::low_cell_voltage(uint8_t instance) const
 bool AP_BattMonitor::voltage_is_low(uint8_t instance) const
 {
     if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
-        return (is_positive(low_voltage(instance)) && voltage(instance) < low_voltage(instance)) || (is_positive(low_cell_voltage(instance)) && cell_avg_voltage(instance) < low_cell_voltage(instance));
+        float cell_voltage;
+        const bool cell_voltage_available = cell_avg_voltage(instance, cell_voltage);
+        return (is_positive(low_voltage(instance)) && voltage(instance) < low_voltage(instance)) || (cell_voltage_available && is_positive(low_cell_voltage(instance)) && cell_voltage < low_cell_voltage(instance));
     } else {
         return false;
     }
@@ -691,7 +693,9 @@ bool AP_BattMonitor::voltage_is_low(uint8_t instance) const
 bool AP_BattMonitor::resting_voltage_is_low(uint8_t instance) const
 {
     if (instance < AP_BATT_MONITOR_MAX_INSTANCES) {
-        return (is_positive(low_voltage(instance)) && voltage_resting_estimate(instance) < low_voltage(instance)) || (is_positive(low_cell_voltage(instance)) && resting_cell_avg_voltage(instance) < low_cell_voltage(instance));
+        float resting_cell_voltage;
+        const bool resting_cell_voltage_available = resting_cell_avg_voltage(instance, resting_cell_voltage);
+        return (is_positive(low_voltage(instance)) && voltage_resting_estimate(instance) < low_voltage(instance)) || (resting_cell_voltage_available && is_positive(low_cell_voltage(instance)) && resting_cell_voltage < low_cell_voltage(instance));
     } else {
         return false;
     }

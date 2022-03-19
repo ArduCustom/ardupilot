@@ -528,10 +528,15 @@ void AP_ESC_Telem::update()
             if (_telem_data[i].last_update_ms != _last_telem_log_ms[i]
                 || _rpm_data[i].last_update_us != _last_rpm_log_us[i]) {
 
-                float rpm = 0.0f;
-                get_rpm(i, rpm);
-                float rawrpm = 0.0f;
-                get_raw_rpm(i, rawrpm);
+                float rpm;
+                if (!get_rpm(i, rpm)) {
+                    rpm = 0;
+                }
+
+                float rawrpm;
+                if (!get_raw_rpm(i, rawrpm)) {
+                    rawrpm = 0;
+                }
 
                 // Write ESC status messages
                 //   id starts from 0

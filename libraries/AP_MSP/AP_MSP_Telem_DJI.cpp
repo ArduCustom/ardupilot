@@ -93,10 +93,12 @@ MSPCommandResult AP_MSP_Telem_DJI::msp_process_out_fc_variant(sbuf_t *dst)
 MSPCommandResult AP_MSP_Telem_DJI::msp_process_out_esc_sensor_data(sbuf_t *dst)
 {
 #if HAL_WITH_ESC_TELEM
-    int16_t highest_temperature = 0;
+    int16_t highest_temperature;
     AP_ESC_Telem& telem = AP::esc_telem();
     if (!displaying_stats_screen()) {
-        telem.get_highest_temperature(highest_temperature);
+        if (!telem.get_highest_temperature(highest_temperature)) {
+            highest_temperature = 0;
+        }
     } else {
 #if OSD_ENABLED
         AP_OSD *osd = AP::osd();
@@ -142,7 +144,7 @@ void AP_MSP_Telem_DJI::update_home_pos(home_state_t &home_state)
     if (msp->_msp_status.slow_flashing_on) {
         home_state.home_distance_m = osd->get_stats_info().max_dist_m;
     } else {
-        home_state.home_distance_m = osd->get_stats_info().last_distance_m;
+        home_state.home_distance_m = osd->get_stats_info().last_ground_distance_m;
     }
     home_state.rel_altitude_cm = osd->get_stats_info().max_alt_m * 100;
 #endif
@@ -179,7 +181,7 @@ void AP_MSP_Telem_DJI::update_gps_state(gps_state_t &gps_state)
     }
     WITH_SEMAPHORE(osd->get_semaphore());
     // override telemetry with max speed info
-    gps_state.speed_cms = osd->get_stats_info().max_speed_mps * 100;
+    gps_state.speed_cms = osd->get_stats_info().max_ground_speed_mps * 100;
 #endif
 }
 
@@ -196,7 +198,7 @@ void AP_MSP_Telem_DJI::update_airspeed(airspeed_state_t &airspeed_state)
     }
     WITH_SEMAPHORE(osd->get_semaphore());
     // override telemetry with max speed info
-    airspeed_state.airspeed_estimate_ms = osd->get_stats_info().max_airspeed_mps;
+    airspeed_state.airspeed_estimate_ms = osd->get_stats_info().max_air_speed_mps;
 #endif
 }
 

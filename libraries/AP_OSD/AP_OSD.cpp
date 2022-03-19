@@ -36,6 +36,7 @@
 #include <AP_Notify/AP_Notify.h>
 #include <AP_Terrain/AP_Terrain.h>
 #include <AP_RSSI/AP_RSSI.h>
+#include <AP_RCProtocol/AP_RCProtocol_CRSF.h>
 
 // macro for easy use of var_info2
 #define AP_SUBGROUPINFO2(element, name, idx, thisclazz, elclazz) { AP_PARAM_GROUP, idx, name, AP_VAROFFSET(thisclazz, element), { group_info : elclazz::var_info2 }, AP_PARAM_FLAG_NESTED_OFFSET }
@@ -394,38 +395,82 @@ void AP_OSD::update_stats()
         return;
     }
 
-    // flight distance
     uint32_t delta_ms = now - _stats.last_update_ms;
     _stats.last_update_ms = now;
+    uint32_t new_samples = _stats.samples + 1;
 
-    Vector2f v;
+    AP_BattMonitor &battery = AP::battery();
+
+    // maximum and average current
+    float amps;
+    if (battery.current_amps(amps)) {
+        _stats.max_current_a = fmaxf(_stats.max_current_a, amps);
+        _stats.avg_current_a = (_stats.avg_current_a * _stats.samples + amps) / new_samples;
+    }
+
+    // maximum and average power
+    float power;
+    if (battery.power_watts(power)) {
+        _stats.max_power_w = fmaxf(_stats.max_power_w, power);
+        _stats.avg_power_w = (_stats.avg_power_w * _stats.samples + power) / new_samples;
+    }
+
+    // minimum voltage
+    float voltage = battery.voltage();
+    if (voltage > 0) {
+        _stats.min_voltage_v = fminf(_stats.min_voltage_v, voltage);
+    }
+
+    // minimum cell voltage
+    float cell_voltage;
+    const bool cell_voltage_available = battery.cell_avg_voltage(cell_voltage);
+    if (cell_voltage_available && cell_voltage > 0) {
+        _stats.min_cell_voltage_v = fminf(_stats.min_cell_voltage_v, cell_voltage);
+    }
+
+    // armed consumed mAh / Wh
+    _stats.consumed_mah_available = battery.consumed_mah(_stats.consumed_mah);
+    _stats.consumed_wh_available = battery.consumed_wh(_stats.consumed_wh);
+
+    Vector2f ground_speed_vector;
+    Vector3f wind_speed_vector;
     Location loc {};
     Location home_loc;
     bool home_is_set;
     bool have_airspeed_estimate;
     float alt;
-    float aspd_mps = 0.0f;
+    float air_speed_mps = 0.0f;
     {
         // minimize semaphore scope
         AP_AHRS &ahrs = AP::ahrs();
         WITH_SEMAPHORE(ahrs.get_semaphore());
-        v = ahrs.groundspeed_vector();
+        ground_speed_vector = ahrs.groundspeed_vector();
         home_is_set = ahrs.get_location(loc) && ahrs.home_is_set();
         if (home_is_set) {
             home_loc = ahrs.get_home();
         }
         ahrs.get_relative_position_D_home(alt);
-        have_airspeed_estimate = ahrs.airspeed_estimate(aspd_mps);
-    }
-    float speed = v.length();
-    if (speed < 0.178) {
-        speed = 0.0;
-    }
-    float dist_m = (speed * delta_ms)*0.001;
-    _stats.last_distance_m += dist_m;
+        have_airspeed_estimate = ahrs.airspeed_estimate(air_speed_mps);
 
-    // maximum ground speed
-    _stats.max_speed_mps = fmaxf(_stats.max_speed_mps,speed);
+        wind_speed_vector = ahrs.wind_estimate();
+    }
+
+    float wind_speed_mps = wind_speed_vector.length();
+    float ground_speed_mps = ground_speed_vector.length();
+    if (ground_speed_mps < 0.178) {
+        ground_speed_mps = 0.0;
+    }
+
+    // total distance travelled
+    float dist_ground_m = (ground_speed_mps * delta_ms)*0.001;
+    _stats.last_ground_distance_m += dist_ground_m;
+
+    // maximum ground and wind speed
+    _stats.max_ground_speed_mps = fmaxf(_stats.max_ground_speed_mps, ground_speed_mps);
+    _stats.max_wind_speed_mps = fmaxf(_stats.max_wind_speed_mps, wind_speed_mps);
+
+    // average wind speed
+    _stats.avg_wind_speed_mps = (_stats.avg_wind_speed_mps * _stats.samples + wind_speed_mps) / new_samples;
 
     // maximum distance
     if (home_is_set) {
@@ -436,33 +481,45 @@ void AP_OSD::update_stats()
     // maximum altitude
     alt = -alt;
     _stats.max_alt_m = fmaxf(_stats.max_alt_m, alt);
-    // maximum current
-    AP_BattMonitor &battery = AP::battery();
-    float amps;
-    if (battery.current_amps(amps)) {
-        _stats.max_current_a = fmaxf(_stats.max_current_a, amps);
-    }
-    // minimum voltage
-    float voltage = battery.voltage();
-    if (voltage > 0) {
-        _stats.min_voltage_v = fminf(_stats.min_voltage_v, voltage);
-    }
-    // minimum rssi
+
+    // minimum RSSI
     AP_RSSI *ap_rssi = AP_RSSI::get_singleton();
     if (ap_rssi) {
         _stats.min_rssi = fminf(_stats.min_rssi, ap_rssi->read_receiver_rssi());
     }
-    // max airspeed either true or synthetic
-    if (have_airspeed_estimate) {
-        _stats.max_airspeed_mps = fmaxf(_stats.max_airspeed_mps, aspd_mps);
+
+    // minimum RSSI dBm
+    const int8_t rssi_dbm = AP::crsf()->get_link_status().rssi_dbm;
+    if (rssi_dbm >= 0) {
+        _stats.min_rssi_dbm = MAX(_stats.min_rssi_dbm, rssi_dbm);
     }
+
+    // maximum TX power
+    const int16_t tx_power = AP::crsf()->get_link_status().tx_power;
+    _stats.max_tx_power = MAX(_stats.max_tx_power, tx_power);
+
+    // max airspeed / total air distance travelled using either true or synthetic air speed
+    if (have_airspeed_estimate) {
+        _stats.max_air_speed_mps = fmaxf(_stats.max_air_speed_mps, air_speed_mps);
+
+        // XXX might be interesting to take into account AoA for better precision 
+        float air_dist_m = (air_speed_mps * delta_ms)*0.001;
+        _stats.last_air_distance_m += air_dist_m;
+    }
+
 #if HAL_WITH_ESC_TELEM
-    // max esc temp
+    // max/avg esc temp
     AP_ESC_Telem& telem = AP::esc_telem();
-    int16_t highest_temperature = 0;
-    telem.get_highest_temperature(highest_temperature);
-    _stats.max_esc_temp = MAX(_stats.max_esc_temp, highest_temperature);
+    int16_t highest_temperature;
+    _stats.esc_temperature_available = telem.get_highest_temperature(highest_temperature);
+    if (_stats.esc_temperature_available) {
+        highest_temperature /= 100;
+        _stats.max_esc_temp = MAX(_stats.max_esc_temp, highest_temperature);
+        _stats.avg_esc_temp = (int32_t(_stats.avg_esc_temp) * _stats.samples + highest_temperature) / new_samples;
+    }
 #endif
+
+    _stats.samples = new_samples;
 }
 
 //Thanks to minimosd authors for the multiple osd screen idea
