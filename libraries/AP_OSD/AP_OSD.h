@@ -153,6 +153,7 @@ private:
     AP_OSD_Setting link_quality{false,1,1};
     AP_OSD_Setting current{true, 25, 2};
     AP_OSD_Setting batused{true, 23, 3};
+    AP_OSD_Setting batrem{true, 23, 3};
     AP_OSD_Setting sats{true, 1, 3};
     AP_OSD_Setting fltmode{true, 2, 8};
     AP_OSD_Setting message{true, 2, 6};
@@ -191,9 +192,11 @@ private:
     AP_OSD_Setting flightime{false, 23, 10};
     AP_OSD_Setting climbeff{false,0,0};
     AP_OSD_Setting eff{false, 22, 10};
+    AP_OSD_Setting avg_eff{false, 22, 10};
     AP_OSD_Setting atemp{false, 0, 0};
     AP_OSD_Setting bat2_vlt{false, 0, 0};
     AP_OSD_Setting bat2used{false, 0, 0};
+    AP_OSD_Setting bat2rem{false, 0, 0};
     AP_OSD_Setting current2{false, 0, 0};
     AP_OSD_Setting clk{false, 0, 0};
     AP_OSD_Setting callsign{false, 0, 0};
@@ -206,7 +209,8 @@ private:
 #endif
     AP_OSD_Setting sidebars{false, 4, 5};
     AP_OSD_Setting power{true, 1, 1};
-    AP_OSD_Setting energy{false, 0, 0};
+    AP_OSD_Setting energy_consumed{false, 0, 0};
+    AP_OSD_Setting energy_remaining{false, 0, 0};
     AP_OSD_Setting rc_throttle{false, 0, 0};
     AP_OSD_Setting aspd_dem{false, 0, 0};
     AP_OSD_Setting auto_flaps{false, 0, 0};
@@ -239,9 +243,14 @@ private:
     void draw_current(uint8_t x, uint8_t y);
     void draw_current(uint8_t instance, uint8_t x, uint8_t y);
     void draw_power(uint8_t x, uint8_t y);
-    void draw_energy(uint8_t x, uint8_t y);
+    void draw_energy(uint8_t x, uint8_t y, bool available, bool blink, float energy_wh, bool can_be_negative);
+    void draw_energy_consumed(uint8_t x, uint8_t y);
+    void draw_energy_remaining(uint8_t x, uint8_t y);
+    void draw_batused(uint8_t x, uint8_t y, uint8_t instance);
     void draw_batused(uint8_t x, uint8_t y);
-    void draw_batused(uint8_t instance, uint8_t x, uint8_t y);
+    void draw_batrem(uint8_t x, uint8_t y, uint8_t instance);
+    void draw_batrem(uint8_t x, uint8_t y);
+    void draw_mah(uint8_t x, uint8_t y, bool available, bool blink, float mah, bool can_be_negative);
     void draw_sats(uint8_t x, uint8_t y);
     void draw_fltmode(uint8_t x, uint8_t y);
     void draw_message(uint8_t x, uint8_t y);
@@ -295,9 +304,11 @@ private:
     void draw_flightime(uint8_t x, uint8_t y);
     void draw_climbeff(uint8_t x, uint8_t y);
     void draw_eff(uint8_t x, uint8_t y);
+    void draw_avg_eff(uint8_t x, uint8_t y);
     void draw_atemp(uint8_t x, uint8_t y);
     void draw_bat2_vlt(uint8_t x, uint8_t y);
     void draw_bat2used(uint8_t x, uint8_t y);
+    void draw_bat2rem(uint8_t x, uint8_t y);
     void draw_clk(uint8_t x, uint8_t y);
     void draw_callsign(uint8_t x, uint8_t y);
     void draw_current2(uint8_t x, uint8_t y);
