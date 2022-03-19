@@ -28,7 +28,7 @@ AP_BattMonitor_Backend::AP_BattMonitor_Backend(AP_BattMonitor &mon, AP_BattMonit
         _state(mon_state),
         _params(params)
 {
-    _state.cell_count = _params._cell_count < 0 ? 1 : _params._cell_count;
+    _state.cell_count = _params._cell_count;
 }
 
 bool AP_BattMonitor_Backend::capacity_has_been_configured() const
@@ -132,8 +132,12 @@ float AP_BattMonitor_Backend::voltage_resting_estimate() const
 }
 
 /// voltage - returns average cell battery voltage in volts
-float AP_BattMonitor_Backend::cell_avg_voltage() const
+bool AP_BattMonitor_Backend::cell_avg_voltage(float &voltage) const
 {
+    if (_state.cell_count < 1) {
+        return false;
+    }
+
     float cells_total = 0;
     if (has_cell_voltages()) {
         for (uint16_t i = 0; i < AP_BATT_MONITOR_CELLS_MAX; ++i) {
@@ -146,13 +150,21 @@ float AP_BattMonitor_Backend::cell_avg_voltage() const
         cells_total = _state.voltage;
     }
 
-    return cells_total / _state.cell_count;
+    voltage = cells_total / _state.cell_count;
+
+    return true;
 }
 
 /// voltage - returns average resting battery cell voltage in volts
-float AP_BattMonitor_Backend::resting_cell_avg_voltage() const
+bool AP_BattMonitor_Backend::resting_cell_avg_voltage(float &voltage) const
 {
-    return voltage_resting_estimate() / _state.cell_count;
+    if (_state.cell_count < 1) {
+        return false;
+    }
+
+    voltage = voltage_resting_estimate() / _state.cell_count;
+
+    return true;
 }
 
 AP_BattMonitor::Failsafe AP_BattMonitor_Backend::update_failsafes(void)
@@ -251,22 +263,23 @@ void AP_BattMonitor_Backend::check_failsafe_types(bool &low_voltage, bool &low_c
     // use voltage or sag compensated voltage
     float voltage_used;
     float cell_voltage_used = 0;
+    bool cell_voltage_available;
     switch (_params.failsafe_voltage_source()) {
         case AP_BattMonitor_Params::BattMonitor_LowVoltageSource_Raw:
         default:
             voltage_used = _state.voltage;
-            cell_voltage_used = cell_avg_voltage();
+            cell_voltage_available = cell_avg_voltage(cell_voltage_used);
             break;
         case AP_BattMonitor_Params::BattMonitor_LowVoltageSource_SagCompensated:
             voltage_used = voltage_resting_estimate();
-            cell_voltage_used = resting_cell_avg_voltage();
+            cell_voltage_available = resting_cell_avg_voltage(cell_voltage_used);
             break;
     }
 
     // check critical battery levels
     if ((voltage_used > 0) &&
         (((_params._critical_voltage > 0) && (voltage_used < _params._critical_voltage)) ||
-        ((_params._critical_cell_voltage > 0) && (cell_voltage_used < _params._critical_cell_voltage)))) {
+        (cell_voltage_available && (_params._critical_cell_voltage > 0) && (cell_voltage_used < _params._critical_cell_voltage)))) {
         critical_voltage = true;
     } else {
         critical_voltage = false;
@@ -284,7 +297,7 @@ void AP_BattMonitor_Backend::check_failsafe_types(bool &low_voltage, bool &low_c
 
     if ((voltage_used > 0) &&
         (((_params._low_voltage > 0) && (voltage_used < _params._low_voltage)) ||
-        ((_params._low_cell_voltage > 0) && (cell_voltage_used < _params._low_cell_voltage)))) {
+        (cell_voltage_available && (_params._low_cell_voltage > 0) && (cell_voltage_used < _params._low_cell_voltage)))) {
         low_voltage = true;
     } else {
         low_voltage = false;
