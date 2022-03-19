@@ -44,6 +44,7 @@ public:
     AP_Float &kD(void) { return rate_pid.kD(); }
     AP_Float &kFF(void) { return rate_pid.ff(); }
     AP_Float &tau(void) { return gains.tau; }
+    AP_Float &rollFF(void) { return _roll_ff; }
 
     void convert_pid();
 
