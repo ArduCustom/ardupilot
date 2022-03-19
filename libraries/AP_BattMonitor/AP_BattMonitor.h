@@ -139,6 +139,7 @@ public:
         float       current_amps;              // current in amperes
         float       consumed_mah;              // total current draw in milliamp hours since start-up
         float       consumed_wh;               // total energy consumed in Wh since start-up
+        float       consumed_wh_without_losses;// total energy consumed in Wh not including battery losses
         uint32_t    last_time_micros;          // time when voltage and current was last read in microseconds
         uint32_t    low_voltage_start_ms;      // time when voltage dropped below the minimum in milliseconds
         uint32_t    critical_voltage_start_ms; // critical voltage failsafe start timer in milliseconds
@@ -208,11 +209,24 @@ public:
     float power_watts() const;
     bool power_watts(float &power, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const;
 
+    /// power watt
+    float power_watts_without_losses() const;
+    bool power_watts_without_losses(float &power, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const;
+
     /// consumed_mah - returns total current drawn since start-up in milliampere.hours
     bool consumed_mah(float &mah, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
 
     /// consumed_wh - returns total energy drawn since start-up in watt.hours
     bool consumed_wh(float&wh, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
+
+    /// remaining_mah - returns energy remaining in milliampere.hours
+    bool remaining_mah(float&mah, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
+
+    /// remaining_wh - returns energy remaining in watt.hours
+    bool remaining_wh(float&wh, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
+
+    /// consumed_wh_without_losses - returns total energy drawn not including battery losses since start-up in watt.hours
+    bool consumed_wh_without_losses(float&wh, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
 
     /// capacity_remaining_pct - returns true if the percentage is valid and writes to percentage argument
     virtual bool capacity_remaining_pct(uint8_t &percentage, uint8_t instance) const WARN_IF_UNUSED;
@@ -252,6 +266,12 @@ public:
  
     bool resting_voltage_is_low(uint8_t instance) const;
     bool resting_voltage_is_low() const { return voltage_is_low(AP_BATT_PRIMARY_INSTANCE); }
+
+    /// remaining_mah_is_low - returns true if the remaining mAh capacity is bellow the configured value
+    bool remaining_mah_is_low(const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const;
+
+    /// remaining_wh_is_low - returns true if the remaining Wh capacity is bellow the configured value
+    bool remaining_wh_is_low(const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const;
 
     /// returns true if a battery failsafe has ever been triggered
     bool has_failsafed(void) const { return _has_triggered_failsafe; };
