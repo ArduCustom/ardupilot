@@ -60,10 +60,10 @@ public:
     float voltage_resting_estimate() const;
 
     /// cell_avg_voltage - returns average cell battery voltage in volts
-    float cell_avg_voltage() const;
+    bool cell_avg_voltage(float &voltage) const;
 
     /// voltage - returns average resting battery cell voltage in volts
-    float resting_cell_avg_voltage() const;
+    bool resting_cell_avg_voltage(float &voltage) const;
 
     bool full_when_plugged_in() const { return _state.battery_full_when_plugged_in; }
 
