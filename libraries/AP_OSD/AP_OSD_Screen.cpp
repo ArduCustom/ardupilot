@@ -1683,17 +1683,19 @@ void AP_OSD_Screen::draw_voltage(uint8_t x, uint8_t y, const float voltage, cons
 void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
-    const float cell_voltage = battery.cell_avg_voltage();
+    float cell_voltage;
+    const bool cell_voltage_available = battery.cell_avg_voltage(cell_voltage);
     const bool blink_voltage = battery.voltage_is_low();
-    draw_voltage(x, y, cell_voltage, true, blink_voltage);
+    draw_voltage(x, y, cell_voltage, true, blink_voltage, true, cell_voltage_available);
 }
 
 void AP_OSD_Screen::draw_resting_avgcellvolt(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
-    const float cell_voltage = battery.resting_cell_avg_voltage();
+    float resting_cell_voltage;
+    const bool resting_cell_voltage_available = battery.resting_cell_avg_voltage(resting_cell_voltage);
     const bool blink_voltage = battery.resting_voltage_is_low();
-    draw_voltage(x, y, cell_voltage, true, blink_voltage);
+    draw_voltage(x, y, resting_cell_voltage, true, blink_voltage, true, resting_cell_voltage_available);
 }
 
 void AP_OSD_Screen::draw_restvolt(uint8_t x, uint8_t y)
@@ -2689,11 +2691,15 @@ void AP_OSD_Screen::draw_stat(uint8_t x, uint8_t y)
     const auto &stats = osd->_stats;
     const uint8_t col_offset = 11;
 
-    backend->write(x, y, false, "MIN %c/C%c", SYMBOL(SYM_VOLT), SYMBOL(SYM_VOLT));
+    // backend->write(x, y, false, "MIN %c/C%c", SYMBOL(SYM_VOLT), SYMBOL(SYM_VOLT));
+    backend->write(x, y, false, "MIN %c", SYMBOL(SYM_VOLT));
     draw_voltage(x+col_offset, y, stats.min_voltage_v, false, false, false, stats.min_voltage_v <= battery.voltage());
-    if (battery.configured_cell_count_is_valid()) {
+    float cell_voltage;
+    const bool cell_voltage_is_available = battery.cell_avg_voltage(cell_voltage);
+    if (cell_voltage_is_available) {
+        backend->write(x+5, y, false, "/C%c", SYMBOL(SYM_VOLT));
         backend->write(x+col_offset+5, y, false, "/");
-        draw_voltage(x+col_offset+6, y, stats.min_cell_voltage_v, true, false, false, stats.min_cell_voltage_v <= battery.cell_avg_voltage());
+        draw_voltage(x+col_offset+6, y, stats.min_cell_voltage_v, true, false, false, stats.min_cell_voltage_v <= cell_voltage);
     }
 
     y += 1;

@@ -407,8 +407,9 @@ void AP_OSD::update_stats()
     }
 
     // minimum cell voltage
-    float cell_voltage = battery.cell_avg_voltage();
-    if (cell_voltage > 0) {
+    float cell_voltage;
+    const bool cell_voltage_available = battery.cell_avg_voltage(cell_voltage);
+    if (cell_voltage_available && cell_voltage > 0) {
         _stats.min_cell_voltage_v = fminf(_stats.min_cell_voltage_v, cell_voltage);
     }
 

@@ -166,18 +166,18 @@ public:
     float voltage() const { return voltage(AP_BATT_PRIMARY_INSTANCE); }
 
     /// cell_avg_voltage - returns average cell battery voltage in volts
-    float cell_avg_voltage(uint8_t instance) const;
-    float cell_avg_voltage() const { return cell_avg_voltage(AP_BATT_PRIMARY_INSTANCE); }
+    bool cell_avg_voltage(uint8_t instance, float &voltage) const;
+    bool cell_avg_voltage(float &voltage) const { return cell_avg_voltage(AP_BATT_PRIMARY_INSTANCE, voltage); }
 
     /// resting_cell_avg_voltage - returns average resting cell battery voltage in volts
-    float resting_cell_avg_voltage(uint8_t instance) const;
-    float resting_cell_avg_voltage() const { return resting_cell_avg_voltage(AP_BATT_PRIMARY_INSTANCE); }
+    bool resting_cell_avg_voltage(uint8_t instance, float &voltage) const;
+    bool resting_cell_avg_voltage(float &voltage) const { return resting_cell_avg_voltage(AP_BATT_PRIMARY_INSTANCE, voltage); }
 
     /// battery_full_when_plugged_in - returns true if battery was fully charged when plugged in
     bool full_when_plugged_in(uint8_t instance) const;
     bool full_when_plugged_in() const { return full_when_plugged_in(AP_BATT_PRIMARY_INSTANCE); }
 
-    bool configured_cell_count_is_valid(uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const;
+    // bool cell_voltage_is_available(uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const;
 
     // returns cell count - result could be 0 if autodetection is enabled and not possible or -1 if autodetection is disabled
     int8_t cell_count(uint8_t instance) const;
