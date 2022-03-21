@@ -84,8 +84,13 @@ AP_BattMonitor_Analog::read()
         _state.cell_count = (uint8_t)(_state.voltage / _params._cell_detect_volt + 1);
     }
 
-    if (_state.battery_full_when_plugged_in < 0) {
-        _state.battery_full_when_plugged_in = _state.voltage / _state.cell_count >= _params._cell_full_voltage;
+    if (_state.cell_count > 0) {
+        if (_state.battery_full_when_plugged_in < 0) {
+            _state.battery_full_when_plugged_in = _state.voltage / _state.cell_count >= _params._cell_full_voltage;
+        }
+    } else {
+        // if cell voltage is not available then consider the battery full
+        _state.battery_full_when_plugged_in = true;
     }
 
     // read current
