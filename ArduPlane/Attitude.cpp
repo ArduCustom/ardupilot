@@ -766,10 +766,15 @@ void Plane::calc_nav_roll()
  */
 void Plane::adjust_nav_pitch_throttle(void)
 {
-    int8_t throttle = throttle_percentage();
-    if (throttle >= 0 && throttle < aparm.throttle_cruise && flight_stage != AP_Vehicle::FixedWing::FLIGHT_VTOL) {
-        float p = (aparm.throttle_cruise - throttle) / (float)aparm.throttle_cruise;
-        nav_pitch_cd -= g.stab_pitch_down * 100.0f * p;
+    if (flight_stage != AP_Vehicle::FixedWing::FLIGHT_VTOL) {
+        float throttle_pitch_mix_ratio = 1;
+        const float throttle_value = throttle_percentage();
+
+        if (is_positive(throttle_value)) {
+            throttle_pitch_mix_ratio = sq(linear_interpolate(1, 0, throttle_value, 0, aparm.throttle_cruise));
+        }
+
+        nav_pitch_cd -= throttle_pitch_mix_ratio * g.stab_pitch_down * 100.0f;
     }
 }
 
