@@ -1237,7 +1237,7 @@ bool AP_MSP_Telem_Backend::displaying_stats_screen() const
     if (msp == nullptr) {
         return false;
     }
-    return osd->screen[msp->_msp_status.current_screen].stat.enabled;
+    return osd->screen[msp->_msp_status.current_screen].stats.enabled;
 #else
     return false;
 #endif
