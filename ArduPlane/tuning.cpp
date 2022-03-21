@@ -32,6 +32,7 @@ const uint8_t AP_Tuning_Plane::tuning_set_vxy[] =             { TUNING_VXY_P, TU
 const uint8_t AP_Tuning_Plane::tuning_set_az[] =              { TUNING_AZ_P, TUNING_AZ_I, TUNING_AZ_D };
 const uint8_t AP_Tuning_Plane::tuning_set_thr2ptch[] =        { TUNING_KFF_THRAT2PTCH, TUNING_STAB_PITCH_DOWN };
 const uint8_t AP_Tuning_Plane::tuning_set_coordination[] =    { TUNING_RLL2PTCH, TUNING_KFF_RDDRMIX };
+const uint8_t AP_Tuning_Plane::tuning_set_tecs_thr_ff[] =     { TUNING_TECS_THR_FF_DAMP, TUNING_TECS_THR_FF_FILT };
 
 // macro to prevent getting the array length wrong
 #define TUNING_ARRAY(v) ARRAY_SIZE(v), v
@@ -47,6 +48,7 @@ const AP_Tuning_Plane::tuning_set AP_Tuning_Plane::tuning_sets[] = {
     { TUNING_SET_AZ,              TUNING_ARRAY(tuning_set_az) },
     { TUNING_SET_THR2PTCH_MIX,    TUNING_ARRAY(tuning_set_thr2ptch) },
     { TUNING_SET_COORDINATION,    TUNING_ARRAY(tuning_set_coordination) },
+    { TUNING_SET_TECS_THR_FF,     TUNING_ARRAY(tuning_set_tecs_thr_ff) },
     { 0, 0, nullptr }
 };
 
@@ -92,6 +94,8 @@ const AP_Tuning_Plane::tuning_name AP_Tuning_Plane::tuning_names[] = {
     { TUNING_STAB_PITCH_DOWN, "STAB_PITCH_DOWN" },
     { TUNING_RLL2PTCH,      "RLL2PTCH" },
     { TUNING_KFF_RDDRMIX,   "RDRMIX" },
+    { TUNING_TECS_THR_FF_DAMP, "TTHR_FF_DAMP" },
+    { TUNING_TECS_THR_FF_FILT, "TTHR_FF_FILT" },
     { TUNING_NONE, nullptr }
 };
 
@@ -226,6 +230,12 @@ AP_Float *AP_Tuning_Plane::get_param_pointer(uint8_t parm)
 
     case TUNING_KFF_RDDRMIX:
         return &plane.g.kff_rudder_mix;
+
+    case TUNING_TECS_THR_FF_DAMP:
+        return &plane.TECS_controller.thr_ff_damp();
+
+    case TUNING_TECS_THR_FF_FILT:
+        return &plane.TECS_controller.thr_ff_filter();
     }
     return nullptr;
 }
