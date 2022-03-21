@@ -1268,8 +1268,12 @@ LOG_STRUCTURE_FROM_ESC_TELEM \
       "CSRV","QBfffB","TimeUS,Id,Pos,Force,Speed,Pow", "s#---%", "F-0000", true }, \
     { LOG_PIDR_MSG, sizeof(log_PID), \
       "PIDR", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS, true },  \
+    { LOG_PIDRA_MSG, sizeof(log_PID), \
+      "PIRA", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS, true },  \
     { LOG_PIDP_MSG, sizeof(log_PID), \
       "PIDP", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS , true }, \
+    { LOG_PIDPA_MSG, sizeof(log_PID), \
+      "PIPA", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS , true }, \
     { LOG_PIDY_MSG, sizeof(log_PID), \
       "PIDY", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS , true }, \
     { LOG_PIDA_MSG, sizeof(log_PID), \
@@ -1359,7 +1363,9 @@ enum LogMessages : uint8_t {
     LOG_IDS_FROM_GPS,
 
     LOG_PIDR_MSG,
+    LOG_PIDRA_MSG,
     LOG_PIDP_MSG,
+    LOG_PIDPA_MSG,
     LOG_PIDY_MSG,
     LOG_PIDA_MSG,
     LOG_PIDS_MSG,

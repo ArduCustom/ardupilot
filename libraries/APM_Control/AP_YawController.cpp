@@ -332,7 +332,7 @@ float AP_YawController::get_rate_out(float desired_rate, float scaler, bool disa
 
     if (autotune != nullptr && autotune->running && aspeed > aparm.airspeed_min) {
         // fake up an angular error based on a notional time constant of 0.5s
-        const float angle_err_deg = desired_rate * gains.tau;
+        const float angle_err_deg = desired_rate * 0.5f;
         // let autotune have a go at the values
         autotune->update(pinfo, scaler, angle_err_deg);
     }
@@ -353,8 +353,6 @@ void AP_YawController::reset_I()
 void AP_YawController::autotune_start(void)
 {
     if (autotune == nullptr && rate_control_enabled()) {
-        // the autotuner needs a time constant. Use an assumed tconst of 0.5
-        gains.tau.set(0.5);
         gains.rmax_pos.set(90);
 
         autotune = new AP_AutoTune(gains, AP_AutoTune::AUTOTUNE_YAW, aparm, rate_pid);
