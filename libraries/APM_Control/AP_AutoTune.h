@@ -11,7 +11,6 @@ class AP_AutoTune
 {
 public:
     struct ATGains {
-        AP_Float tau;
         AP_Int16 rmax_pos;
         AP_Int16 rmax_neg;
         float FF, P, I, D, IMAX;
@@ -39,7 +38,6 @@ public:
         float D;
         uint8_t action;
         float rmax;
-        float tau;
     };
 
 
