@@ -54,9 +54,9 @@ public:
 
     // demanded throttle in percentage
     // should return -100 to 100, usually positive unless reverse thrust is enabled via _THRminf < 0
-    float get_throttle_demand(void) {
-        return _throttle_dem * 100.0f;
-    }
+    float get_throttle_demand(void) const;
+
+    static float apply_throttle_expo(float throttle, float expo);
 
     void set_throttle_demand(float throttle_demand) {
         _last_throttle_dem = _throttle_dem = throttle_demand * 0.01f;
@@ -205,6 +205,7 @@ private:
     AP_Float _vel_rate_max;
     AP_Float _thr_ff_damp;
     AP_Float _thr_ff_filter;
+    AP_Int8 _thr_expo;
 
     enum {
         OPTION_GLIDER_ONLY=(1<<0),
