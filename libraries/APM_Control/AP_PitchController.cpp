@@ -24,42 +24,35 @@ extern const AP_HAL::HAL& hal;
 
 const AP_Param::GroupInfo AP_PitchController::var_info[] = {
 
-    // @Param: 2SRV_TCONST
-    // @DisplayName: Pitch Time Constant
-    // @Description: Time constant in seconds from demanded to achieved pitch angle in all angle control modes (all but MANUAL and ACRO). Most models respond well to 0.5. May be reduced for faster responses, but setting lower than a model can achieve will not help.
-    // @Range: 0.4 1.0
-    // @Units: s
-    // @Increment: 0.1
-    // @User: Advanced
-    AP_GROUPINFO("2SRV_TCONST",      0, AP_PitchController, gains.tau,       0.5f),
+    // index 0 reserved for old TCONST
 
     // index 1 to 3 reserved for old PID values
 
-    // @Param: 2SRV_RMAX_UP
+    // @Param: _AGL_RMAX_UP
     // @DisplayName: Pitch up max rate
     // @Description: This sets the maximum nose up pitch rate that the attitude controller will demand (degrees/sec) in angle stabilized modes (all but MANUAL and ACRO). Setting it to zero disables the limit.
     // @Range: 0 100
     // @Units: deg/s
     // @Increment: 1
     // @User: Advanced
-    AP_GROUPINFO("2SRV_RMAX_UP",     4, AP_PitchController, gains.rmax_pos,   0.0f),
+    AP_GROUPINFO("_AGL_RMAX_UP",     4, AP_PitchController, gains.rmax_pos,   0.0f),
 
-    // @Param: 2SRV_RMAX_DN
+    // @Param: _AGL_RMAX_DN
     // @DisplayName: Pitch down max rate
     // @Description: This sets the maximum nose down pitch rate that the attitude controller will demand (degrees/sec) in angle stabilized modes (all but MANUAL and ACRO). Setting it to zero disables the limit.
     // @Range: 0 100
     // @Units: deg/s
     // @Increment: 1
     // @User: Advanced
-    AP_GROUPINFO("2SRV_RMAX_DN",     5, AP_PitchController, gains.rmax_neg,   0.0f),
+    AP_GROUPINFO("_AGL_RMAX_DN",     5, AP_PitchController, gains.rmax_neg,   0.0f),
 
-    // @Param: 2SRV_RLL
+    // @Param: _AGL_RLLCOMP
     // @DisplayName: Roll compensation
     // @Description: Gain added to pitch to keep aircraft from descending or ascending in turns. Increase in increments of 0.05 to reduce altitude loss. Decrease for altitude gain.
     // @Range: 0.7 1.5
     // @Increment: 0.05
     // @User: Standard
-    AP_GROUPINFO("2SRV_RLL",      6, AP_PitchController, _roll_ff,        1.0f),
+    AP_GROUPINFO("_AGL_RLLCOMP",      6, AP_PitchController, _roll_ff,        1.0f),
 
     // index 7, 8 reserved for old IMAX, FF
 
@@ -130,6 +123,74 @@ const AP_Param::GroupInfo AP_PitchController::var_info[] = {
     // @User: Advanced
 
     AP_SUBGROUPINFO(rate_pid, "_RATE_", 11, AP_PitchController, AC_PID),
+
+    // @Param: _AGL_P
+    // @DisplayName: Pitch axis angle controller P gain
+    // @Description: Pitch axis angle controller P gain. Converts the difference between desired pitch angle and actual pitch angle into a pitch rate
+    // @Range: 0.08 0.35
+    // @Increment: 0.005
+    // @User: Standard
+
+    // @Param: _AGL_I
+    // @DisplayName: Pitch axis angle controller I gain
+    // @Description: Pitch axis angle controller I gain. Corrects long-term difference in desired pitch angle vs actual pitch angle
+    // @Range: 0.01 0.6
+    // @Increment: 0.01
+    // @User: Standard
+
+    // @Param: _AGL_IMAX
+    // @DisplayName: Pitch axis angle controller I gain maximum
+    // @Description: Pitch axis angle controller I gain maximum. Constrains the maximum pitch rate that the I gain will output
+    // @Range: 0 1
+    // @Increment: 0.01
+    // @User: Standard
+
+    // @Param: _AGL_D
+    // @DisplayName: Pitch axis angle controller D gain
+    // @Description: Pitch axis angle controller D gain. Compensates for short-term change in desired pitch rate vs actual pitch rate
+    // @Range: 0.001 0.03
+    // @Increment: 0.001
+    // @User: Standard
+
+    // @Param: _AGL_FF
+    // @DisplayName: Pitch axis angle controller feed forward
+    // @Description: Pitch axis angle controller feed forward
+    // @Range: 0 3.0
+    // @Increment: 0.001
+    // @User: Standard
+
+    // @Param: _AGL_FLTT
+    // @DisplayName: Pitch axis angle controller target frequency in Hz
+    // @Description: Pitch axis angle controller target frequency in Hz
+    // @Range: 2 50
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: _AGL_FLTE
+    // @DisplayName: Pitch axis angle controller error frequency in Hz
+    // @Description: Pitch axis angle controller error frequency in Hz
+    // @Range: 2 50
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: _AGL_FLTD
+    // @DisplayName: Pitch axis angle controller derivative frequency in Hz
+    // @Description: Pitch axis angle controller derivative frequency in Hz
+    // @Range: 0 50
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: _AGL_SMAX
+    // @DisplayName: Requested pitch rate slew rate limit
+    // @Description: Sets an upper limit on the slew rate produced by the combined P and D gains. If the amplitude of the control action produced by the rate feedback exceeds this value, then the D+P gain is reduced to respect the limit. This limits the amplitude of high frequency oscillations caused by an excessive gain. The limit should be set to no more than 25% of the actuators maximum slew rate to allow for load effects. Note: The gain will not be reduced to less than 10% of the nominal value. A value of zero will disable this feature.
+    // @Range: 0 200
+    // @Increment: 0.5
+    // @User: Advanced
+
+    AP_SUBGROUPINFO(angle_pid, "_AGL_", 12, AP_PitchController, AC_PID),
 
     AP_GROUPEND
 };
@@ -286,7 +347,7 @@ float AP_PitchController::_get_coordination_rate_offset(float &aspeed, bool &inv
 // 4) minimum FBW airspeed (metres/sec)
 // 5) maximum FBW airspeed (metres/sec)
 //
-float AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool disable_integrator, bool ground_mode)
+float AP_PitchController::get_servo_out(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode)
 {
     // Calculate offset to pitch rate demand required to maintain pitch angle whilst banking
     // Calculate ideal turn rate from bank angle and airspeed assuming a level coordinated turn
@@ -295,15 +356,38 @@ float AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool di
     float rate_offset;
     bool inverted;
 
-    if (gains.tau < 0.05f) {
-        gains.tau.set(0.05f);
-    }
-
     rate_offset = _get_coordination_rate_offset(aspeed, inverted);
 
-    // Calculate the desired pitch rate (deg/sec) from the angle error
-    angle_err_deg = angle_err * 0.01;
-    float desired_rate = angle_err_deg / gains.tau;
+    const float dt = AP::scheduler().get_loop_period_s();
+    angle_pid.set_dt(dt);
+
+    angle_err_deg = angle_err * 0.01f;
+
+    if (angle_err_deg > 2.0f) {
+        angle_pid.relax_integrator(0, 0.1f);
+    }
+
+    angle_pid.update_error(angle_err_deg, false);
+
+    if (disable_integrator) {
+        angle_pid.reset_I();
+    }
+
+    _angle_pid_info = angle_pid.get_pid_info();
+    auto &pinfo = _angle_pid_info;
+
+    const AP_AHRS &_ahrs = AP::ahrs();
+
+    if (target_angle == 0) {
+        pinfo.target = 0;
+        pinfo.actual = 0;
+    } else {
+        const float actual_angle = _ahrs.pitch_sensor;
+        pinfo.target = target_angle * 0.01f;
+        pinfo.actual = actual_angle * 0.01f;
+    }
+
+    float desired_rate = pinfo.P + pinfo.I + pinfo.D;
 
     // limit the maximum pitch rate demand. Don't apply when inverted
     // as the rates will be tuned when upright, and it is common that
@@ -329,7 +413,6 @@ float AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool di
       linearly reduce pitch demanded rate when beyond the configured
       roll limit, reducing to zero at 90 degrees
     */
-    const AP_AHRS &_ahrs = AP::ahrs();
     float roll_wrapped = labs(_ahrs.roll_sensor);
     if (roll_wrapped > 9000) {
         roll_wrapped = 18000 - roll_wrapped;
@@ -347,6 +430,8 @@ void AP_PitchController::reset_I()
 {
     _pid_info.I = 0;
     rate_pid.reset_I();
+    _angle_pid_info.I = 0;
+    angle_pid.reset_I();
 }
 
 /*
@@ -355,29 +440,20 @@ void AP_PitchController::reset_I()
  */
 void AP_PitchController::convert_pid()
 {
-    AP_Float &ff = rate_pid.ff();
-    if (ff.configured()) {
+    AP_Float &angle_kP = angle_pid.kP();
+    if (angle_kP.configured()) {
         return;
     }
 
-    float old_ff=0, old_p=1.0, old_i=0.3, old_d=0.08;
-    int16_t old_imax = 3000;
-    bool have_old = AP_Param::get_param_by_index(this, 1, AP_PARAM_FLOAT, &old_p);
-    have_old |= AP_Param::get_param_by_index(this, 3, AP_PARAM_FLOAT, &old_i);
-    have_old |= AP_Param::get_param_by_index(this, 2, AP_PARAM_FLOAT, &old_d);
-    have_old |= AP_Param::get_param_by_index(this, 8, AP_PARAM_FLOAT, &old_ff);
-    have_old |= AP_Param::get_param_by_index(this, 7, AP_PARAM_FLOAT, &old_imax);
+    float old_tconst;
+    bool have_old = AP_Param::get_param_by_index(this, 0, AP_PARAM_FLOAT, &old_tconst);
     if (!have_old) {
-        // none of the old gains were set
+        // tconst wasn't set
         return;
     }
 
-    const float kp_ff = MAX((old_p - old_i * gains.tau) * gains.tau  - old_d, 0);
-    rate_pid.ff().set_and_save(old_ff + kp_ff);
-    rate_pid.kI().set_and_save_ifchanged(old_i * gains.tau);
-    rate_pid.kP().set_and_save_ifchanged(old_d);
-    rate_pid.kD().set_and_save_ifchanged(0);
-    rate_pid.kIMAX().set_and_save_ifchanged(old_imax/4500.0);
+    const float angle_kp = 1 / old_tconst;
+    angle_pid.kP().set_and_save_ifchanged(angle_kp);
 }
 
 /*
