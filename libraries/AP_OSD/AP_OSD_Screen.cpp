@@ -2691,13 +2691,12 @@ void AP_OSD_Screen::draw_stat(uint8_t x, uint8_t y)
     const auto &stats = osd->_stats;
     const uint8_t col_offset = 11;
 
-    // backend->write(x, y, false, "MIN %c/C%c", SYMBOL(SYM_VOLT), SYMBOL(SYM_VOLT));
-    backend->write(x, y, false, "MIN %c", SYMBOL(SYM_VOLT));
+    backend->write(x, y, false, "MIN BV");
     draw_voltage(x+col_offset, y, stats.min_voltage_v, false, false, false, stats.min_voltage_v <= battery.voltage());
     float cell_voltage;
     const bool cell_voltage_is_available = battery.cell_avg_voltage(cell_voltage);
     if (cell_voltage_is_available) {
-        backend->write(x+5, y, false, "/C%c", SYMBOL(SYM_VOLT));
+        backend->write(x+6, y, false, "/CV");
         backend->write(x+col_offset+5, y, false, "/");
         draw_voltage(x+col_offset+6, y, stats.min_cell_voltage_v, true, false, false, stats.min_cell_voltage_v <= cell_voltage);
     }
@@ -2740,13 +2739,13 @@ void AP_OSD_Screen::draw_stat(uint8_t x, uint8_t y)
     draw_speed(x+col_offset+6+5, y, true, stats.max_wind_speed_mps);
 
     y += 1;
-    backend->write(x, y, false, "AEFF A/G");
+    backend->write(x, y, false, "EFF A/G");
     draw_avg_eff_air(x+col_offset+1, y, false);
     backend->write(x+col_offset+5, y, false, "/");
     draw_avg_eff_ground(x+col_offset+6, y, false);
 
     y += 1;
-    backend->write(x, y, false, "TRVL A/G");
+    backend->write(x, y, false, "TRV A/G");
     draw_distance(x+col_offset, y, stats.last_air_distance_m);
     backend->write(x+col_offset+5, y, false, "/");
     draw_distance(x+col_offset+6, y, stats.last_ground_distance_m);
@@ -2760,8 +2759,8 @@ void AP_OSD_Screen::draw_stat(uint8_t x, uint8_t y)
     draw_altitude(x+col_offset, y, false, stats.max_alt_m);
 
     y += 1;
-    backend->write(x, y, false, "FLTTME");
-    backend->write(x+col_offset, y, false, "%3u:%02u", unsigned(flight_time_s/60), unsigned(flight_time_s%60));
+    backend->write(x, y, false, "FLT TIME");
+    backend->write(x+col_offset-2, y, false, "%3u:%02u", unsigned(flight_time_s/60), unsigned(flight_time_s%60));
 
     y += 1;
     backend->write(x, y, false, "MAX ESC T");
