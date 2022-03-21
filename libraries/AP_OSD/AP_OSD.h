@@ -49,7 +49,7 @@
 class AP_OSD_Backend;
 class AP_MSP;
 
-#define AP_OSD_NUM_DISPLAY_SCREENS 4
+#define AP_OSD_NUM_DISPLAY_SCREENS 5
 #if OSD_PARAM_ENABLED
 #define AP_OSD_NUM_PARAM_SCREENS 2
 #else
