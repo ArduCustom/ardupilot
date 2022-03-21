@@ -31,10 +31,10 @@ public:
     static AP_ESC_Telem *get_singleton();
 
     // get an individual ESC's slewed rpm if available, returns true on success
-    bool get_rpm(uint8_t esc_index, float& rpm) const;
+    bool get_rpm(uint8_t esc_index, float& rpm) const WARN_IF_UNUSED;
 
     // get an individual ESC's raw rpm if available
-    bool get_raw_rpm(uint8_t esc_index, float& rpm) const;
+    bool get_raw_rpm(uint8_t esc_index, float& rpm) const WARN_IF_UNUSED;
 
     // return the average motor RPM
     float get_average_motor_rpm(uint32_t servo_channel_mask) const;
@@ -43,37 +43,37 @@ public:
     float get_average_motor_rpm() const { return get_average_motor_rpm(0xFFFFFFFF); }
 
     // get the highest ESC RPM if available, returns true if there is valid data for at least one ESC
-    bool get_highest_motor_rpm(float& rpm) const;
+    bool get_highest_motor_rpm(float& rpm) const WARN_IF_UNUSED;
 
     // get an individual ESC's temperature in centi-degrees if available, returns true on success
-    bool get_temperature(uint8_t esc_index, int16_t& temp) const;
+    bool get_temperature(uint8_t esc_index, int16_t& temp) const WARN_IF_UNUSED;
 
     // get the highest ESC temperature in centi-degrees if available, returns true if there is valid data for at least one ESC
-    bool get_highest_temperature(int16_t& temp) const;
+    bool get_highest_temperature(int16_t& temp) const WARN_IF_UNUSED;
 
     // get an individual motor's temperature in centi-degrees if available, returns true on success
-    bool get_motor_temperature(uint8_t esc_index, int16_t& temp) const;
+    bool get_motor_temperature(uint8_t esc_index, int16_t& temp) const WARN_IF_UNUSED;
 
     // get an individual ESC's current in Ampere if available, returns true on success
-    bool get_current(uint8_t esc_index, float& amps) const;
+    bool get_current(uint8_t esc_index, float& amps) const WARN_IF_UNUSED;
 
     // get the highest ESC current if available, returns true if there is valid data for at least one ESC
-    bool get_highest_current(float& amps) const;
+    bool get_highest_current(float& amps) const WARN_IF_UNUSED;
 
     // get the average ESC current between all ESCs if available, returns true if there is valid data for at least one ESC
-    bool get_average_current(float& amps_avg) const;
+    bool get_average_current(float& amps_avg) const WARN_IF_UNUSED;
 
     // get the sum of the ESCs measured current if available, returns true if there is valid data for at least one ESC
-    bool get_total_current(float& amps) const;
+    bool get_total_current(float& amps) const WARN_IF_UNUSED;
 
     // get an individual ESC's usage time in seconds if available, returns true on success
-    bool get_usage_seconds(uint8_t esc_index, uint32_t& usage_sec) const;
+    bool get_usage_seconds(uint8_t esc_index, uint32_t& usage_sec) const WARN_IF_UNUSED;
 
     // get an individual ESC's voltage in Volt if available, returns true on success
-    bool get_voltage(uint8_t esc_index, float& volts) const;
+    bool get_voltage(uint8_t esc_index, float& volts) const WARN_IF_UNUSED;
 
     // get an individual ESC's consumption in milli-Ampere.hour if available, returns true on success
-    bool get_consumption_mah(uint8_t esc_index, float& consumption_mah) const;
+    bool get_consumption_mah(uint8_t esc_index, float& consumption_mah) const WARN_IF_UNUSED;
 
     // return the average motor frequency in Hz for dynamic filtering
     float get_average_motor_frequency_hz(uint32_t servo_channel_mask) const { return get_average_motor_rpm(servo_channel_mask) * (1.0f / 60.0f); };
