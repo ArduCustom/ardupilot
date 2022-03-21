@@ -267,7 +267,7 @@ public:
         k_param_throttle_passthru_stabilize,
         k_param_rc_12_old,
         k_param_throttle_dz,
-        k_param_fs_batt_mah,     // unused - moved to AP_BattMonitor
+        k_param_throttle_expo,     // unused - moved to AP_BattMonitor
         k_param_fs_timeout_short,
         k_param_fs_timeout_long,
         k_param_rc_13_old,
@@ -466,6 +466,7 @@ public:
     AP_Int16 gcs_pid_mask;
 
     AP_Float throttle_dz;
+    AP_Int8 throttle_expo;
 };
 
 /*
