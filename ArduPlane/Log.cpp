@@ -41,7 +41,9 @@ void Plane::Log_Write_Attitude(void)
 #endif
 
     logger.Write_PID(LOG_PIDR_MSG, rollController.get_pid_info());
+    logger.Write_PID(LOG_PIDRA_MSG, rollController.get_angle_pid_info());
     logger.Write_PID(LOG_PIDP_MSG, pitchController.get_pid_info());
+    logger.Write_PID(LOG_PIDPA_MSG, pitchController.get_angle_pid_info());
 
     if (yawController.enabled()) {
         logger.Write_PID(LOG_PIDY_MSG, yawController.get_pid_info());
@@ -342,9 +344,8 @@ const struct LogStructure Plane::log_structure[] = {
 // @Field: D: D value
 // @Field: Action: action taken
 // @Field: RMAX: Rate maximum
-// @Field: TAU: time constant
     { LOG_ATRP_MSG, sizeof(AP_AutoTune::log_ATRP),
-      "ATRP", "QBBffffffffBff", "TimeUS,Axis,State,Sur,PSlew,DSlew,FF0,FF,P,I,D,Action,RMAX,TAU", "s#-dkk------ks", "F--00000000-00" , true },
+      "ATRP", "QBBffffffffBf", "TimeUS,Axis,State,Sur,PSlew,DSlew,FF0,FF,P,I,D,Action,RMAX", "s#-dkk------k", "F--00000000-0" , true },
 
 // @LoggerMessage: STAT
 // @Description: Current status of the aircraft
