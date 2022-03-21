@@ -338,6 +338,14 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Advanced
     GSCALAR(throttle_dz,            "THR_DZ",   4),
 
+    // @Param: THR_EXPO
+    // @DisplayName: Manual throttle square response curve
+    // @Description: Amount of square response curve to apply to throttle in manual throttle modes
+    // @Units: %
+    // @Range: 0 100
+    // @User: Advanced
+    GSCALAR(throttle_expo,           "THR_EXPO",   0),
+
     // @Param: TKOFF_THR_MAX
     // @DisplayName: Maximum Throttle for takeoff
     // @Description: The maximum throttle setting during automatic takeoff. If this is zero then THR_MAX is used for takeoff as well.
@@ -1363,9 +1371,6 @@ static const AP_Param::ConversionInfo conversion_table[] = {
     { Parameters::k_param_land_then_servos_neutral,0, AP_PARAM_INT8,  "LAND_THEN_NEUTRAL" },
     { Parameters::k_param_land_abort_throttle_enable,0,AP_PARAM_INT8, "LAND_ABORT_THR" },
     { Parameters::k_param_land_flap_percent,  0,      AP_PARAM_INT8,  "LAND_FLAP_PERCENT" },
-
-    // battery failsafes
-    { Parameters::k_param_fs_batt_mah,        0,      AP_PARAM_FLOAT, "BATT_LOW_MAH" },
 
     { Parameters::k_param_arming,             3,      AP_PARAM_INT8,  "ARMING_RUDDER" },
     { Parameters::k_param_compass_enabled_deprecated,       0,      AP_PARAM_INT8, "COMPASS_ENABLE" },

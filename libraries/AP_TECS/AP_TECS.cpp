@@ -264,6 +264,15 @@ const AP_Param::GroupInfo AP_TECS::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("PTCH_FF_K", 30, AP_TECS, _pitch_ff_k, 0.0),
 
+    // @Param: THR_EXPO
+    // @DisplayName: Auto throttle square response curve
+    // @Description: Amount of square response curve to apply to throttle in auto throttle modes
+    // @Units: %
+    // @Range: 0 100
+    // @Increment: 1
+    // @User: Advanced
+    AP_GROUPINFO("THR_EXPO", 58, AP_TECS, _thr_expo, 90),
+
     // @Param: THR_FF_FILT
     // @DisplayName: Throttle FF component filter
     // @Description: Throttle FF component filter value which determines what proportion of the current state vs newly calculated throttle FF value are used. 1.0 means used 100% of the newly calculated value (no filtering)
@@ -701,6 +710,23 @@ void AP_TECS::_apply_throttle_slewrate(void)
                                         _last_throttle_dem + thrRateIncr);
         _last_throttle_dem = _throttle_dem;
     }
+}
+
+/*
+  apply expo on throttle value from -100 to 100, expo value should be in the 0 to 100 range
+*/
+float AP_TECS::apply_throttle_expo(float throttle, float expo)
+{
+    const float exp = constrain_float(expo, 0, 100) * 0.01f;
+    const int8_t sign_factor = signbit(throttle) ? -1 : 1;
+    throttle *= 0.01f;
+    const float output_abs = (1 - exp) * abs(throttle) + exp * sq(throttle);
+    return sign_factor * output_abs * 100;
+}
+
+float AP_TECS::get_throttle_demand(void) const
+{
+    return apply_throttle_expo(_throttle_dem * 100, _thr_expo);
 }
 
 /*
