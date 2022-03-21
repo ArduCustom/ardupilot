@@ -147,6 +147,9 @@ public:
         _need_reset = true;
     }
 
+    AP_Float &thr_ff_damp(void) { return _thr_ff_damp; }
+    AP_Float &thr_ff_filter(void) { return _thr_ff_filter; }
+
     // this supports the TECS_* user settable parameters
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -205,6 +208,8 @@ private:
     AP_Float _vel_rate_acc;
     AP_Float _vel_rate_min;
     AP_Float _vel_rate_max;
+    AP_Float _thr_ff_damp;
+    AP_Float _thr_ff_filter;
 
     enum {
         OPTION_GLIDER_ONLY=(1<<0),
@@ -256,6 +261,9 @@ private:
 
     // pitch demand rate limiter state
     float _last_pitch_dem;
+
+    // throttle ff state
+    float _throttle_ff;
 
     // Rate of change of speed along X axis
     float _vel_dot;
