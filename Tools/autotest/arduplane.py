@@ -801,7 +801,7 @@ class AutoTestPlane(AutoTest):
                 break
         self.fly_home_land_and_disarm(timeout=240)
 
-    def fly_home_land_and_disarm(self, timeout=120):
+    def fly_home_land_and_disarm(self, timeout=240):
         filename = "flaps.txt"
         self.progress("Using %s to fly home" % filename)
         self.load_generic_mission(filename)
