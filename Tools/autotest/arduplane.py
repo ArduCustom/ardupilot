@@ -2873,6 +2873,7 @@ function'''
             ###################################################################
 
             self.disarm_vehicle(force=True)
+            self.wait_disarmed(timeout=120)
 
         except Exception as e:
             self.print_exception_caught(e)
