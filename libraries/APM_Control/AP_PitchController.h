@@ -6,6 +6,19 @@
 #include <AP_Math/AP_Math.h>
 #include <AC_PID/AC_PID.h>
 
+#define PITCH_ANGLE_PID_I_DEFAULT 2
+#define PITCH_ANGLE_PID_D_DEFAULT 0.01
+#define PITCH_ANGLE_PID_IMAX_DEFAULT 3 // deg/s
+#define PITCH_ANGLE_PID_TARGET_FILTER_DEFAULT 3
+#define PITCH_ANGLE_PID_D_FILTER_DEFAULT 12
+#define PITCH_ANGLE_PID_SMAX_DEFAULT 0
+
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+#define PITCH_ANGLE_PID_P_DEFAULT 4 // XXX necessary because otherwise the soaring checks fail for an unknown reason
+#else
+#define PITCH_ANGLE_PID_P_DEFAULT 2
+#endif
+
 class AP_PitchController
 {
 public:
@@ -15,7 +28,7 @@ public:
     CLASS_NO_COPY(AP_PitchController);
 
     float get_rate_out(float desired_rate, float scaler);
-    float get_servo_out(int32_t angle_err, float scaler, bool disable_integrator, bool ground_mode);
+    float get_servo_out(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode);
 
     void reset_I();
 
@@ -37,6 +50,11 @@ public:
         return _pid_info;
     }
 
+    const AP_PIDInfo& get_angle_pid_info(void) const
+    {
+        return _angle_pid_info;
+    }
+
     static const struct AP_Param::GroupInfo var_info[];
 
     AP_Float &kP(void) { return rate_pid.kP(); }
@@ -44,6 +62,10 @@ public:
     AP_Float &kD(void) { return rate_pid.kD(); }
     AP_Float &kFF(void) { return rate_pid.ff(); }
     AP_Float &rollFF(void) { return _roll_ff; }
+
+    AP_Float &angle_kP(void) { return angle_pid.kP(); }
+    AP_Float &angle_kI(void) { return angle_pid.kI(); }
+    AP_Float &angle_kD(void) { return angle_pid.kD(); }
 
     void convert_pid();
 
@@ -56,9 +78,12 @@ private:
     AP_Float _roll_ff;
     float _last_out;
     AC_PID rate_pid{0.04, 0.15, 0, 0.345, 0.666, 3, 0, 12, 0.02, 150, 1};
+    AC_PID angle_pid{PITCH_ANGLE_PID_P_DEFAULT, PITCH_ANGLE_PID_I_DEFAULT, PITCH_ANGLE_PID_D_DEFAULT, 0, PITCH_ANGLE_PID_IMAX_DEFAULT, PITCH_ANGLE_PID_TARGET_FILTER_DEFAULT, 0, PITCH_ANGLE_PID_D_FILTER_DEFAULT, 0.02, PITCH_ANGLE_PID_SMAX_DEFAULT, 1};
+
     float angle_err_deg;
 
     AP_PIDInfo _pid_info;
+    AP_PIDInfo _angle_pid_info;
 
     float _get_rate_out(float desired_rate, float scaler, bool disable_integrator, float aspeed, bool ground_mode);
     float _get_coordination_rate_offset(float &aspeed, bool &inverted) const;

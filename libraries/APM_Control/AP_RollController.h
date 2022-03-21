@@ -6,6 +6,14 @@
 #include <AP_Math/AP_Math.h>
 #include <AC_PID/AC_PID.h>
 
+#define ROLL_ANGLE_PID_P_DEFAULT 2
+#define ROLL_ANGLE_PID_I_DEFAULT 2
+#define ROLL_ANGLE_PID_D_DEFAULT 0.01
+#define ROLL_ANGLE_PID_IMAX_DEFAULT 3 // deg/s
+#define ROLL_ANGLE_PID_TARGET_FILTER_DEFAULT 3
+#define ROLL_ANGLE_PID_D_FILTER_DEFAULT 12
+#define ROLL_ANGLE_PID_SMAX_DEFAULT 0
+
 class AP_RollController
 {
 public:
@@ -15,7 +23,7 @@ public:
     CLASS_NO_COPY(AP_RollController);
 
     float get_rate_out(float desired_rate, float scaler);
-    float get_servo_out(int32_t angle_err, float scaler, bool disable_integrator, bool ground_mode);
+    float get_servo_out(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode);
 
     void reset_I();
 
@@ -37,6 +45,11 @@ public:
         return _pid_info;
     }
 
+    const AP_PIDInfo& get_angle_pid_info(void) const
+    {
+        return _angle_pid_info;
+    }
+
     static const struct AP_Param::GroupInfo var_info[];
 
 
@@ -51,6 +64,10 @@ public:
     AP_Float &kD(void) { return rate_pid.kD(); }
     AP_Float &kFF(void) { return rate_pid.ff(); }
 
+    AP_Float &angle_kP(void) { return angle_pid.kP(); }
+    AP_Float &angle_kI(void) { return angle_pid.kI(); }
+    AP_Float &angle_kD(void) { return angle_pid.kD(); }
+
     void convert_pid();
 
 private:
@@ -60,9 +77,11 @@ private:
     bool failed_autotune_alloc;
     float _last_out;
     AC_PID rate_pid{0.08, 0.15, 0, 0.345, 0.666, 3, 0, 12, 0.02, 150, 1};
+    AC_PID angle_pid{ROLL_ANGLE_PID_P_DEFAULT, ROLL_ANGLE_PID_I_DEFAULT, ROLL_ANGLE_PID_D_DEFAULT, 0, ROLL_ANGLE_PID_IMAX_DEFAULT, ROLL_ANGLE_PID_TARGET_FILTER_DEFAULT, 0, ROLL_ANGLE_PID_D_FILTER_DEFAULT, 0.02, ROLL_ANGLE_PID_SMAX_DEFAULT, 1};
     float angle_err_deg;
 
     AP_PIDInfo _pid_info;
+    AP_PIDInfo _angle_pid_info;
 
     float _get_rate_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode);
 };
