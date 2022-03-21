@@ -79,6 +79,13 @@ private:
 
         TUNING_TECS_THR_FF_DAMP =             62,
         TUNING_TECS_THR_FF_FILT =             63,
+
+        TUNING_AGL_ROLL_P =                   64,
+        TUNING_AGL_ROLL_I =                   65,
+        TUNING_AGL_ROLL_D =                   66,
+        TUNING_AGL_PITCH_P =                  67,
+        TUNING_AGL_PITCH_I =                  68,
+        TUNING_AGL_PITCH_D =                  69,
     };
 
     /*
@@ -95,6 +102,9 @@ private:
         TUNING_SET_THR2PTCH_MIX =            8,
         TUNING_SET_COORDINATION =            9,
         TUNING_SET_TECS_THR_FF =            10,
+        TUNING_SET_AGL_ROLL_PITCH =         11,
+        TUNING_SET_AGL_ROLL =               12,
+        TUNING_SET_AGL_PITCH =              13,
     };
 
     AP_Float *get_param_pointer(uint8_t parm) override;
@@ -113,6 +123,9 @@ private:
     static const uint8_t tuning_set_thr2ptch[];
     static const uint8_t tuning_set_coordination[];
     static const uint8_t tuning_set_tecs_thr_ff[];
+    static const uint8_t tuning_set_angle_roll_pitch[];
+    static const uint8_t tuning_set_angle_roll[];
+    static const uint8_t tuning_set_angle_pitch[];
 
     // mask of what params have been set
     uint64_t have_set;
