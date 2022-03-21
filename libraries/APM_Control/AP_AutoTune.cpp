@@ -219,7 +219,7 @@ void AP_AutoTune::update(AP_PIDInfo &pinfo, float scaler, float angle_err_deg)
 
 
     // thresholds for when we consider an event to start and end
-    const float rate_threshold1 = 0.4 * MIN(att_limit_deg / current.tau.get(), current.rmax_pos);
+    const float rate_threshold1 = 0.4 * MIN(att_limit_deg / 0.5f, current.rmax_pos);
     const float rate_threshold2 = 0.25 * rate_threshold1;
     bool in_att_demand = fabsf(angle_err_deg) >= 0.3 * att_limit_deg;
 
@@ -261,8 +261,7 @@ void AP_AutoTune::update(AP_PIDInfo &pinfo, float scaler, float angle_err_deg)
             I: current.I,
             D: current.D,
             action: uint8_t(action),
-            rmax: float(current.rmax_pos.get()),
-            tau: current.tau.get()
+            rmax: float(current.rmax_pos.get())
         };
         AP::logger().WriteBlock(&pkt, sizeof(pkt));
         last_log_ms = now;
@@ -422,7 +421,7 @@ void AP_AutoTune::update(AP_PIDInfo &pinfo, float scaler, float angle_err_deg)
     }
 
     // setup filters to be suitable for time constant and gyro filter
-    rpid.filt_T_hz().set(10.0/(current.tau * 2 * M_PI));
+    rpid.filt_T_hz().set(10.0/(0.5f * 2 * M_PI));
     rpid.filt_E_hz().set(0);
     rpid.filt_D_hz().set(AP::ins().get_gyro_filter_hz()*0.5);
 
@@ -485,7 +484,6 @@ void AP_AutoTune::save_int16_if_changed(AP_Int16 &v, int16_t old_value)
 void AP_AutoTune::save_gains(void)
 {
     const auto &v = last_save;
-    save_float_if_changed(current.tau, v.tau);
     save_int16_if_changed(current.rmax_pos, v.rmax_pos);
     save_int16_if_changed(current.rmax_neg, v.rmax_neg);
     save_float_if_changed(rpid.ff(), v.FF);
@@ -542,27 +540,14 @@ void AP_AutoTune::update_rmax(void)
     uint8_t level = constrain_int32(aparm.autotune_level, 0, ARRAY_SIZE(tuning_table));
 
     int16_t target_rmax;
-    float target_tau;
 
     if (level == 0) {
         // this level means to keep current values of RMAX and TCONST
         target_rmax = constrain_float(current.rmax_pos, 75, 720);
-        target_tau = constrain_float(current.tau, 0.1, 2);
     } else {
         target_rmax = tuning_table[level-1].rmax;
-        target_tau = tuning_table[level-1].tau;
-        if (type == AUTOTUNE_PITCH) {
-            // 50% longer time constant on pitch
-            target_tau *= 1.5;
-        }
     }
 
-    if (level > 0 && is_positive(current.FF)) {
-        const float invtau = ((1.0f / target_tau) + (current.I / current.FF));
-        if (is_positive(invtau)) {
-            target_tau = MAX(target_tau,1.0f / invtau);
-        }
-    }
 
     if (current.rmax_pos == 0) {
         // conservative initial value
@@ -576,9 +561,4 @@ void AP_AutoTune::update_rmax(void)
     if (level != 0 || current.rmax_neg.get() == 0) {
         current.rmax_neg.set(current.rmax_pos.get());
     }
-
-    // move tau by max 15% per loop
-    current.tau.set(constrain_float(target_tau,
-                                    current.tau*0.85,
-                                    current.tau*1.15));
 }

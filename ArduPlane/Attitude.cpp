@@ -143,7 +143,7 @@ float Plane::stabilize_roll_get_roll_out(float speed_scaler)
     if (control_mode == &mode_stabilize && !is_zero(channel_roll->get_control_in())) {
         disable_integrator = true;
     }
-    return rollController.get_servo_out(nav_roll_cd - ahrs.roll_sensor, speed_scaler, disable_integrator,
+    return rollController.get_servo_out(nav_roll_cd - ahrs.roll_sensor, nav_roll_cd, speed_scaler, disable_integrator,
                                         ground_mode && !(plane.g2.flight_options & FlightOptions::DISABLE_GROUND_PID_SUPPRESSION));
 }
 
@@ -212,7 +212,7 @@ float Plane::stabilize_pitch_get_pitch_out(float speed_scaler)
         demanded_pitch = landing.get_pitch_cd();
     }
 
-    return pitchController.get_servo_out(demanded_pitch - ahrs.pitch_sensor, speed_scaler, disable_integrator,
+    return pitchController.get_servo_out(demanded_pitch - ahrs.pitch_sensor, demanded_pitch, speed_scaler, disable_integrator,
                                          ground_mode && !(plane.g2.flight_options & FlightOptions::DISABLE_GROUND_PID_SUPPRESSION));
 }
 
@@ -429,9 +429,7 @@ void Plane::stabilize_acro(float speed_scaler)
         nav_roll_cd = ahrs.roll_sensor + roll_error_cd;
         // try to reduce the integrated angular error to zero. We set
         // 'stabilze' to true, which disables the roll integrator
-        SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, rollController.get_servo_out(roll_error_cd,
-                                                                                             speed_scaler,
-                                                                                             true, false));
+        SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, rollController.get_servo_out(roll_error_cd, nav_roll_cd, speed_scaler, true, false));
     } else {
         /*
           aileron stick is non-zero, use pure rate control until the
@@ -453,9 +451,7 @@ void Plane::stabilize_acro(float speed_scaler)
         // try to hold the locked pitch. Note that we have the pitch
         // integrator enabled, which helps with inverted flight
         nav_pitch_cd = acro_state.locked_pitch_cd;
-        SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, pitchController.get_servo_out(nav_pitch_cd - ahrs.pitch_sensor,
-                                                                                               speed_scaler,
-                                                                                               false, false));
+        SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, pitchController.get_servo_out(nav_pitch_cd - ahrs.pitch_sensor, nav_pitch_cd, speed_scaler, false, false));
     } else {
         /*
           user has non-zero pitch input, use a pure rate controller
