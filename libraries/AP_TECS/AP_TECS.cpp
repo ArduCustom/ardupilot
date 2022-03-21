@@ -264,6 +264,22 @@ const AP_Param::GroupInfo AP_TECS::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("PTCH_FF_K", 30, AP_TECS, _pitch_ff_k, 0.0),
 
+    // @Param: THR_FF_FILT
+    // @DisplayName: Throttle FF component filter
+    // @Description: Throttle FF component filter value which determines what proportion of the current state vs newly calculated throttle FF value are used. 1.0 means used 100% of the newly calculated value (no filtering)
+    // @Range: 0.2 1.0
+    // @Increment: 0.1
+    // @User: Advanced
+    AP_GROUPINFO("THR_FF_FILT", 59, AP_TECS, _thr_ff_filter, 1.0f),
+
+    // @Param: THR_FF_DAMP
+    // @DisplayName: Throttle FF component dampening factor
+    // @Description: Throttle FF component dampening factor. 0 means not use FF for throttle calculations. 1 means use 100% of the calculated throttle FF value.
+    // @Range: 0.0 1.0
+    // @Increment: 0.1
+    // @User: Advanced
+    AP_GROUPINFO("THR_FF_DAMP", 60, AP_TECS, _thr_ff_damp, 1.0f),
+
     // @Param: SPDRATE_ACC
     // @DisplayName: Speed demand rate acceleration (m/s^3)
     // @Description: Speed demand rate acceleration (m/s^3)
@@ -720,7 +736,6 @@ void AP_TECS::_update_throttle_with_airspeed(void)
         float K_STE2Thr = 1 / (timeConstant() * (_STEdot_max - _STEdot_min) / (_THRmaxf - _THRminf_clipped_to_zero));
 
         // Calculate feed-forward throttle
-        float ff_throttle = 0;
         float nomThr = aparm.throttle_cruise * 0.01f;
         const Matrix3f &rotMat = _ahrs.get_rotation_body_to_ned();
         // Use the demanded rate of change of total energy as the feed-forward demand, but add
@@ -728,14 +743,15 @@ void AP_TECS::_update_throttle_with_airspeed(void)
         // drag increase during turns.
         float cosPhi = sqrtf((rotMat.a.y*rotMat.a.y) + (rotMat.b.y*rotMat.b.y));
         STEdot_dem = STEdot_dem + _rollComp * (1.0f/constrain_float(cosPhi * cosPhi, 0.1f, 1.0f) - 1.0f);
-        ff_throttle = nomThr + STEdot_dem * K_STE2Thr;
+        const float throttle_ff = nomThr + STEdot_dem / (_STEdot_max - _STEdot_min) * (_THRmaxf - _THRminf_clipped_to_zero);
+        _throttle_ff = (1.0f - _thr_ff_filter) * _throttle_ff + _thr_ff_filter * throttle_ff;
 
         // Calculate PD + FF throttle
         float throttle_damp = _thrDamp;
         if (_flags.is_doing_auto_land && !is_zero(_land_throttle_damp)) {
             throttle_damp = _land_throttle_damp;
         }
-        _throttle_dem = (_STE_error + STEdot_error * throttle_damp) * K_STE2Thr + ff_throttle;
+        _throttle_dem = (_STE_error + STEdot_error * throttle_damp) * K_STE2Thr + _thr_ff_damp * _throttle_ff;
 
         // Calculate integrator state upper and lower limits
         // Set to a value that will allow 0.1 (10%) throttle saturation to allow for noise on the demand
