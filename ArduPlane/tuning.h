@@ -76,6 +76,9 @@ private:
 
         TUNING_RLL2PTCH =                     60,
         TUNING_KFF_RDDRMIX =                  61,
+
+        TUNING_TECS_THR_FF_DAMP =             62,
+        TUNING_TECS_THR_FF_FILT =             63,
     };
 
     /*
@@ -91,6 +94,7 @@ private:
         TUNING_SET_AZ =                      7,
         TUNING_SET_THR2PTCH_MIX =            8,
         TUNING_SET_COORDINATION =            9,
+        TUNING_SET_TECS_THR_FF =            10,
     };
 
     AP_Float *get_param_pointer(uint8_t parm) override;
@@ -108,6 +112,7 @@ private:
     static const uint8_t tuning_set_az[];
     static const uint8_t tuning_set_thr2ptch[];
     static const uint8_t tuning_set_coordination[];
+    static const uint8_t tuning_set_tecs_thr_ff[];
 
     // mask of what params have been set
     uint64_t have_set;
