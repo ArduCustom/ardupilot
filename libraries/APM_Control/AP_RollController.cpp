@@ -24,25 +24,18 @@
 extern const AP_HAL::HAL& hal;
 
 const AP_Param::GroupInfo AP_RollController::var_info[] = {
-    // @Param: 2SRV_TCONST
-    // @DisplayName: Roll Time Constant
-    // @Description: Time constant in seconds from demanded to achieved roll angle in angle control modes (all but MANUAL and ACRO). Most models respond well to 0.5. May be reduced for faster responses, but setting lower than a model can achieve will not help.
-    // @Range: 0.4 1.0
-    // @Units: s
-    // @Increment: 0.1
-    // @User: Advanced
-    AP_GROUPINFO("2SRV_TCONST",      0, AP_RollController, gains.tau,       0.5f),
+    // index 0 reserved for old TCONST
 
     // index 1 to 3 reserved for old PID values
 
-    // @Param: 2SRV_RMAX
+    // @Param: _AGL_RMAX
     // @DisplayName: Maximum Roll Rate
     // @Description: This sets the maximum roll rate that the attitude controller will demand (degrees/sec) in angle stabilized modes (all but MANUAL and ACRO). Setting it to zero disables this limit.
     // @Range: 0 180
     // @Units: deg/s
     // @Increment: 1
     // @User: Advanced
-    AP_GROUPINFO("2SRV_RMAX",   4, AP_RollController, gains.rmax_pos,       0),
+    AP_GROUPINFO("_AGL_RMAX",   4, AP_RollController, gains.rmax_pos,       0),
 
     // index 5, 6 reserved for old IMAX, FF
 
@@ -113,6 +106,74 @@ const AP_Param::GroupInfo AP_RollController::var_info[] = {
     // @User: Advanced
 
     AP_SUBGROUPINFO(rate_pid, "_RATE_", 9, AP_RollController, AC_PID),
+
+    // @Param: _AGL_P
+    // @DisplayName: Roll axis angle controller P gain
+    // @Description: Roll axis angle controller P gain. Converts the difference between desired roll angle and actual roll angle into a roll rate
+    // @Range: 0.08 0.35
+    // @Increment: 0.005
+    // @User: Standard
+
+    // @Param: _AGL_I
+    // @DisplayName: Roll axis angle controller I gain
+    // @Description: Roll axis angle controller I gain. Corrects long-term difference in desired roll angle vs actual roll angle
+    // @Range: 0.01 0.6
+    // @Increment: 0.01
+    // @User: Standard
+
+    // @Param: _AGL_IMAX
+    // @DisplayName: Roll axis angle controller I gain maximum
+    // @Description: Roll axis angle controller I gain maximum. Constrains the maximum roll rate that the I gain will output
+    // @Range: 0 1
+    // @Increment: 0.01
+    // @User: Standard
+
+    // @Param: _AGL_D
+    // @DisplayName: Roll axis angle controller D gain
+    // @Description: Roll axis angle controller D gain. Compensates for short-term change in desired roll angle vs actual roll angle
+    // @Range: 0.001 0.03
+    // @Increment: 0.001
+    // @User: Standard
+
+    // @Param: _AGL_FF
+    // @DisplayName: Roll axis angle controller feed forward (not used)
+    // @Description: Roll axis angle controller feed forward (not used)
+    // @Range: 0 3.0
+    // @Increment: 0.001
+    // @User: Standard
+
+    // @Param: _AGL_FLTT
+    // @DisplayName: Roll axis angle controller target frequency in Hz
+    // @Description: Roll axis angle controller target frequency in Hz
+    // @Range: 2 50
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: _AGL_FLTE
+    // @DisplayName: Roll axis angle controller error frequency in Hz
+    // @Description: Roll axis angle controller error frequency in Hz
+    // @Range: 2 50
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: _AGL_FLTD
+    // @DisplayName: Roll axis angle controller derivative frequency in Hz
+    // @Description: Roll axis angle controller derivative frequency in Hz
+    // @Range: 0 50
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: _AGL_SMAX
+    // @DisplayName: Requested roll rate slew rate limit
+    // @Description: Sets an upper limit on the slew rate produced by the combined P and D gains. If the amplitude of the control action produced by the rate feedback exceeds this value, then the D+P gain is reduced to respect the limit. This limits the amplitude of high frequency oscillations caused by an excessive gain. The limit should be set to no more than 25% of the actuators maximum slew rate to allow for load effects. Note: The gain will not be reduced to less than 10% of the nominal value. A value of zero will disable this feature.
+    // @Range: 0 200
+    // @Increment: 0.5
+    // @User: Advanced
+
+    AP_SUBGROUPINFO(angle_pid, "_AGL_", 10, AP_RollController, AC_PID),
 
     AP_GROUPEND
 };
@@ -225,15 +286,37 @@ float AP_RollController::get_rate_out(float desired_rate, float scaler)
  3) boolean which is true when stabilise mode is active
  4) minimum FBW airspeed (metres/sec)
 */
-float AP_RollController::get_servo_out(int32_t angle_err, float scaler, bool disable_integrator, bool ground_mode)
+float AP_RollController::get_servo_out(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode)
 {
-    if (gains.tau < 0.05f) {
-        gains.tau.set(0.05f);
+    const float dt = AP::scheduler().get_loop_period_s();
+    angle_pid.set_dt(dt);
+
+    angle_err_deg = angle_err * 0.01f;
+
+    if (angle_err_deg > 2.0f) {
+        angle_pid.relax_integrator(0, 0.1f);
     }
 
-    // Calculate the desired roll rate (deg/sec) from the angle error
-    angle_err_deg = angle_err * 0.01;
-    float desired_rate = angle_err_deg/ gains.tau;
+    angle_pid.update_error(angle_err_deg, false);
+
+    if (disable_integrator) {
+        angle_pid.reset_I();
+    }
+
+    _angle_pid_info = angle_pid.get_pid_info();
+    auto &pinfo = _angle_pid_info;
+
+    if (target_angle == 0) {
+        pinfo.target = 0;
+        pinfo.actual = 0;
+    } else {
+        const AP_AHRS& _ahrs = AP::ahrs();
+        const float actual_angle = _ahrs.roll_sensor;
+        pinfo.target = target_angle * 0.01f;
+        pinfo.actual = actual_angle * 0.01f;
+    }
+
+    float desired_rate = pinfo.P + pinfo.I + pinfo.D;
 
     // Limit the demanded roll rate
     if (gains.rmax_pos && desired_rate < -gains.rmax_pos) {
@@ -249,6 +332,8 @@ void AP_RollController::reset_I()
 {
     _pid_info.I = 0;
     rate_pid.reset_I();
+    _angle_pid_info.I = 0;
+    angle_pid.reset_I();
 }
 
 /*
@@ -257,28 +342,20 @@ void AP_RollController::reset_I()
  */
 void AP_RollController::convert_pid()
 {
-    AP_Float &ff = rate_pid.ff();
-    if (ff.configured()) {
-        return;
-    }
-    float old_ff=0, old_p=1.0, old_i=0.3, old_d=0.08;
-    int16_t old_imax=3000;
-    bool have_old = AP_Param::get_param_by_index(this, 1, AP_PARAM_FLOAT, &old_p);
-    have_old |= AP_Param::get_param_by_index(this, 3, AP_PARAM_FLOAT, &old_i);
-    have_old |= AP_Param::get_param_by_index(this, 2, AP_PARAM_FLOAT, &old_d);
-    have_old |= AP_Param::get_param_by_index(this, 6, AP_PARAM_FLOAT, &old_ff);
-    have_old |= AP_Param::get_param_by_index(this, 5, AP_PARAM_INT16, &old_imax);
-    if (!have_old) {
-        // none of the old gains were set
+    AP_Float &angle_kP = angle_pid.kP();
+    if (angle_kP.configured()) {
         return;
     }
 
-    const float kp_ff = MAX((old_p - old_i * gains.tau) * gains.tau  - old_d, 0);
-    rate_pid.ff().set_and_save(old_ff + kp_ff);
-    rate_pid.kI().set_and_save_ifchanged(old_i * gains.tau);
-    rate_pid.kP().set_and_save_ifchanged(old_d);
-    rate_pid.kD().set_and_save_ifchanged(0);
-    rate_pid.kIMAX().set_and_save_ifchanged(old_imax/4500.0);
+    float old_tconst;
+    bool have_old = AP_Param::get_param_by_index(this, 0, AP_PARAM_FLOAT, &old_tconst);
+    if (!have_old) {
+        // tconst wasn't set
+        return;
+    }
+
+    const float angle_kp = 1 / old_tconst;
+    angle_pid.kP().set_and_save_ifchanged(angle_kp);
 }
 
 /*
