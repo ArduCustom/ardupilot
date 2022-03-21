@@ -945,6 +945,8 @@ private:
     bool verify_nav_script_time(const AP_Mission::Mission_Command& cmd);
 #endif
 
+    static float apply_pitch_curve(float v, int8_t curve);
+
     // commands.cpp
     void set_guided_WP(const Location &loc);
     void update_home();

@@ -115,7 +115,7 @@ public:
         k_param_rangefinder,
         k_param_terrain,
         k_param_terrain_follow,
-        k_param_stab_pitch_down_cd_old, // deprecated
+        k_param_stab_pitch_down_curve,
         k_param_glide_slope_min,
         k_param_stab_pitch_down,
         k_param_terrain_lookahead,
@@ -375,6 +375,7 @@ public:
     AP_Float ground_steer_alt;
     AP_Int16 ground_steer_dps;
     AP_Float stab_pitch_down;
+    AP_Int16 stab_pitch_down_curve;
 
     // speed used for speed scaling
     AP_Float scaling_speed;
