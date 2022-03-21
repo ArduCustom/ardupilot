@@ -191,11 +191,11 @@ public:
 
     /// power watt
     float power_watts() const;
-    bool power_watts(float &power, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const;
+    bool power_watts(float &power, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
 
     /// power watt
     float power_watts_without_losses() const;
-    bool power_watts_without_losses(float &power, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const;
+    bool power_watts_without_losses(float &power, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
 
     /// consumed_mah - returns total current drawn since start-up in milliampere.hours
     bool consumed_mah(float &mah, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;

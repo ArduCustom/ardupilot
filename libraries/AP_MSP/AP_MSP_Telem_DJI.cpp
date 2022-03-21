@@ -92,10 +92,12 @@ MSPCommandResult AP_MSP_Telem_DJI::msp_process_out_fc_variant(sbuf_t *dst)
 MSPCommandResult AP_MSP_Telem_DJI::msp_process_out_esc_sensor_data(sbuf_t *dst)
 {
 #if HAL_WITH_ESC_TELEM
-    int16_t highest_temperature = 0;
+    int16_t highest_temperature;
     AP_ESC_Telem& telem = AP::esc_telem();
     if (!displaying_stats_screen()) {
-        telem.get_highest_temperature(highest_temperature);
+        if (!telem.get_highest_temperature(highest_temperature)) {
+            highest_temperature = 0;
+        }
     } else {
 #if OSD_ENABLED
         AP_OSD *osd = AP::osd();

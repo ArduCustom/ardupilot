@@ -386,18 +386,30 @@ void AP_OSD::update_stats()
     // allow other threads to consume stats info
     WITH_SEMAPHORE(_sem);
 
+    uint32_t now = AP_HAL::millis();
+    if (!AP_Notify::flags.armed) {
+        _stats.last_update_ms = now;
+        return;
+    }
+
+    uint32_t delta_ms = now - _stats.last_update_ms;
+    _stats.last_update_ms = now;
+    uint32_t new_samples = _stats.samples + 1;
+
     AP_BattMonitor &battery = AP::battery();
 
-    // maximum current
+    // maximum and average current
     float amps;
     if (battery.current_amps(amps)) {
         _stats.max_current_a = fmaxf(_stats.max_current_a, amps);
+        _stats.avg_current_a = (_stats.avg_current_a * _stats.samples + amps) / new_samples;
     }
 
-    // maximum power
+    // maximum and average power
     float power;
     if (battery.power_watts(power)) {
         _stats.max_power_w = fmaxf(_stats.max_power_w, power);
+        _stats.avg_power_w = (_stats.avg_power_w * _stats.samples + power) / new_samples;
     }
 
     // minimum voltage
@@ -413,15 +425,9 @@ void AP_OSD::update_stats()
         _stats.min_cell_voltage_v = fminf(_stats.min_cell_voltage_v, cell_voltage);
     }
 
-    uint32_t now = AP_HAL::millis();
-    if (!AP_Notify::flags.armed) {
-        _stats.last_update_ms = now;
-        return;
-    }
-
-    // flight distance
-    uint32_t delta_ms = now - _stats.last_update_ms;
-    _stats.last_update_ms = now;
+    // armed consumed mAh / Wh
+    _stats.consumed_mah_available = battery.consumed_mah(_stats.consumed_mah);
+    _stats.consumed_wh_available = battery.consumed_wh(_stats.consumed_wh);
 
     Vector2f ground_speed_vector;
     Vector3f wind_speed_vector;
@@ -461,8 +467,7 @@ void AP_OSD::update_stats()
     _stats.max_wind_speed_mps = fmaxf(_stats.max_wind_speed_mps, wind_speed_mps);
 
     // average wind speed
-    _stats.avg_wind_speed_mps = (_stats.avg_wind_speed_mps * _stats.samples + wind_speed_mps) / (_stats.samples + 1);
-    _stats.samples += 1;
+    _stats.avg_wind_speed_mps = (_stats.avg_wind_speed_mps * _stats.samples + wind_speed_mps) / new_samples;
 
     // maximum distance
     if (home_is_set) {
@@ -492,11 +497,15 @@ void AP_OSD::update_stats()
 #if HAL_WITH_ESC_TELEM
     // max esc temp
     AP_ESC_Telem& telem = AP::esc_telem();
-    int16_t highest_temperature = 0;
-    telem.get_highest_temperature(highest_temperature);
-    highest_temperature /= 100;
-    _stats.max_esc_temp = MAX(_stats.max_esc_temp, highest_temperature);
+    int16_t highest_temperature;
+    _stats.esc_temperature_available = telem.get_highest_temperature(highest_temperature);
+    if (_stats.esc_temperature_available) {
+        highest_temperature /= 100;
+        _stats.max_esc_temp = MAX(_stats.max_esc_temp, highest_temperature);
+    }
 #endif
+
+    _stats.samples = new_samples;
 }
 
 //Thanks to minimosd authors for the multiple osd screen idea

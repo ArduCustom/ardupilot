@@ -185,7 +185,7 @@ private:
     AP_OSD_Setting waypoint{false, 0, 0};
     AP_OSD_Setting xtrack_error{false, 0, 0};
     AP_OSD_Setting dist{false,22,11};
-    AP_OSD_Setting stat{false,0,0};
+    AP_OSD_Setting stats{false,0,0};
     AP_OSD_Setting flightime{false, 23, 10};
     AP_OSD_Setting climbeff{false,0,0};
     AP_OSD_Setting eff_ground{false, 22, 10};
@@ -231,7 +231,7 @@ private:
     AP_OSD_Setting batt_bar{true, 1, 1};
     AP_OSD_Setting arming{true, 1, 1};
 
-    void draw_altitude(uint8_t x, uint8_t y, bool blink, float alt);
+    void draw_altitude(uint8_t x, uint8_t y, bool blink, float alt, bool available = true);
     void draw_altitude(uint8_t x, uint8_t y);
     void draw_bat_volt(uint8_t x, uint8_t y);
     void draw_voltage(uint8_t x, uint8_t y, const float voltage, const bool two_decimals, const bool blink, const bool show_batt_symbol = true, const bool available = true);
@@ -277,8 +277,8 @@ private:
     //helper functions
     void draw_speed(uint8_t x, uint8_t y, bool available, float magnitude = 0, bool blink = false);
     void draw_speed_with_arrow(uint8_t x, uint8_t y, float angle_rad, float magnitude, bool blink = false);
-    void draw_distance(uint8_t x, uint8_t y, float distance, bool can_only_be_positive = true);
-    void draw_temperature(uint8_t x , uint8_t y , float value , bool blink);
+    void draw_distance(uint8_t x, uint8_t y, float distance, bool can_only_be_positive = true, bool available = true);
+    void draw_temperature(uint8_t x, uint8_t y, bool available, float value = 0, bool blink = false);
 #if HAL_WITH_ESC_TELEM
     void draw_highest_esc_temp(uint8_t x, uint8_t y);
     void draw_rpm(uint8_t x, uint8_t y, float rpm); // helper
@@ -305,7 +305,7 @@ private:
     void draw_waypoint(uint8_t x, uint8_t y);
     void draw_xtrack_error(uint8_t x, uint8_t y);
     void draw_dist(uint8_t x, uint8_t y);
-    void draw_stat(uint8_t x, uint8_t y);
+    void draw_stats(uint8_t x, uint8_t y);
     void draw_flightime(uint8_t x, uint8_t y);
     void draw_climbeff(uint8_t x, uint8_t y);
     void draw_eff_mah(uint8_t x, uint8_t y, uint16_t value);
@@ -313,7 +313,7 @@ private:
     void draw_eff(uint8_t x, uint8_t y, float speed);
     void draw_eff_ground(uint8_t x, uint8_t y);
     void draw_eff_air(uint8_t x, uint8_t y);
-    void draw_avg_eff(uint8_t x, uint8_t y, const float distance_travelled_m, const bool draw_eff_symbol = true);
+    void draw_avg_eff(uint8_t x, uint8_t y, const bool available, const float distance_travelled_m, const bool draw_eff_symbol = true);
     void draw_avg_eff_ground(uint8_t x, uint8_t y, bool draw_eff_symbol = true);
     void draw_avg_eff_air(uint8_t x, uint8_t y, bool draw_eff_symbol = true);
     void draw_atemp(uint8_t x, uint8_t y);
@@ -608,13 +608,19 @@ public:
         float max_air_speed_mps;
         float max_wind_speed_mps;
         float max_current_a;
-        float max_power_w;
         float avg_current_a;
+        float max_power_w;
+        float avg_power_w;
         float avg_wind_speed_mps;
         float min_voltage_v = FLT_MAX;
         float min_cell_voltage_v = FLT_MAX;
         float min_rssi = FLT_MAX;   // 0-1
+        bool esc_temperature_available;
         int16_t max_esc_temp;
+        bool consumed_mah_available;
+        float consumed_mah;
+        bool consumed_wh_available;
+        float consumed_wh;
     };
 
     void set_nav_info(NavInfo &nav_info);

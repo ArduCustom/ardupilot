@@ -601,7 +601,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @DisplayName: STATS_Y
     // @Description: Vertical position on screen
     // @Range: 0 15
-    AP_SUBGROUPINFO(stat, "STATS", 33, AP_OSD_Screen, AP_OSD_Setting),
+    AP_SUBGROUPINFO(stats, "STATS", 33, AP_OSD_Screen, AP_OSD_Setting),
 
     // @Param: FLTIME_EN
     // @DisplayName: FLTIME_EN
@@ -1641,8 +1641,13 @@ float AP_OSD_AbstractScreen::u_scale(enum unit_type unit, float value)
     return value * scale[units][unit] + (offsets[units]?offsets[units][unit]:0);
 }
 
-void AP_OSD_Screen::draw_altitude(uint8_t x, uint8_t y, bool blink, float alt)
+void AP_OSD_Screen::draw_altitude(uint8_t x, uint8_t y, bool blink, float alt, bool available)
 {
+    if (!available) {
+        backend->write(x, y, blink, "----%c", u_icon(ALTITUDE));
+        return;
+    }
+
     backend->write(x, y, blink, "%4d%c", (int)u_scale(ALTITUDE, alt), u_icon(ALTITUDE));
 }
 
@@ -2075,9 +2080,16 @@ void AP_OSD_Screen::draw_horizon(uint8_t x, uint8_t y)
 
 }
 
-void AP_OSD_Screen::draw_distance(uint8_t x, uint8_t y, float distance, bool can_only_be_positive)
+void AP_OSD_Screen::draw_distance(uint8_t x, uint8_t y, float distance, bool can_only_be_positive, bool available)
 {
     char unit_icon = u_icon(DISTANCE);
+
+    if (!available) {
+        const char *const format = can_only_be_positive ? "----%c" : "-----%c";
+        backend->write(x, y, false, format, unit_icon);
+        return;
+    }
+
     float distance_scaled = u_scale(DISTANCE, distance);
 
     const char *format;
@@ -2385,8 +2397,13 @@ void AP_OSD_Screen::draw_vspeed(uint8_t x, uint8_t y)
     }
 }
 
-void AP_OSD_Screen::draw_temperature(uint8_t x, uint8_t y, float value, bool blink)
+void AP_OSD_Screen::draw_temperature(uint8_t x, uint8_t y, bool available, float value, bool blink)
 {
+    if (!available) {
+        backend->write(x, y, blink, "---%c", u_icon(TEMPERATURE));
+        return;
+    }
+
     backend->write(x, y, blink, "%3d%c", (int)u_scale(TEMPERATURE, value), u_icon(TEMPERATURE));
 }
 
@@ -2395,12 +2412,13 @@ void AP_OSD_Screen::draw_highest_esc_temp(uint8_t x, uint8_t y)
 {
     int16_t etemp;
     if (!AP::esc_telem().get_highest_temperature(etemp)) {
+        draw_temperature(x, y, false);
         return;
     }
 
     etemp /= 100;
     const bool blink = is_positive(osd->warn_blhtemp) && etemp > osd->warn_blhtemp;
-    draw_temperature(x, y, etemp, blink);
+    draw_temperature(x, y, true, etemp, blink);
 }
 
 void AP_OSD_Screen::draw_rpm(uint8_t x, uint8_t y, float rpm)
@@ -2685,58 +2703,64 @@ void AP_OSD_Screen::draw_xtrack_error(uint8_t x, uint8_t y)
     draw_distance(x+1, y, osd->nav_info.wp_xtrack_error, false);
 }
 
-void AP_OSD_Screen::draw_stat(uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
-    const auto &stats = osd->_stats;
+    const auto &stat_data = osd->_stats;
+    const bool have_stats = stat_data.samples > 0;
     const uint8_t col_offset = 11;
 
-    backend->write(x, y, false, "MIN BV");
-    draw_voltage(x+col_offset, y, stats.min_voltage_v, false, false, false, stats.min_voltage_v <= battery.voltage());
+    backend->write(x, y, false, "MIN BAV");
+    // draw_voltage(x+col_offset, y, stat_data.min_voltage_v, false, false, false, stat_data.min_voltage_v <= battery.voltage());
+    draw_voltage(x+col_offset, y, stat_data.min_voltage_v, false, false, false, have_stats);
     float cell_voltage;
     const bool cell_voltage_is_available = battery.cell_avg_voltage(cell_voltage);
     if (cell_voltage_is_available) {
-        backend->write(x+6, y, false, "/CV");
+        backend->write(x+7, y, false, "/BCV");
         backend->write(x+col_offset+5, y, false, "/");
-        draw_voltage(x+col_offset+6, y, stats.min_cell_voltage_v, true, false, false, stats.min_cell_voltage_v <= cell_voltage);
+        // draw_voltage(x+col_offset+6, y, stat_data.min_cell_voltage_v, true, false, false, stat_data.min_cell_voltage_v <= cell_voltage);
+        draw_voltage(x+col_offset+6, y, stat_data.min_cell_voltage_v, true, false, false, have_stats);
     }
 
     y += 1;
-    backend->write(x, y, false, "MAX %c/%c", SYMBOL(SYM_AMP), SYMBOL(SYM_WATT));
-    draw_current(x+col_offset+1, y, true, false, stats.max_current_a);
+    backend->write(x, y, false, "AVG CUR/POW");
+    draw_current(x+col_offset+1, y, have_stats, false, stat_data.avg_current_a);
     backend->write(x+col_offset+5, y, false, "/");
-    draw_power(x+col_offset+6, y, true, false, stats.max_power_w);
+    draw_power(x+col_offset+6, y, have_stats, false, stat_data.avg_power_w);
 
-    float mah, wh;
-    const bool mah_available = battery.consumed_mah(mah);
-    const bool wh_available = battery.consumed_wh(wh);
     y += 1;
-    backend->write(x, y, false, "USD BATT");
-    draw_mah(x+col_offset, y, mah_available, false, mah);
+    backend->write(x, y, false, "MAX CUR/POW");
+    draw_current(x+col_offset+1, y, have_stats, false, stat_data.max_current_a);
     backend->write(x+col_offset+5, y, false, "/");
-    draw_energy(x+col_offset+6, y, wh_available, false, wh);
+    draw_power(x+col_offset+6, y, have_stats, false, stat_data.max_power_w);
+
+    y += 1;
+    backend->write(x, y, false, "USD CAPA");
+    draw_mah(x+col_offset, y, stat_data.consumed_mah_available, false, stat_data.consumed_mah);
+    backend->write(x+col_offset+5, y, false, "/");
+    draw_energy(x+col_offset+6, y, stat_data.consumed_wh_available, false, stat_data.consumed_wh);
 
     uint32_t flight_time_s = AP::stats()->get_flight_time_s();
     float avg_ground_speed = 0, avg_air_speed = 0;
     if (flight_time_s > 0) {
-        avg_ground_speed = stats.last_ground_distance_m / flight_time_s;
-        avg_air_speed = stats.last_air_distance_m / flight_time_s;
+        avg_ground_speed = stat_data.last_ground_distance_m / flight_time_s;
+        avg_air_speed = stat_data.last_air_distance_m / flight_time_s;
     }
     y += 1;
     backend->write(x, y, false, "AVG %c/%c/%c", SYMBOL(SYM_ASPD), SYMBOL(SYM_GSPD), SYMBOL(SYM_WSPD));
-    draw_speed(x+col_offset+1, y, true, avg_air_speed);
+    draw_speed(x+col_offset+1, y, have_stats, avg_air_speed);
     backend->write(x+col_offset+5, y, false, "/");
-    draw_speed(x+col_offset+6, y, true, avg_ground_speed);
+    draw_speed(x+col_offset+6, y, have_stats, avg_ground_speed);
     backend->write(x+col_offset+6+4, y, false, "/");
-    draw_speed(x+col_offset+6+5, y, true, stats.avg_wind_speed_mps);
+    draw_speed(x+col_offset+6+5, y, have_stats, stat_data.avg_wind_speed_mps);
 
     y += 1;
     backend->write(x, y, false, "MAX %c/%c/%c", SYMBOL(SYM_ASPD), SYMBOL(SYM_GSPD), SYMBOL(SYM_WSPD));
-    draw_speed(x+col_offset+1, y, true, stats.max_air_speed_mps);
+    draw_speed(x+col_offset+1, y, have_stats, stat_data.max_air_speed_mps);
     backend->write(x+col_offset+5, y, false, "/");
-    draw_speed(x+col_offset+6, y, true, stats.max_ground_speed_mps);
+    draw_speed(x+col_offset+6, y, have_stats, stat_data.max_ground_speed_mps);
     backend->write(x+col_offset+6+4, y, false, "/");
-    draw_speed(x+col_offset+6+5, y, true, stats.max_wind_speed_mps);
+    draw_speed(x+col_offset+6+5, y, have_stats, stat_data.max_wind_speed_mps);
 
     y += 1;
     backend->write(x, y, false, "EFF A/G");
@@ -2746,29 +2770,42 @@ void AP_OSD_Screen::draw_stat(uint8_t x, uint8_t y)
 
     y += 1;
     backend->write(x, y, false, "TRV A/G");
-    draw_distance(x+col_offset, y, stats.last_air_distance_m);
+    draw_distance(x+col_offset, y, stat_data.last_air_distance_m, true, have_stats);
     backend->write(x+col_offset+5, y, false, "/");
-    draw_distance(x+col_offset+6, y, stats.last_ground_distance_m);
+    draw_distance(x+col_offset+6, y, stat_data.last_ground_distance_m, true, have_stats);
 
     y += 1;
     backend->write(x, y, false, "MAX %cDIST", SYMBOL(SYM_HOME));
-    draw_distance(x+col_offset, y, stats.max_dist_m);
+    draw_distance(x+col_offset, y, stat_data.max_dist_m, true, have_stats);
 
     y += 1;
     backend->write(x, y, false, "MAX ALT");
-    draw_altitude(x+col_offset, y, false, stats.max_alt_m);
+    draw_altitude(x+col_offset, y, false, stat_data.max_alt_m, have_stats);
 
     y += 1;
     backend->write(x, y, false, "FLT TIME");
-    backend->write(x+col_offset-2, y, false, "%3u:%02u", unsigned(flight_time_s/60), unsigned(flight_time_s%60));
+    if (flight_time_s < 1) {
+        backend->write(x+col_offset+1, y, false, "---:--");
+    } else {
+        backend->write(x+col_offset+1, y, false, "%3u:%02u", unsigned(flight_time_s/60), unsigned(flight_time_s%60));
+    }
 
-    y += 1;
-    backend->write(x, y, false, "MAX ESC T");
-    draw_temperature(x+col_offset+1, y, stats.max_esc_temp, false);
+    if (AP::rssi()->enabled()) {
+        y += 1;
+        backend->write(x, y, false, "MIN RSSI");
+        if (have_stats) {
+            backend->write(x+col_offset+2, y, false, "%2d", MAX(0, (int)roundf(stat_data.min_rssi * 99)));
+        } else {
+            backend->write(x+col_offset+2, y, false, "--");
+        }
+    }
 
-    y += 1;
-    backend->write(x, y, false, "MIN RSSI");
-    backend->write(x+col_offset+2, y, false, "%2d", MAX(0, (int)roundf(stats.min_rssi * 99)));
+    if (stat_data.esc_temperature_available) {
+        y += 1;
+        backend->write(x, y, false, "MAX ESC T");
+        draw_temperature(x+col_offset+1, y, have_stats, stat_data.max_esc_temp, false);
+    }
+
 }
 
 void AP_OSD_Screen::draw_dist(uint8_t x, uint8_t y)
@@ -2779,9 +2816,9 @@ void AP_OSD_Screen::draw_dist(uint8_t x, uint8_t y)
 
 void  AP_OSD_Screen::draw_flightime(uint8_t x, uint8_t y)
 {
-    AP_Stats *stats = AP::stats();
-    if (stats) {
-        uint32_t t = stats->get_flight_time_s();
+    AP_Stats *stat_data = AP::stats();
+    if (stat_data) {
+        uint32_t t = stat_data->get_flight_time_s();
         backend->write(x, y, false, "%c%3u:%02u", SYMBOL(SYM_FLY), unsigned(t/60), unsigned(t%60));
     }
 }
@@ -2845,15 +2882,22 @@ void AP_OSD_Screen::draw_eff_air(uint8_t x, uint8_t y)
     draw_eff(x, y, have_airspeed_estimate ? airspeed_mps : 0);
 }
 
-void AP_OSD_Screen::draw_avg_eff(uint8_t x, uint8_t y, const float distance_travelled_m, const bool draw_eff_symbol)
+void AP_OSD_Screen::draw_avg_eff(uint8_t x, uint8_t y, const bool available, const float distance_travelled_m, const bool draw_eff_symbol)
 {
+    const int8_t eff_unit_base = osd->efficiency_unit_base;
+
     uint8_t value_offset = 0;
     if (draw_eff_symbol) {
         backend->write(x, y, false, "%c", SYMBOL(SYM_EFF));
         value_offset = 1;
     }
 
-    int8_t eff_unit_base = osd->efficiency_unit_base;
+    if (!available) {
+        const uint8_t unit_symbol = eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH ? SYMBOL(SYM_MAH) : SYMBOL(SYM_WH);
+        backend->write(x+value_offset, y, false, "---%c", unit_symbol);
+        return;
+    }
+
     const float distance_travelled_km = distance_travelled_m * 0.001f;
     if (is_positive(distance_travelled_km)) {
         AP_BattMonitor& battery = AP::battery();
@@ -2880,12 +2924,14 @@ invalid:
 
 void AP_OSD_Screen::draw_avg_eff_ground(uint8_t x, uint8_t y, bool draw_eff_symbol)
 {
-    draw_avg_eff(x, y, osd->_stats.last_ground_distance_m, draw_eff_symbol);
+    const bool have_stats = osd->_stats.samples > 0;
+    draw_avg_eff(x, y, have_stats, osd->_stats.last_ground_distance_m, draw_eff_symbol);
 }
 
 void AP_OSD_Screen::draw_avg_eff_air(uint8_t x, uint8_t y, bool draw_eff_symbol)
 {
-    draw_avg_eff(x, y, osd->_stats.last_air_distance_m, draw_eff_symbol);
+    const bool have_stats = osd->_stats.samples > 0;
+    draw_avg_eff(x, y, have_stats, osd->_stats.last_air_distance_m, draw_eff_symbol);
 }
 
 void AP_OSD_Screen::draw_climbeff(uint8_t x, uint8_t y)
@@ -3230,7 +3276,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(pluscode);
 #endif
     DRAW_SETTING(dist);
-    DRAW_SETTING(stat);
+    DRAW_SETTING(stats);
     DRAW_SETTING(climbeff);
     DRAW_SETTING(eff_ground);
     DRAW_SETTING(eff_air);
