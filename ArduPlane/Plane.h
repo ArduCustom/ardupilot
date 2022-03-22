@@ -987,6 +987,7 @@ private:
 # if OSD_ENABLED
     void get_osd_roll_pitch_rad(float &roll, float &pitch) const override;
 #endif
+
     float tecs_hgt_afe(void);
     void efi_update(void);
     void get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
@@ -1210,6 +1211,8 @@ private:
     float rudder_in_expo(bool use_dz) const;
 
 public:
+    AP_Tuning *get_tuning_object(void) override { return &tuning; }
+
     void failsafe_check(void);
 #if AP_SCRIPTING_ENABLED
     bool set_target_location(const Location& target_loc) override;
