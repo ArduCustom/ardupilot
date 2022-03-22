@@ -347,17 +347,37 @@ float AP_PitchController::_get_coordination_rate_offset(float &aspeed, bool &inv
 // 4) minimum FBW airspeed (metres/sec)
 // 5) maximum FBW airspeed (metres/sec)
 //
-float AP_PitchController::get_servo_out(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode)
+float AP_PitchController::get_servo_out_using_angle_target(int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode)
 {
-    // Calculate offset to pitch rate demand required to maintain pitch angle whilst banking
-    // Calculate ideal turn rate from bank angle and airspeed assuming a level coordinated turn
-    // Pitch rate offset is the component of turn rate about the pitch axis
-    float aspeed;
-    float rate_offset;
-    bool inverted;
+    const float dt = AP::scheduler().get_loop_period_s();
+    angle_pid.set_dt(dt);
 
-    rate_offset = _get_coordination_rate_offset(aspeed, inverted);
+    const AP_AHRS &_ahrs = AP::ahrs();
 
+    const float target_angle_deg = target_angle * 0.01f;
+    const float measured_angle_deg = _ahrs.pitch_sensor * 0.01f;
+    angle_err_deg = target_angle_deg - measured_angle_deg;
+
+    if (angle_err_deg > 2.0f) {
+        angle_pid.relax_integrator(0, 0.1f);
+    }
+
+    angle_pid.update_all(target_angle_deg, measured_angle_deg, false);
+
+    if (disable_integrator) {
+        angle_pid.reset_I();
+    }
+
+    _angle_pid_info = angle_pid.get_pid_info();
+    auto &pinfo = _angle_pid_info;
+
+    float desired_rate = pinfo.P + pinfo.I + pinfo.D;
+
+    return get_servo_out(desired_rate, scaler, disable_integrator, ground_mode);
+}
+
+float AP_PitchController::get_servo_out_using_angle_error(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode)
+{
     const float dt = AP::scheduler().get_loop_period_s();
     angle_pid.set_dt(dt);
 
@@ -389,6 +409,19 @@ float AP_PitchController::get_servo_out(int32_t angle_err, int32_t target_angle,
 
     float desired_rate = pinfo.P + pinfo.I + pinfo.D;
 
+    return get_servo_out(desired_rate, scaler, disable_integrator, ground_mode);
+}
+
+float AP_PitchController::get_servo_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode)
+{
+    // Calculate offset to pitch rate demand required to maintain pitch angle whilst banking
+    // Calculate ideal turn rate from bank angle and airspeed assuming a level coordinated turn
+    // Pitch rate offset is the component of turn rate about the pitch axis
+    float aspeed;
+    bool inverted;
+
+    const float rate_offset = _get_coordination_rate_offset(aspeed, inverted);
+
     // limit the maximum pitch rate demand. Don't apply when inverted
     // as the rates will be tuned when upright, and it is common that
     // much higher rates are needed inverted
@@ -413,6 +446,7 @@ float AP_PitchController::get_servo_out(int32_t angle_err, int32_t target_angle,
       linearly reduce pitch demanded rate when beyond the configured
       roll limit, reducing to zero at 90 degrees
     */
+    const AP_AHRS &_ahrs = AP::ahrs();
     float roll_wrapped = labs(_ahrs.roll_sensor);
     if (roll_wrapped > 9000) {
         roll_wrapped = 18000 - roll_wrapped;

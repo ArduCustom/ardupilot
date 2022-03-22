@@ -83,9 +83,11 @@ private:
         TUNING_AGL_ROLL_P =                   64,
         TUNING_AGL_ROLL_I =                   65,
         TUNING_AGL_ROLL_D =                   66,
-        TUNING_AGL_PITCH_P =                  67,
-        TUNING_AGL_PITCH_I =                  68,
-        TUNING_AGL_PITCH_D =                  69,
+        TUNING_AGL_ROLL_FLTT =                67,
+        TUNING_AGL_PITCH_P =                  68,
+        TUNING_AGL_PITCH_I =                  69,
+        TUNING_AGL_PITCH_D =                  70,
+        TUNING_AGL_PITCH_FLTT =               71,
     };
 
     /*
