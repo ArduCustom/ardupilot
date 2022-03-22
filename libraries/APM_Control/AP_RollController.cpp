@@ -286,7 +286,36 @@ float AP_RollController::get_rate_out(float desired_rate, float scaler)
  3) boolean which is true when stabilise mode is active
  4) minimum FBW airspeed (metres/sec)
 */
-float AP_RollController::get_servo_out(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode)
+float AP_RollController::get_servo_out_using_angle_target(int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode)
+{
+    const float dt = AP::scheduler().get_loop_period_s();
+    angle_pid.set_dt(dt);
+
+    const AP_AHRS &_ahrs = AP::ahrs();
+
+    const float target_angle_deg = target_angle * 0.01f;
+    const float measured_angle_deg = _ahrs.roll_sensor * 0.01f;
+    angle_err_deg = target_angle_deg - measured_angle_deg;
+
+    if (angle_err_deg > 2.0f) {
+        angle_pid.relax_integrator(0, 0.1f);
+    }
+
+    angle_pid.update_all(target_angle_deg, measured_angle_deg, false);
+
+    if (disable_integrator) {
+        angle_pid.reset_I();
+    }
+
+    _angle_pid_info = angle_pid.get_pid_info();
+    auto &pinfo = _angle_pid_info;
+
+    float desired_rate = pinfo.P + pinfo.I + pinfo.D;
+
+    return get_servo_out(desired_rate, scaler, disable_integrator, ground_mode);
+}
+
+float AP_RollController::get_servo_out_using_angle_error(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode)
 {
     const float dt = AP::scheduler().get_loop_period_s();
     angle_pid.set_dt(dt);
@@ -306,18 +335,24 @@ float AP_RollController::get_servo_out(int32_t angle_err, int32_t target_angle, 
     _angle_pid_info = angle_pid.get_pid_info();
     auto &pinfo = _angle_pid_info;
 
+    const AP_AHRS &_ahrs = AP::ahrs();
+
     if (target_angle == 0) {
         pinfo.target = 0;
         pinfo.actual = 0;
     } else {
-        const AP_AHRS& _ahrs = AP::ahrs();
-        const float actual_angle = _ahrs.roll_sensor;
+        const float actual_angle = _ahrs.pitch_sensor;
         pinfo.target = target_angle * 0.01f;
         pinfo.actual = actual_angle * 0.01f;
     }
 
     float desired_rate = pinfo.P + pinfo.I + pinfo.D;
 
+    return get_servo_out(desired_rate, scaler, disable_integrator, ground_mode);
+}
+
+float AP_RollController::get_servo_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode)
+{
     // Limit the demanded roll rate
     if (gains.rmax_pos && desired_rate < -gains.rmax_pos) {
         desired_rate = - gains.rmax_pos;
