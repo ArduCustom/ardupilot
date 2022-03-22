@@ -2399,7 +2399,6 @@ void AP_OSD_Screen::draw_vspeed(uint8_t x, uint8_t y)
 {
     Vector3f v;
     float vspd;
-    float vs_scaled;
     AP_AHRS &ahrs = AP::ahrs();
     WITH_SEMAPHORE(ahrs.get_semaphore());
     if (ahrs.get_velocity_NED(v)) {
@@ -2409,23 +2408,45 @@ void AP_OSD_Screen::draw_vspeed(uint8_t x, uint8_t y)
         WITH_SEMAPHORE(baro.get_semaphore());
         vspd = baro.get_climb_rate();
     }
-    char sym;
-    if (vspd > 3.0f) {
-        sym = SYMBOL(SYM_UP_UP);
-    } else if (vspd >=0.0f) {
-        sym = SYMBOL(SYM_UP);
-    } else if (vspd >= -3.0f) {
-        sym = SYMBOL(SYM_DOWN);
+
+    const float vs_scaled_abs = u_scale(VSPEED, fabsf(vspd));
+
+    float edge_sym_slow;
+    const float edge_sym_high = 3.0f;
+
+    const char *fmt;
+    if (osd->options & AP_OSD::OPTION_TWO_DECIMALS_VERTICAL_SPEED) {
+
+        edge_sym_slow = 0.005;
+
+        if (vs_scaled_abs < 9.995) {
+            fmt = "%c%.2f%c";
+        } else {
+            fmt = "%c%.1f%c";
+        }
+
     } else {
+
+        edge_sym_slow = 0.05;
+
+        if (vs_scaled_abs < 9.95) {
+            fmt = "%c%.1f%c";
+        } else {
+            fmt = "%c%.0f%c";
+        }
+
+    }
+
+    char sym = signbit(vspd) ? SYMBOL(SYM_DOWN) : SYMBOL(SYM_UP);
+    if (abs(vspd) < edge_sym_slow) {
+        sym = ' ';
+    } else if (vspd <= -edge_sym_high) {
         sym = SYMBOL(SYM_DOWN_DOWN);
+    } else if (vspd >= edge_sym_high) {
+        sym = SYMBOL(SYM_UP_UP);
     }
-    vs_scaled = u_scale(VSPEED, fabsf(vspd));
-    if ((osd->units != AP_OSD::UNITS_AVIATION) && (vs_scaled < 9.95f)) {
-        backend->write(x, y, false, "%c%.1f%c", sym, (float)vs_scaled, u_icon(VSPEED));
-    } else {
-        const char *fmt = osd->units == AP_OSD::UNITS_AVIATION ? "%c%4d%c" : "%c%2d%c";
-        backend->write(x, y, false, fmt, sym, (int)roundf(vs_scaled), u_icon(VSPEED));
-    }
+
+    backend->write(x, y, false, fmt, sym, vs_scaled_abs, u_icon(VSPEED));
 }
 
 void AP_OSD_Screen::draw_temperature(uint8_t x, uint8_t y, bool available, float value, bool blink)
