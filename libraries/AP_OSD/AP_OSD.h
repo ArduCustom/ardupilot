@@ -222,6 +222,8 @@ private:
     AP_OSD_Setting crsf_snr{false, 0, 0};
     AP_OSD_Setting crsf_active_antenna{false, 0, 0};
     AP_OSD_Setting bat_pct{false, 0, 0};
+    AP_OSD_Setting tuned_param_name{false, 0, 0};
+    AP_OSD_Setting tuned_param_value{false, 0, 0};
 
     // MSP OSD only
     AP_OSD_Setting crosshair{false, 0, 0};
@@ -339,7 +341,10 @@ private:
     void draw_crsf_snr(uint8_t x, uint8_t y);
     void draw_crsf_active_antenna(uint8_t x, uint8_t y);
     void draw_bat_pct(uint8_t x , uint8_t y);
+    void draw_tuned_param_name(uint8_t x, uint8_t y);
+    void draw_tuned_param_value(uint8_t x, uint8_t y);
 
+    bool has_tuned_param_changed();
 
     struct {
         bool load_attempted;
@@ -550,6 +555,7 @@ public:
     AP_Float warn_aspd_low;
     AP_Float warn_aspd_high;
     AP_Float warn_vert_acc;
+    AP_Float tune_display_timeout;
     AP_Int8 ah_pitch_max;
     AP_Int8 msgtime_s;
     AP_Int8 arm_scr;

@@ -48,6 +48,7 @@
 #include <AP_Frsky_Telem/AP_Frsky_Parameters.h>
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
 #include <AP_VideoTX/AP_SmartAudio.h>
+#include <AP_Tuning/AP_Tuning.h>
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
 #include <SITL/SITL.h>
 #endif
@@ -290,6 +291,8 @@ public:
    // Returns roll and  pitch for OSD Horizon, Plane overrides to correct for VTOL view and fixed wing TRIM_PITCH_CD
     virtual void get_osd_roll_pitch_rad(float &roll, float &pitch) const;
 #endif
+
+    virtual AP_Tuning *get_tuning_object() { return nullptr; }
 
 protected:
 
