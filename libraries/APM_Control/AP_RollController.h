@@ -23,7 +23,9 @@ public:
     CLASS_NO_COPY(AP_RollController);
 
     float get_rate_out(float desired_rate, float scaler);
-    float get_servo_out(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode);
+    float get_servo_out_using_angle_error(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode);
+    float get_servo_out_using_angle_target(int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode);
+    float get_servo_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode);
 
     void reset_I();
 
