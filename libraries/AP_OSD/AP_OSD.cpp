@@ -89,9 +89,9 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @Param: _OPTIONS
     // @DisplayName: OSD Options
     // @Description: This sets options that change the display
-    // @Bitmask: 0:UseDecimalPack, 1:InvertedWindPointer, 2:InvertedAHRoll, 3:Convert feet to miles at 5280ft instead of 10000ft, 4:DisableCrosshair, 20:Prefix LQ with RF Mode, 21:One decimal attitude, 22:One decimal throttle, 23:Shorten Pluscode 
+    // @Bitmask: 0:UseDecimalPack, 1:InvertedWindPointer, 2:InvertedAHRoll, 3:Convert feet to miles at 5280ft instead of 10000ft, 4:DisableCrosshair, 19:Right justify TUNED_PN element, 20:Prefix LQ with RF Mode, 21:One decimal attitude, 22:One decimal throttle, 23:Shorten Pluscode 
     // @User: Standard
-    AP_GROUPINFO("_OPTIONS", 8, AP_OSD, options, OPTION_DECIMAL_PACK | OPTION_ONE_DECIMAL_ATTITUDE | OPTION_RF_MODE_ALONG_WITH_LQ),
+    AP_GROUPINFO("_OPTIONS", 8, AP_OSD, options, OPTION_DECIMAL_PACK | OPTION_ONE_DECIMAL_ATTITUDE | OPTION_RF_MODE_ALONG_WITH_LQ | OPTION_RIGHT_JUSTIFY_TUNED_PN ),
 
     // @Param: _FONT
     // @DisplayName: OSD Font
@@ -182,6 +182,16 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_W_TERR", 23, AP_OSD, warn_terr, -1),
 #endif
+
+    // @Param: _TUNE_DTMOUT
+    // @DisplayName: Time the tuning name/value stay displayed after being changed
+    // @Description: Time the tuning name/value stay displayed after being changed
+    // @Range: 0.5 60
+    // @Units: s
+    // @User: Standard
+    AP_GROUPINFO("_TUNE_DTMOUT", 57, AP_OSD, tune_display_timeout, 4.0f),
+
+    // 58 is taken by screen 5
 
     // @Param: _AH_PITCH_MAX
     // @DisplayName: Maximum pitch the artificial horizon can display
