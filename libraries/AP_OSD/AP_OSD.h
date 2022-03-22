@@ -240,6 +240,8 @@ private:
     AP_OSD_Setting crsf_snr{false, 0, 0};
     AP_OSD_Setting crsf_active_antenna{false, 0, 0};
     AP_OSD_Setting bat_pct{false, 0, 0};
+    AP_OSD_Setting tuned_param_name{false, 0, 0};
+    AP_OSD_Setting tuned_param_value{false, 0, 0};
 
     // MSP OSD only
     AP_OSD_Setting crosshair{false, 0, 0};
@@ -365,6 +367,10 @@ private:
     void draw_crsf_snr(uint8_t x, uint8_t y);
     void draw_crsf_active_antenna(uint8_t x, uint8_t y);
     void draw_bat_pct(uint8_t x , uint8_t y);
+    void draw_tuned_param_name(uint8_t x, uint8_t y);
+    void draw_tuned_param_value(uint8_t x, uint8_t y);
+
+    bool has_tuned_param_changed();
 
     struct {
         bool load_attempted;
@@ -542,6 +548,8 @@ public:
     // User settable parameters
     static const struct AP_Param::GroupInfo var_info[];
 
+    static constexpr uint8_t max_tuned_pn_display_len = 16;
+
     enum osd_types {
         OSD_NONE=0,
         OSD_MAX7456=1,
@@ -574,6 +582,7 @@ public:
     AP_Float warn_aspd_low;
     AP_Float warn_aspd_high;
     AP_Float warn_vert_acc;
+    AP_Float tune_display_timeout;
     AP_Int8 ah_pitch_max;
     AP_Int8 msgtime_s;
     AP_Int8 arm_scr;
@@ -594,6 +603,7 @@ public:
         OPTION_INVERTED_AH_ROLL = 1U<<2,
         OPTION_IMPERIAL_MILES = 1U<<3,
         OPTION_DISABLE_CROSSHAIR = 1U<<4,
+        OPTION_RIGHT_JUSTIFY_TUNED_PN = 1U<<19,
         OPTION_RF_MODE_ALONG_WITH_LQ = 1U<<20,
         OPTION_ONE_DECIMAL_ATTITUDE = 1U<<21,
         OPTION_ONE_DECIMAL_THROTTLE = 1U<<22,
