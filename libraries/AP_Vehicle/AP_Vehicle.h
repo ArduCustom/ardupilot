@@ -49,7 +49,10 @@
 #include <AP_Frsky_Telem/AP_Frsky_Parameters.h>
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
 #include <AP_VideoTX/AP_SmartAudio.h>
+#include <AP_Tuning/AP_Tuning.h>
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
 #include <SITL/SITL.h>
+#endif
 #include <AP_CustomRotations/AP_CustomRotations.h>
 
 class AP_Vehicle : public AP_HAL::HAL::Callbacks {
@@ -300,6 +303,8 @@ public:
      get the target body-frame angular velocities in rad/s (Z-axis component used by some gimbals)
      */
     virtual bool get_rate_bf_targets(Vector3f& rate_bf_targets) const { return false; }
+
+    virtual AP_Tuning *get_tuning_object() { return nullptr; }
 
 protected:
 
