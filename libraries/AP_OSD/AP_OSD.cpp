@@ -183,6 +183,16 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     AP_GROUPINFO("_W_TERR", 23, AP_OSD, warn_terr, -1),
 #endif
 
+    // @Param: _TUNE_DTMOUT
+    // @DisplayName: Time the tuning name/value stay displayed after being changed
+    // @Description: Time the tuning name/value stay displayed after being changed
+    // @Range: 0.5 60
+    // @Units: s
+    // @User: Standard
+    AP_GROUPINFO("_TUNE_DTMOUT", 57, AP_OSD, tune_display_timeout, 4.0f),
+
+    // 58 is taken by screen 5
+
     // @Param: _AH_PITCH_MAX
     // @DisplayName: Maximum pitch the artificial horizon can display
     // @Description: Maximum pitch the artificial horizon can display
