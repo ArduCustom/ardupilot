@@ -1393,6 +1393,38 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(bat2rem, "BAT2REM", 44, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: TUNED_PN_EN
+    // @DisplayName: TUNED_PN_EN
+    // @Description: Displays the currently tuned parameter name when the parameter value is changing
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: TUNED_PN_X
+    // @DisplayName: TUNED_PN_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: TUNED_PN_Y
+    // @DisplayName: TUNED_PN_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(tuned_param_name, "TUNED_PN", 43, AP_OSD_Screen, AP_OSD_Setting),
+
+    // @Param: TUNED_PV_EN
+    // @DisplayName: TUNED_PV_EN
+    // @Description: Displays the currently tuned parameter value when it is changing
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: TUNED_PV_X
+    // @DisplayName: TUNED_PV_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: TUNED_PV_Y
+    // @DisplayName: TUNED_PV_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(tuned_param_value, "TUNED_PV", 42, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -2844,6 +2876,84 @@ void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
 
 }
 
+bool AP_OSD_Screen::has_tuned_param_changed()
+{
+    static uint32_t last_changed;
+    static float last_value;
+    static const AP_Float *last_param_pointer = nullptr;
+    const uint32_t now = AP_HAL::millis();
+    const auto tuning_object = AP::vehicle()->get_tuning_object();
+
+    if (tuning_object == nullptr) {
+        return false;
+    }
+
+    const AP_Float *param_pointer = tuning_object->get_param_pointer();
+
+    if (param_pointer != last_param_pointer) {
+        last_param_pointer = param_pointer;
+        last_changed = now;
+        return true;
+    } else if (param_pointer != nullptr) {
+        const float value = param_pointer->get();
+        if (abs(value - last_value) > FLT_EPSILON) {
+            last_value = value;
+            last_changed = now;
+            return true;
+        }
+    }
+
+    return now - last_changed < osd->tune_display_timeout * 1000;
+}
+
+void AP_OSD_Screen::draw_tuned_param_name(uint8_t x, uint8_t y)
+{
+    if (has_tuned_param_changed()) {
+        const auto tuning_object = AP::vehicle()->get_tuning_object();
+
+        const char *tuned_name = tuning_object->get_tuning_name();
+        char buffer[AP_OSD::max_tuned_pn_display_len+1];
+        strncpy(buffer, tuned_name, sizeof(buffer)-1);
+        const int16_t name_len = strnlen(buffer, sizeof(buffer));
+
+        for (int16_t i = 0; i < name_len; ++i) {
+            //converted to uppercase,
+            //because we do not have small letter chars inside used font
+            buffer[i] = toupper(buffer[i]);
+            //normalize whitespace
+            if (isspace(buffer[i])) {
+                buffer[i] = ' ';
+            }
+        }
+
+        buffer[sizeof(buffer)-1] = '\0';
+
+        const uint8_t spaces = check_option(AP_OSD::OPTION_RIGHT_JUSTIFY_TUNED_PN) ? AP_OSD::max_tuned_pn_display_len - name_len : 0;
+
+        backend->write(x + spaces, y, false, "%s", buffer);
+    } else if (!AP_Notify::flags.armed) {
+        for (int i = 0; i < AP_OSD::max_tuned_pn_display_len; ++i) {
+            backend->write(x + i, y, false, "-");
+        }
+    }
+}
+
+void AP_OSD_Screen::draw_tuned_param_value(uint8_t x, uint8_t y)
+{
+    if (has_tuned_param_changed()) {
+        const auto tuning_object = AP::vehicle()->get_tuning_object();
+        const AP_Float *const param_value_ptr = tuning_object->get_param_pointer();
+        if (param_value_ptr != nullptr) {
+            const float value = param_value_ptr->get();
+            const char* const fmt = (value < 9.9995 ? "%1.3f" : (value < 99.995 ? "%2.2f" : (value < 999.95 ? "%3.1f" : "%4.0f")));
+            const uint8_t spaces = signbit(value) ? 0 : 1;
+            backend->write(x+spaces, y, false, fmt, value);
+        }
+    } else if (!AP_Notify::flags.armed) {
+        backend->write(x, y, false, "-----");
+    }
+}
+
 void AP_OSD_Screen::draw_dist(uint8_t x, uint8_t y)
 {
     backend->write(x, y, false, "%c", SYMBOL(SYM_DIST));
@@ -3332,6 +3442,8 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(crsf_snr);
     DRAW_SETTING(crsf_active_antenna);
     DRAW_SETTING(bat_pct);
+    DRAW_SETTING(tuned_param_name);
+    DRAW_SETTING(tuned_param_value);
 }
 #endif
 #endif // OSD_ENABLED
