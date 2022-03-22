@@ -52,7 +52,10 @@
 #include <AP_VideoTX/AP_SmartAudio.h>
 #include <AP_VideoTX/AP_Tramp.h>
 #include <AP_TemperatureSensor/AP_TemperatureSensor.h>
+#include <AP_Tuning/AP_Tuning.h>
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
 #include <SITL/SITL.h>
+#endif
 #include <AP_CustomRotations/AP_CustomRotations.h>
 #include <AP_AIS/AP_AIS.h>
 #include <AC_Fence/AC_Fence.h>
@@ -306,6 +309,8 @@ public:
      get the target body-frame angular velocities in rad/s (Z-axis component used by some gimbals)
      */
     virtual bool get_rate_bf_targets(Vector3f& rate_bf_targets) const { return false; }
+
+    virtual AP_Tuning *get_tuning_object() { return nullptr; }
 
 protected:
 

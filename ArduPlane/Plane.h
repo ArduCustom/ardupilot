@@ -987,6 +987,7 @@ private:
     // ArduPlane.cpp
     void disarm_if_autoland_complete();
     void get_osd_roll_pitch_rad(float &roll, float &pitch) const override;
+
     float tecs_hgt_afe(void);
     void efi_update(void);
     void get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
@@ -1214,6 +1215,8 @@ private:
     int32_t tecs_target_alt_cm;
 
 public:
+    AP_Tuning *get_tuning_object(void) override { return &tuning; }
+
     void failsafe_check(void);
 #if AP_SCRIPTING_ENABLED
     bool set_target_location(const Location& target_loc) override;
