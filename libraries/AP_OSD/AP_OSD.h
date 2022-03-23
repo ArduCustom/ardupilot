@@ -60,7 +60,7 @@ class AP_MSP;
 #define PARAM_INDEX(key, idx, group) (uint32_t(uint32_t(key) << 23 | uint32_t(idx) << 18 | uint32_t(group)))
 #define PARAM_TOKEN_INDEX(token) PARAM_INDEX(AP_Param::get_persistent_key(token.key), token.idx, token.group_element)
 
-#define AP_OSD_NUM_SYMBOLS 101
+#define AP_OSD_NUM_SYMBOLS 104
 /*
   class to hold one setting
  */
@@ -227,6 +227,8 @@ private:
     AP_OSD_Setting bat_pct{false, 0, 0};
     AP_OSD_Setting tuned_param_name{false, 0, 0};
     AP_OSD_Setting tuned_param_value{false, 0, 0};
+    AP_OSD_Setting peak_roll_rate{false, 0, 0};
+    AP_OSD_Setting peak_pitch_rate{false, 0, 0};
 
     // MSP OSD only
     AP_OSD_Setting crosshair{false, 0, 0};
@@ -348,6 +350,8 @@ private:
     void draw_bat_pct(uint8_t x , uint8_t y);
     void draw_tuned_param_name(uint8_t x, uint8_t y);
     void draw_tuned_param_value(uint8_t x, uint8_t y);
+    void draw_peak_roll_rate(uint8_t x, uint8_t y);
+    void draw_peak_pitch_rate(uint8_t x, uint8_t y);
 
     bool has_tuned_param_changed();
 
@@ -563,6 +567,7 @@ public:
     AP_Float warn_aspd_high;
     AP_Float warn_vert_acc;
     AP_Float tune_display_timeout;
+    AP_Float peak_rate_timeout;
     AP_Int8 ah_pitch_max;
     AP_Int8 msgtime_s;
     AP_Int8 arm_scr;
