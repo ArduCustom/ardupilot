@@ -718,10 +718,6 @@ private:
     bool _stats_have_been_flying_for_a_while;
     uint32_t _stats_first_seen_flying;
     float last_distance_m;
-    float max_dist_m;
-    float max_alt_m;
-    float max_speed_mps;
-    float max_current_a;
     float avg_current_a;
     float avg_power_w;
 #endif
