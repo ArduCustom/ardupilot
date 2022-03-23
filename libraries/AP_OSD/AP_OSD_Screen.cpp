@@ -2684,9 +2684,14 @@ void AP_OSD_Screen::draw_aoa(uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_tx_power(uint8_t x, uint8_t y, int16_t value, bool blink)
 {
     if (value > 0) {
-        backend->write(x, y, false, "%4d%c", value, SYMBOL(SYM_MW));
+        if (value < 1000) {
+            backend->write(x, y, false, "%3d%c", value, SYMBOL(SYM_MW));
+        } else {
+            const float value_w = float(value) * 0.001f;
+            backend->write(x, y, false, "%.2f%c", value_w, SYMBOL(SYM_WATT));
+        }
     } else {
-        backend->write(x, y, false, "----%c", SYMBOL(SYM_MW));
+        backend->write(x, y, false, "---%c", SYMBOL(SYM_MW));
     }
 }
 
