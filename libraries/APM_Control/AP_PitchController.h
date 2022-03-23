@@ -68,6 +68,7 @@ public:
     AP_Float &angle_kP(void) { return angle_pid.kP(); }
     AP_Float &angle_kI(void) { return angle_pid.kI(); }
     AP_Float &angle_kD(void) { return angle_pid.kD(); }
+    AP_Float &angle_fltt(void) { return angle_pid.filt_T_hz(); }
 
     void convert_pid();
 

@@ -71,23 +71,25 @@ private:
         TUNING_PIT_D =                        56,
         TUNING_PIT_FF =                       57,
 
-        TUNING_KFF_THRAT2PTCH =               58,
-        TUNING_STAB_PITCH_DOWN =              59,
+        TUNING_TRIM_THROTTLE =                58,
+        TUNING_TRIM_PITCH =                   59,
+        TUNING_KFF_THRAT2PTCH =               60,
+        TUNING_STAB_PITCH_DOWN =              61,
 
-        TUNING_RLL2PTCH =                     60,
-        TUNING_KFF_RDDRMIX =                  61,
+        TUNING_RLL2PTCH =                     62,
+        TUNING_KFF_RDDRMIX =                  63,
 
-        TUNING_TECS_THR_FF_DAMP =             62,
-        TUNING_TECS_THR_FF_FILT =             63,
+        TUNING_TECS_THR_FF_DAMP =             64,
+        TUNING_TECS_THR_FF_FILT =             65,
 
-        TUNING_AGL_ROLL_P =                   64,
-        TUNING_AGL_ROLL_I =                   65,
-        TUNING_AGL_ROLL_D =                   66,
-        TUNING_AGL_ROLL_FLTT =                67,
-        TUNING_AGL_PITCH_P =                  68,
-        TUNING_AGL_PITCH_I =                  69,
-        TUNING_AGL_PITCH_D =                  70,
-        TUNING_AGL_PITCH_FLTT =               71,
+        TUNING_AGL_ROLL_P =                   66,
+        TUNING_AGL_ROLL_I =                   67,
+        TUNING_AGL_ROLL_D =                   68,
+        TUNING_AGL_ROLL_FLTT =                69,
+        TUNING_AGL_PITCH_P =                  70,
+        TUNING_AGL_PITCH_I =                  71,
+        TUNING_AGL_PITCH_D =                  72,
+        TUNING_AGL_PITCH_FLTT =               73,
     };
 
     /*
@@ -104,7 +106,7 @@ private:
         TUNING_SET_RATE_PITCHDP =            8,
         TUNING_SET_RATE_ROLLDP =             9,
         TUNING_SET_RATE_YAWDP =             10,
-        TUNING_SET_THR2PTCH_MIX =           11,
+        TUNING_SET_TRIM_THR_PTCH =          11,
         TUNING_SET_COORDINATION =           12,
         TUNING_SET_TECS_THR_FF =            13,
         TUNING_SET_AGL_ROLL_PITCH =         14,
@@ -128,7 +130,7 @@ private:
     static const uint8_t tuning_set_rate_pitchDP[];
     static const uint8_t tuning_set_rate_rollDP[];
     static const uint8_t tuning_set_rate_yawDP[];
-    static const uint8_t tuning_set_thr2ptch[];
+    static const uint8_t tuning_set_trim_thr_pitch[];
     static const uint8_t tuning_set_coordination[];
     static const uint8_t tuning_set_tecs_thr_ff[];
     static const uint8_t tuning_set_angle_roll_pitch[];
