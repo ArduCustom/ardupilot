@@ -8,7 +8,7 @@ const AP_Param::GroupInfo AP_Tuning_Plane::var_info[] = {
     // @Param: PARAM
     // @DisplayName: Transmitter tuning parameter or set of parameters
     // @Description: This sets which parameter or set of parameters will be tuned. Values greater than 100 indicate a set of parameters rather than a single parameter. Parameters less than 50 are for QuadPlane vertical lift motors only.
-    // @Values: 0:None,1:RateRollPI,2:RateRollP,3:RateRollI,4:RateRollD,5:RatePitchPI,6:RatePitchP,7:RatePitchI,8:RatePitchD,9:RateYawPI,10:RateYawP,11:RateYawI,12:RateYawD,13:AngleRollP,14:AnglePitchP,15:AngleYawP,16:PosXYP,17:PosZP,18:VelXYP,19:VelXYI,20:VelZP,21:AccelZP,22:AccelZI,23:AccelZD,24:RatePitchFF,25:RateRollFF,26:RateYawFF,50:FixedWingRollP,51:FixedWingRollI,52:FixedWingRollD,53:FixedWingRollFF,54:FixedWingPitchP,55:FixedWingPitchI,56:FixedWingPitchD,57:FixedWingPitchFF,58:KFF_THRAT2PTCH,59:FW STAB PITCH DOWN,60:RLL2PTCH,61:KFF_RDDRMIX,62:TECSTFFDAMP,63:TECSTFF_FILT,64:FWAglRollP,65:FWAglRollI,66:AglRollD,67:AglRollFLTT,68:FWAglPitchP,69:FWAglPitchI,70:AglPitchD,71:AglPitchFLTT,101:Set_RateRollPitch,102:Set_RateRoll,103:Set_RatePitch,104:Set_RateYaw,105:Set_AngleRollPitch,106:Set_VelXY,107:Set_AccelZ,108:Set_THR2PTCH,109:Set turn coordination,110:TECSTHRFF,111:Set_AglRollPitch,112:Set_AglRoll,113:Set_AglPitch
+    // @Values: 0:None,1:RateRollPI,2:RateRollP,3:RateRollI,4:RateRollD,5:RatePitchPI,6:RatePitchP,7:RatePitchI,8:RatePitchD,9:RateYawPI,10:RateYawP,11:RateYawI,12:RateYawD,13:AngleRollP,14:AnglePitchP,15:AngleYawP,16:PosXYP,17:PosZP,18:VelXYP,19:VelXYI,20:VelZP,21:AccelZP,22:AccelZI,23:AccelZD,24:RatePitchFF,25:RateRollFF,26:RateYawFF,50:FixedWingRollP,51:FixedWingRollI,52:FixedWingRollD,53:FixedWingRollFF,54:FixedWingPitchP,55:FixedWingPitchI,56:FixedWingPitchD,57:FixedWingPitchFF,58:TRIM_THROTTLE,59:TRIM_PITCH,60:KFF_THRAT2PTCH,61:FW STAB PITCH DOWN,62:RLL2PTCH,63:KFF_RDDRMIX,64:TECSTFFDAMP,65:TECSTFF_FILT,66:FWAglRollP,67:FWAglRollI,68:AglRollD,69:AglRollFLTT,70:FWAglPitchP,71:FWAglPitchI,72:AglPitchD,73:AglPitchFLTT,101:Set_RateRollPitch,102:Set_RateRoll,103:Set_RatePitch,104:Set_RateYaw,105:Set_AngleRollPitch,106:Set_VelXY,107:Set_AccelZ,108:Set_TRIM_THR_PTCH,109:Set turn coordination,110:TECSTHRFF,111:Set_AglRollPitch,112:Set_AglRoll,113:Set_AglPitch
     // @User: Standard
     AP_GROUPINFO("PARAM", 1, AP_Tuning_Plane, parmset, 0),
 
@@ -30,7 +30,7 @@ const uint8_t AP_Tuning_Plane::tuning_set_rate_yaw[] =        { TUNING_RATE_YAW_
 const uint8_t AP_Tuning_Plane::tuning_set_ang_roll_pitch[] =  { TUNING_ANG_ROLL_P, TUNING_ANG_PITCH_P };
 const uint8_t AP_Tuning_Plane::tuning_set_vxy[] =             { TUNING_VXY_P, TUNING_VXY_I };
 const uint8_t AP_Tuning_Plane::tuning_set_az[] =              { TUNING_AZ_P, TUNING_AZ_I, TUNING_AZ_D };
-const uint8_t AP_Tuning_Plane::tuning_set_thr2ptch[] =        { TUNING_KFF_THRAT2PTCH, TUNING_STAB_PITCH_DOWN };
+const uint8_t AP_Tuning_Plane::tuning_set_trim_thr_pitch[] =  { TUNING_TRIM_THROTTLE, TUNING_TRIM_PITCH, TUNING_KFF_THRAT2PTCH, TUNING_STAB_PITCH_DOWN };
 const uint8_t AP_Tuning_Plane::tuning_set_coordination[] =    { TUNING_RLL2PTCH, TUNING_KFF_RDDRMIX };
 const uint8_t AP_Tuning_Plane::tuning_set_tecs_thr_ff[] =     { TUNING_TECS_THR_FF_DAMP, TUNING_TECS_THR_FF_FILT };
 const uint8_t AP_Tuning_Plane::tuning_set_angle_roll_pitch[] = { TUNING_AGL_ROLL_P, TUNING_AGL_ROLL_D, TUNING_AGL_ROLL_FLTT,
@@ -50,7 +50,7 @@ const AP_Tuning_Plane::tuning_set AP_Tuning_Plane::tuning_sets[] = {
     { TUNING_SET_ANG_ROLL_PITCH,  TUNING_ARRAY(tuning_set_ang_roll_pitch) },
     { TUNING_SET_VXY,             TUNING_ARRAY(tuning_set_vxy) },
     { TUNING_SET_AZ,              TUNING_ARRAY(tuning_set_az) },
-    { TUNING_SET_THR2PTCH_MIX,    TUNING_ARRAY(tuning_set_thr2ptch) },
+    { TUNING_SET_TRIM_THR_PTCH,   TUNING_ARRAY(tuning_set_trim_thr_pitch) },
     { TUNING_SET_COORDINATION,    TUNING_ARRAY(tuning_set_coordination) },
     { TUNING_SET_TECS_THR_FF,     TUNING_ARRAY(tuning_set_tecs_thr_ff) },
     { TUNING_SET_AGL_ROLL_PITCH,  TUNING_ARRAY(tuning_set_angle_roll_pitch) },
@@ -97,6 +97,8 @@ const AP_Tuning_Plane::tuning_name AP_Tuning_Plane::tuning_names[] = {
     { TUNING_PIT_I,        "PitchI" },
     { TUNING_PIT_D,        "PitchD" },
     { TUNING_PIT_FF,       "PitchFF" },
+    { TUNING_TRIM_THROTTLE, "TRIM_THROTTLE" },
+    { TUNING_TRIM_PITCH,   "TRIM_PITCH" },
     { TUNING_KFF_THRAT2PTCH, "THRAT2PTCH" },
     { TUNING_STAB_PITCH_DOWN, "STAB_PITCH_DOWN" },
     { TUNING_RLL2PTCH,      "RLL2PTCH" },
@@ -243,6 +245,12 @@ AP_Float *AP_Tuning_Plane::get_param_pointer(uint8_t parm)
     case TUNING_RLL2PTCH:
         return &plane.pitchController.rollFF();
 
+    case TUNING_TRIM_THROTTLE:
+        return &plane.aparm.throttle_cruise;
+
+    case TUNING_TRIM_PITCH:
+        return &plane.g.pitch_trim;
+
     case TUNING_KFF_RDDRMIX:
         return &plane.g.kff_rudder_mix;
 
@@ -261,6 +269,9 @@ AP_Float *AP_Tuning_Plane::get_param_pointer(uint8_t parm)
     case TUNING_AGL_ROLL_D:
         return &plane.rollController.angle_kD();
 
+    case TUNING_AGL_ROLL_FLTT:
+        return &plane.rollController.angle_fltt();
+
     case TUNING_AGL_PITCH_P:
         return &plane.pitchController.angle_kP();
 
@@ -269,6 +280,9 @@ AP_Float *AP_Tuning_Plane::get_param_pointer(uint8_t parm)
 
     case TUNING_AGL_PITCH_D:
         return &plane.pitchController.angle_kD();
+
+    case TUNING_AGL_PITCH_FLTT:
+        return &plane.pitchController.angle_fltt();
     }
 
     return nullptr;
