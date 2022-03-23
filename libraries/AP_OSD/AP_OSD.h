@@ -318,7 +318,7 @@ private:
     void draw_eff(uint8_t x, uint8_t y, float speed);
     void draw_eff_ground(uint8_t x, uint8_t y);
     void draw_eff_air(uint8_t x, uint8_t y);
-    void draw_avg_eff(uint8_t x, uint8_t y, const bool available, const float distance_travelled_m, const bool draw_eff_symbol = true);
+    void draw_avg_eff(uint8_t x, uint8_t y, const float distance_travelled_m, const bool draw_eff_symbol = true);
     void draw_avg_eff_ground(uint8_t x, uint8_t y, bool draw_eff_symbol = true);
     void draw_avg_eff_air(uint8_t x, uint8_t y, bool draw_eff_symbol = true);
     void draw_atemp(uint8_t x, uint8_t y);
@@ -614,8 +614,9 @@ public:
         uint16_t wp_number;
     };
 
+    bool have_stats() const;
+
     struct StatsInfo {
-        uint32_t samples;
         uint32_t last_update_ms;
         float last_ground_distance_m;
         float last_air_distance_m;
@@ -629,6 +630,7 @@ public:
         float max_power_w;
         float avg_power_w;
         float avg_wind_speed_mps;
+        bool wind_speeds_available;
         float min_voltage_v = FLT_MAX;
         float min_cell_voltage_v = FLT_MAX;
         float min_rssi = FLT_MAX;   // 0-1
@@ -710,6 +712,11 @@ private:
     bool _disable;
 
     StatsInfo _stats;
+    uint32_t _stats_samples;
+    float _stats_last_consumed_mah;
+    float _stats_last_consumed_wh;
+    bool _stats_have_been_flying_for_a_while;
+    uint32_t _stats_first_seen_flying;
     float last_distance_m;
     float max_dist_m;
     float max_alt_m;
