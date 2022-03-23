@@ -1448,4 +1448,3 @@ MAV_LANDED_STATE GCS_MAVLINK_Plane::landed_state() const
 
     return MAV_LANDED_STATE_ON_GROUND;
 }
-
