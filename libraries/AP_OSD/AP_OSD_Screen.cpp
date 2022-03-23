@@ -2776,7 +2776,7 @@ void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
     const auto &stat_data = osd->_stats;
-    const bool have_stats = stat_data.samples > 0;
+    const bool have_stats = osd->have_stats();
     const uint8_t col_offset = 11;
 
     backend->write(x, y, false, "MIN BAV");
@@ -3054,7 +3054,7 @@ void AP_OSD_Screen::draw_eff_air(uint8_t x, uint8_t y)
     draw_eff(x, y, have_airspeed_estimate ? airspeed_mps : 0);
 }
 
-void AP_OSD_Screen::draw_avg_eff(uint8_t x, uint8_t y, const bool available, const float distance_travelled_m, const bool draw_eff_symbol)
+void AP_OSD_Screen::draw_avg_eff(uint8_t x, uint8_t y, const float distance_travelled_m, const bool draw_eff_symbol)
 {
     const int8_t eff_unit_base = osd->efficiency_unit_base;
 
@@ -3064,25 +3064,23 @@ void AP_OSD_Screen::draw_avg_eff(uint8_t x, uint8_t y, const bool available, con
         value_offset = 1;
     }
 
-    if (!available) {
+    if (!osd->have_stats()) {
         const uint8_t unit_symbol = eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH ? SYMBOL(SYM_MAH) : SYMBOL(SYM_WH);
         backend->write(x+value_offset, y, false, "---%c", unit_symbol);
         return;
     }
 
+    const auto &stat_data = osd->_stats;
     const float distance_travelled_km = distance_travelled_m * 0.001f;
     if (is_positive(distance_travelled_km)) {
-        AP_BattMonitor& battery = AP::battery();
         if (eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH) {
-            float consumed_mah;
-            if (!battery.consumed_mah(consumed_mah)) goto invalid;
-            const uint16_t efficiency = roundf(consumed_mah / distance_travelled_km);
+            if (!stat_data.consumed_mah_available) goto invalid;
+            const uint16_t efficiency = roundf(stat_data.consumed_mah / distance_travelled_km);
             if (efficiency > 999) goto invalid;
             backend->write(x+value_offset, y, false, "%3d%c", efficiency, SYMBOL(SYM_MAH));
         } else {
-            float consumed_wh;
-            if (!battery.consumed_wh_without_losses(consumed_wh)) goto invalid;
-            const float efficiency = consumed_wh / distance_travelled_km;
+            if (!stat_data.consumed_wh_available) goto invalid;
+            const float efficiency = stat_data.consumed_wh / distance_travelled_km;
             if (!isfinite(efficiency) || roundf(efficiency) > 999) goto invalid;
             const char* const fmt = (efficiency < 9.995 ? "%1.2f%c" : (efficiency < 99.95 ? "%2.1f%c" : "%3.0f%c"));
             backend->write(x+value_offset, y, false, fmt, efficiency, SYMBOL(SYM_WH));
@@ -3096,14 +3094,12 @@ invalid:
 
 void AP_OSD_Screen::draw_avg_eff_ground(uint8_t x, uint8_t y, bool draw_eff_symbol)
 {
-    const bool have_stats = osd->_stats.samples > 0;
-    draw_avg_eff(x, y, have_stats, osd->_stats.last_ground_distance_m, draw_eff_symbol);
+    draw_avg_eff(x, y, osd->_stats.last_ground_distance_m, draw_eff_symbol);
 }
 
 void AP_OSD_Screen::draw_avg_eff_air(uint8_t x, uint8_t y, bool draw_eff_symbol)
 {
-    const bool have_stats = osd->_stats.samples > 0;
-    draw_avg_eff(x, y, have_stats, osd->_stats.last_air_distance_m, draw_eff_symbol);
+    draw_avg_eff(x, y, osd->_stats.last_air_distance_m, draw_eff_symbol);
 }
 
 void AP_OSD_Screen::draw_climbeff(uint8_t x, uint8_t y)
