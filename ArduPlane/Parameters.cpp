@@ -1251,6 +1251,20 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_SUBGROUPINFO(follow, "FOLL", 33, ParametersG2, AP_Follow),
 #endif
     
+    // @Param: AILE_DIFF
+    // @DisplayName: Amount of differential throws applied to the ailerons
+    // @Description: Amount of differential throws applied to the ailerons. A positive number reduces the control surfaces down travel. A negative number reduces the control surfaces up travel
+    // @Values: 0:Disabled,1:Enabled
+    // @User: Advanced
+    AP_GROUPINFO("AILE_DIFF", 55, ParametersG2, ailerons_diff, 0),
+    
+    // @Param: ELEV_DIFF
+    // @DisplayName: Amount of differential throws applied to the elevator (does not apply to elevons)
+    // @Description: Amount of differential throws applied to the elevator (does not apply to elevons). A positive number reduces the control surfaces down travel. A negative number reduces the control surfaces up travel
+    // @Values: 0:Disabled,1:Enabled
+    // @User: Advanced
+    AP_GROUPINFO("ELEV_DIFF", 56, ParametersG2, elevator_diff, 0),
+    
     // @Param: FLTMODE_EXT
     // @DisplayName: Enable extra modes
     // @Description: This enables 14 extra modes. Be careful when enabling this on PPM/analog, as each mode channel is only 45 usec wide (starting from 1050, then 1095, and so on).
