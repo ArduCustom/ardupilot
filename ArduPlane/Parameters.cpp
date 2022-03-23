@@ -742,7 +742,7 @@ const AP_Param::Info Plane::var_info[] = {
     // @DisplayName: Mixing differential amount
     // @Description: The amount of differential mixing. A positive number reduces the control surfaces down travel. A negative number reduces the control surfaces up travel
     // @Units: %
-    // @Range: -100 100
+    // @Range: -90 90
     // @User: Standard
     GSCALAR(mixing_diff,          "MIXING_DIFF",  0),
 
