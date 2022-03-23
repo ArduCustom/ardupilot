@@ -184,6 +184,14 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     AP_GROUPINFO("_W_TERR", 23, AP_OSD, warn_terr, -1),
 #endif
 
+    // @Param: _PEAKR_TMOUT
+    // @DisplayName: Time the peak rate will be displayed for PEAK_RR and PEAK_PR elements
+    // @Description: Time the peak rate will be displayed for PEAK_RR and PEAK_PR elements
+    // @Range: 0.5 60
+    // @Units: s
+    // @User: Standard
+    AP_GROUPINFO("_PEAKR_TMOUT", 56, AP_OSD, peak_rate_timeout, 3.0f),
+
     // @Param: _TUNE_DTMOUT
     // @DisplayName: Time the tuning name/value stay displayed after being changed
     // @Description: Time the tuning name/value stay displayed after being changed
