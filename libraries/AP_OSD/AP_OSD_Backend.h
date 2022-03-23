@@ -189,6 +189,9 @@ protected:
     static const uint8_t SYM_ARROW_RIGHT = 0xFD;
     static const uint8_t SYM_ARROW_LEFT = 0xFE;
     static const uint8_t SYM_G = 0xDF;
+    static const uint8_t SYM_ROLL = 0xA9;
+    static const uint8_t SYM_PITCH = 0xAF;
+    static const uint8_t SYM_DPS = 0xAA;
 
     static const uint8_t SYM_SIDEBAR_R_ARROW = 0x09;
     static const uint8_t SYM_SIDEBAR_L_ARROW = 0x0A;
@@ -304,6 +307,9 @@ protected:
         SYM_ARROW_RIGHT,
         SYM_ARROW_LEFT,
         SYM_G,
-        SYM_BATT_UNKNOWN
+        SYM_BATT_UNKNOWN,
+        SYM_ROLL,
+        SYM_PITCH,
+        SYM_DPS,
     };
 };
