@@ -131,7 +131,7 @@ void GCS_MAVLINK_Plane::send_attitude() const
     float y = ahrs.yaw;
 
     if (!(plane.g2.flight_options & FlightOptions::GCS_REMOVE_TRIM_PITCH_CD)) {
-        p -= radians(plane.g.pitch_trim_cd * 0.01f);
+        p -= radians(plane.g.pitch_trim);
     }
 
 #if HAL_QUADPLANE_ENABLED
