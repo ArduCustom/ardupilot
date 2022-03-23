@@ -2778,7 +2778,7 @@ void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
     const auto &stat_data = osd->_stats;
-    const bool have_stats = stat_data.samples > 0;
+    const bool have_stats = osd->have_stats();
     const uint8_t col_offset = 11;
 
     backend->write(x, y, false, "MIN BAV");
@@ -3094,14 +3094,12 @@ invalid:
 
 void AP_OSD_Screen::draw_avg_eff_ground(uint8_t x, uint8_t y, bool draw_eff_symbol)
 {
-    const bool have_stats = osd->_stats.samples > 0;
-    draw_avg_eff(x, y, have_stats, osd->_stats.last_ground_distance_m, draw_eff_symbol);
+    draw_avg_eff(x, y, osd->have_stats(), osd->_stats.last_ground_distance_m, draw_eff_symbol);
 }
 
 void AP_OSD_Screen::draw_avg_eff_air(uint8_t x, uint8_t y, bool draw_eff_symbol)
 {
-    const bool have_stats = osd->_stats.samples > 0;
-    draw_avg_eff(x, y, have_stats, osd->_stats.last_air_distance_m, draw_eff_symbol);
+    draw_avg_eff(x, y, osd->have_stats(), osd->_stats.last_air_distance_m, draw_eff_symbol);
 }
 
 void AP_OSD_Screen::draw_climbeff(uint8_t x, uint8_t y)
