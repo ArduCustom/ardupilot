@@ -1086,9 +1086,7 @@ void Plane::update_throttle_hover() {
 }
 
 /*
-  implement automatic persistent trim of control surfaces with
-  AUTO_TRIM=2, only available when SERVO_RNG_ENABLE=1 as otherwise it
-  would impact R/C transmitter calibration
+  implement automatic persistent trim of control surfaces
  */
 void Plane::servos_auto_trim(void)
 {
@@ -1154,6 +1152,7 @@ void Plane::servos_auto_trim(void)
         dspoiler_outer_left += pitch_I;
         dspoiler_outer_right += pitch_I;
     }
+
     if (full_span_aileron) {
         dspoiler_inner_left = dspoiler_outer_left;
         dspoiler_inner_right = dspoiler_outer_right;
