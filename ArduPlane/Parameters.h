@@ -582,6 +582,10 @@ public:
     AP_Int8 flight_mode12;
 
     AP_Int8 arming_mode_sw;
+
+    // plane throws diff
+    AP_Float ailerons_diff;
+    AP_Float elevator_diff;
 };
 
 extern const AP_Param::Info var_info[];
