@@ -406,8 +406,10 @@ public:
     // setup output ESC scaling based on a channels MIN/MAX
     void set_esc_scaling_for(SRV_Channel::Aux_servo_function_t function);
 
-    // return true when auto_trim enabled
-    bool auto_trim_enabled(void) const { return auto_trim; }
+    // return auto_trim mode
+    int8_t auto_trim_mode(void) const { return auto_trim; }
+
+    void disable_autotrim_if_temporary_enabled();
 
     // adjust trim of a channel by a small increment
     void adjust_trim(SRV_Channel::Aux_servo_function_t function, float v);
@@ -574,6 +576,12 @@ public:
     static bool is_alarm_inverted(uint8_t channel) {
         return channel_function(channel) == SRV_Channel::k_alarm_inverted;
     }
+
+    enum {
+        SERVO_AUTO_TRIM_DISABLED = 0,
+        SERVO_AUTO_TRIM_ONCE = 1,
+        SERVO_AUTO_TRIM_PERMANENT = 2,
+    };
 
 private:
 
