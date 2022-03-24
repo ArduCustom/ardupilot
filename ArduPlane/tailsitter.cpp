@@ -221,7 +221,7 @@ void Tailsitter::setup()
                      SRV_Channels::function_assigned(SRV_Channel::k_tiltMotorRight)));
 
     _have_elevator = SRV_Channels::function_assigned(SRV_Channel::k_elevator);
-    _have_aileron = SRV_Channels::function_assigned(SRV_Channel::k_aileron);
+    _have_aileron = SRV_Channels::function_assigned(SRV_Channel::k_aileron) || (SRV_Channels::function_assigned(SRV_Channel::k_aileron_left) && SRV_Channels::function_assigned(SRV_Channel::k_aileron_right));
     _have_rudder = SRV_Channels::function_assigned(SRV_Channel::k_rudder);
 
     // set defaults for dual/single motor tailsitter
@@ -731,6 +731,8 @@ void Tailsitter::speed_scaling(void)
 
     const SRV_Channel::Aux_servo_function_t functions[] = {
         SRV_Channel::Aux_servo_function_t::k_aileron,
+        SRV_Channel::Aux_servo_function_t::k_aileron_left,
+        SRV_Channel::Aux_servo_function_t::k_aileron_right,
         SRV_Channel::Aux_servo_function_t::k_elevator,
         SRV_Channel::Aux_servo_function_t::k_rudder,
         SRV_Channel::Aux_servo_function_t::k_tiltMotorLeft,
