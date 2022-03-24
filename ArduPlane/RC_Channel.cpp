@@ -183,6 +183,7 @@ void RC_Channel_Plane::init_aux_function(const RC_Channel::aux_func_t ch_option,
     case AUX_FUNC::ARMDISARM_AIRMODE:
 #endif
     case AUX_FUNC::TRIM_TO_CURRENT_SERVO_RC:
+    case AUX_FUNC::SERVOS_AUTO_TRIM:
     case AUX_FUNC::EMERGENCY_LANDING_EN:
     case AUX_FUNC::FW_AUTOTUNE:
         break;
@@ -400,6 +401,10 @@ bool RC_Channel_Plane::do_aux_function(const aux_func_t ch_option, const AuxSwit
         if (ch_flag == AuxSwitchPos::HIGH) {
             plane.trim_radio();
         }
+        break;
+
+    case AUX_FUNC::SERVOS_AUTO_TRIM:
+        plane.run_servos_auto_tune = ch_flag == AuxSwitchPos::HIGH;
         break;
 
     case AUX_FUNC::EMERGENCY_LANDING_EN:
