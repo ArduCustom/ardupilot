@@ -228,6 +228,7 @@ public:
         FFT_NOTCH_TUNE =     162, // FFT notch tuning function
         MOUNT_LOCK =         163, // Mount yaw lock vs follow
         LOG_PAUSE =          164, // Pauses logging if under logging rate control
+        SERVOS_AUTO_TRIM =   165, // servos auto trim
 
         // inputs from 200 will eventually used to replace RCMAP
         ROLL =               201, // roll input
