@@ -1228,6 +1228,8 @@ public:
     bool set_velocity_match(const Vector2f &velocity) override;
 #endif // AP_SCRIPTING_ENABLED
 
+    bool run_servos_auto_tune;
+
 };
 
 extern Plane plane;
