@@ -3984,14 +3984,6 @@ function'''
              "Test Loiter mode",
              self.LOITER),
 
-            ("MAV_CMD_NAV_LOITER_TURNS",
-             "Test NAV_LOITER_TURNS mission item",
-             self.MAV_CMD_NAV_LOITER_TURNS),
-
-            ("DeepStall",
-             "Test DeepStall Landing",
-             self.fly_deepstall),
-
             ("WatchdogHome",
              "Ensure home is restored after watchdog reset",
              self.WatchdogHome),
