@@ -284,6 +284,9 @@ private:
     AP_Int8 reversed;
     AP_Enum16<Aux_servo_function_t> function;
 
+    uint16_t servo_min_backup;
+    uint16_t servo_max_backup;
+
     // a pending output value as PWM
     uint16_t output_pwm;
 
@@ -400,7 +403,7 @@ public:
     bool auto_trim_enabled(void) const { return auto_trim; }
 
     // adjust trim of a channel by a small increment
-    void adjust_trim(SRV_Channel::Aux_servo_function_t function, float v);
+    void adjust_trim(SRV_Channel::Aux_servo_function_t function, float v, uint16_t servo_min_min, uint16_t servo_max_max);
 
     // set MIN/MAX parameters for a function
     static void set_output_min_max(SRV_Channel::Aux_servo_function_t function, uint16_t min_pwm, uint16_t max_pwm);

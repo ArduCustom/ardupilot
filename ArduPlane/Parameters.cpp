@@ -1250,6 +1250,62 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Path: ../libraries/AP_Follow/AP_Follow.cpp
     AP_SUBGROUPINFO(follow, "FOLL", 33, ParametersG2, AP_Follow),
 #endif
+
+    // @Param: VTAIL_SRV_MAX
+    // @DisplayName: Servo absolute maximum servo auto trim won't set a V-tail servo max above of
+    // @Description: Servo absolute maximum servo auto trim won't set a V-tail servo max above of
+    // @Range: 500 2500
+    // @User: Standard
+    AP_GROUPINFO("VTAIL_SRV_MAX", 47, ParametersG2, vtail_servo_max, 0),
+    
+    // @Param: VTAIL_SRV_MIN
+    // @DisplayName: Servo absolute minimum servo auto trim won't set an V-tail servo min bellow of
+    // @Description: Servo absolute minimum servo auto trim won't set an V-tail servo min bellow of
+    // @Range: 500 2500
+    // @User: Standard
+    AP_GROUPINFO("VTAIL_SRV_MIN", 48, ParametersG2, vtail_servo_min, 0),
+
+    // @Param: ELEVON_SRV_MAX
+    // @DisplayName: Servo absolute maximum servo auto trim won't set an elevon servo max above of
+    // @Description: Servo absolute maximum servo auto trim won't set an elevon servo max above of
+    // @Range: 500 2500
+    // @User: Standard
+    AP_GROUPINFO("ELEVON_SRV_MAX", 49, ParametersG2, elevon_servo_max, 0),
+    
+    // @Param: ELEVON_SRV_MIN
+    // @DisplayName: Servo absolute minimum servo auto trim won't set an elevon servo min bellow of
+    // @Description: Servo absolute minimum servo auto trim won't set an elevon servo min bellow of
+    // @Range: 500 2500
+    // @User: Standard
+    AP_GROUPINFO("ELEVON_SRV_MIN", 50, ParametersG2, elevon_servo_min, 0),
+    
+    // @Param: AILERON_SRV_MAX
+    // @DisplayName: Servo absolute maximum servo auto trim won't set an aileron servo max above of
+    // @Description: Servo absolute maximum servo auto trim won't set an aileron servo max above of
+    // @Range: 500 2500
+    // @User: Standard
+    AP_GROUPINFO("AILERON_SRV_MAX", 51, ParametersG2, aileron_servo_max, 0),
+    
+    // @Param: AILERON_SRV_MIN
+    // @DisplayName: Servo absolute minimum servo auto trim won't set an aileron servo min bellow of
+    // @Description: Servo absolute minimum servo auto trim won't set an aileron servo min bellow of
+    // @Range: 500 2500
+    // @User: Standard
+    AP_GROUPINFO("AILERON_SRV_MIN", 52, ParametersG2, aileron_servo_min, 0),
+
+    // @Param: ELEVATOR_SRV_MAX
+    // @DisplayName: Servo absolute maximum servo auto trim won't set an elevator servo max above of
+    // @Description: Servo absolute maximum servo auto trim won't set an elevator servo max above of
+    // @Range: 500 2500
+    // @User: Standard
+    AP_GROUPINFO("ELEVATOR_SRV_MAX", 53, ParametersG2, elevator_servo_max, 0),
+    
+    // @Param: ELEVATOR_SRV_MIN
+    // @DisplayName: Servo absolute minimum servo auto trim won't set an elevator servo min bellow of
+    // @Description: Servo absolute minimum servo auto trim won't set an elevator servo min bellow of
+    // @Range: 500 2500
+    // @User: Standard
+    AP_GROUPINFO("ELEVATOR_SRV_MIN", 54, ParametersG2, elevator_servo_min, 0),
     
     // @Param: AILERON_DIFF
     // @DisplayName: Amount of differential throws applied to the ailerons
