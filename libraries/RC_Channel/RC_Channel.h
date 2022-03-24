@@ -226,6 +226,7 @@ public:
         WEATHER_VANE_ENABLE = 160, // enable/disable weathervaning
         TURBINE_START =      161, // initialize turbine start sequence
         FFT_NOTCH_TUNE =     162, // FFT notch tuning function
+        SERVOS_AUTO_TRIM =   163, // servos auto trim
 
         // inputs from 200 will eventually used to replace RCMAP
         ROLL =               201, // roll input
