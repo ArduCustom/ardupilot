@@ -409,6 +409,8 @@ bool AP_Arming_Plane::disarm(const AP_Arming::Method method, bool do_disarm_chec
     // re-initialize speed variable used in AUTO and GUIDED for
     // DO_CHANGE_SPEED commands
     plane.new_airspeed_cm = -1;
+
+    plane.g2.servo_channels.disable_autotrim_if_temporary_enabled();
     
     gcs().send_text(MAV_SEVERITY_INFO, "Throttle disarmed");
 
