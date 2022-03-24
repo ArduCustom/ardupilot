@@ -1055,9 +1055,7 @@ void Plane::update_throttle_hover() {
 }
 
 /*
-  implement automatic persistent trim of control surfaces with
-  AUTO_TRIM=2, only available when SERVO_RNG_ENABLE=1 as otherwise it
-  would impact R/C transmitter calibration
+  implement automatic persistent trim of control surfaces
  */
 void Plane::servos_auto_trim(void)
 {
@@ -1095,19 +1093,19 @@ void Plane::servos_auto_trim(void)
     float roll_I = rollController.get_pid_info().I;
     float pitch_I = pitchController.get_pid_info().I;
 
-    g2.servo_channels.adjust_trim(SRV_Channel::k_aileron, roll_I);
-    g2.servo_channels.adjust_trim(SRV_Channel::k_aileron_left, -roll_I);
-    g2.servo_channels.adjust_trim(SRV_Channel::k_aileron_right, roll_I);
-    g2.servo_channels.adjust_trim(SRV_Channel::k_elevator, pitch_I);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_aileron, roll_I, g2.aileron_servo_min, g2.aileron_servo_max);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_aileron_left, -roll_I, g2.aileron_servo_min, g2.aileron_servo_max);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_aileron_right, roll_I, g2.aileron_servo_min, g2.aileron_servo_max);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_elevator, pitch_I, g2.elevator_servo_min, g2.elevator_servo_max);
 
-    g2.servo_channels.adjust_trim(SRV_Channel::k_elevon_left,  pitch_I - roll_I);
-    g2.servo_channels.adjust_trim(SRV_Channel::k_elevon_right, pitch_I + roll_I);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_elevon_left,  pitch_I - roll_I, g2.elevon_servo_min, g2.elevator_servo_max);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_elevon_right, pitch_I + roll_I, g2.elevon_servo_min, g2.elevator_servo_max);
 
-    g2.servo_channels.adjust_trim(SRV_Channel::k_vtail_left,  pitch_I);
-    g2.servo_channels.adjust_trim(SRV_Channel::k_vtail_right, pitch_I);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_vtail_left,  pitch_I, g2.vtail_servo_min, g2.vtail_servo_max);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_vtail_right, pitch_I, g2.vtail_servo_min, g2.vtail_servo_max);
 
-    g2.servo_channels.adjust_trim(SRV_Channel::k_flaperon_left,  roll_I);
-    g2.servo_channels.adjust_trim(SRV_Channel::k_flaperon_right, roll_I);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_flaperon_left,  -roll_I, g2.aileron_servo_min, g2.aileron_servo_max);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_flaperon_right, roll_I, g2.aileron_servo_min, g2.aileron_servo_max);
 
     // cope with various dspoiler options
     const int8_t bitmask = g2.crow_flap_options.get();
@@ -1119,19 +1117,25 @@ void Plane::servos_auto_trim(void)
     float dspoiler_outer_right = roll_I;
     float dspoiler_inner_right = 0.0f;
 
+    uint16_t dspoiler_servo_min, dspoiler_servo_max;
+
     if (flying_wing) {
         dspoiler_outer_left += pitch_I;
         dspoiler_outer_right += pitch_I;
+        dspoiler_servo_min = g2.elevon_servo_min;
+        dspoiler_servo_max = g2.elevon_servo_max;
     }
     if (full_span_aileron) {
         dspoiler_inner_left = dspoiler_outer_left;
         dspoiler_inner_right = dspoiler_outer_right;
+        dspoiler_servo_min = g2.aileron_servo_min;
+        dspoiler_servo_max = g2.aileron_servo_max;
     }
 
-    g2.servo_channels.adjust_trim(SRV_Channel::k_dspoilerLeft1,  dspoiler_outer_left);
-    g2.servo_channels.adjust_trim(SRV_Channel::k_dspoilerLeft2,  dspoiler_inner_left);
-    g2.servo_channels.adjust_trim(SRV_Channel::k_dspoilerRight1, dspoiler_outer_right);
-    g2.servo_channels.adjust_trim(SRV_Channel::k_dspoilerRight2, dspoiler_inner_right);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_dspoilerLeft1,  dspoiler_outer_left, dspoiler_servo_min, dspoiler_servo_max);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_dspoilerLeft2,  dspoiler_inner_left, dspoiler_servo_min, dspoiler_servo_max);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_dspoilerRight1, dspoiler_outer_right, dspoiler_servo_min, dspoiler_servo_max);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_dspoilerRight2, dspoiler_inner_right, dspoiler_servo_min, dspoiler_servo_max);
 
     auto_trim.last_trim_check = now;
 

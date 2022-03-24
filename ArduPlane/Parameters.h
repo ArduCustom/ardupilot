@@ -575,6 +575,16 @@ public:
 
     AP_Int8 arming_mode_sw;
 
+    // Absolute min/max servo command used for auto trim
+    AP_Int16 aileron_servo_min;
+    AP_Int16 aileron_servo_max;
+    AP_Int16 elevator_servo_min;
+    AP_Int16 elevator_servo_max;
+    AP_Int16 elevon_servo_min;
+    AP_Int16 elevon_servo_max;
+    AP_Int16 vtail_servo_min;
+    AP_Int16 vtail_servo_max;
+
     // plane throws diff
     AP_Float ailerons_diff;
     AP_Float elevator_diff;
