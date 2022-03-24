@@ -413,6 +413,8 @@ void SRV_Channels::save_trim(void)
     for (uint8_t i=0; i<NUM_SERVO_CHANNELS; i++) {
         if (trimmed_mask & (1U<<i)) {
             channels[i].servo_trim.set_and_save(channels[i].servo_trim.get());
+            channels[i].servo_min.set_and_save(channels[i].servo_min.get());
+            channels[i].servo_max.set_and_save(channels[i].servo_max.get());
         }
     }
     trimmed_mask = 0;
