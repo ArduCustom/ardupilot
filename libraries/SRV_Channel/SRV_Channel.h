@@ -183,6 +183,8 @@ public:
         k_mast_rotation         = 137,
         k_alarm                 = 138,
         k_alarm_inverted        = 139,
+        k_aileron_left          = 140,
+        k_aileron_right         = 141,
         k_nr_aux_servo_functions         ///< This must be the last enum value (only add new values _before_ this one)
     } Aux_servo_function_t;
 

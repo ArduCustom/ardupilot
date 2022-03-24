@@ -335,6 +335,8 @@ void Plane::trim_radio()
 
     // trim main surfaces
     SRV_Channels::set_trim_to_servo_out_for(SRV_Channel::k_aileron);
+    SRV_Channels::set_trim_to_servo_out_for(SRV_Channel::k_aileron_left);
+    SRV_Channels::set_trim_to_servo_out_for(SRV_Channel::k_aileron_right);
     SRV_Channels::set_trim_to_servo_out_for(SRV_Channel::k_elevator);
     SRV_Channels::set_trim_to_servo_out_for(SRV_Channel::k_rudder);
 
