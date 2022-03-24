@@ -1073,7 +1073,7 @@ void Plane::servos_output(void)
 
     SRV_Channels::push();
 
-    if (g2.servo_channels.auto_trim_mode() != SRV_Channels::SERVO_AUTO_TRIM_DISABLED) {
+    if (g2.servo_channels.auto_trim_mode() != SRV_Channels::SERVO_AUTO_TRIM_DISABLED || plane.run_servos_auto_tune) {
         servos_auto_trim();
     }
 }
