@@ -162,6 +162,16 @@ bool Plane::suppress_throttle(void)
     return true;
 }
 
+float Plane::apply_throws_diff(float input, float diff) const
+{
+    const float mixing_diff_attn = (100 - MIN(abs(diff), 90)) * 0.01f;
+
+    if ((input < 0 && diff > 0) || (input > 0 && diff < 0)) {
+        return input * mixing_diff_attn;
+    }
+
+    return input;
+}
 
 /*
   mixer for elevon and vtail channels setup using designated servo
@@ -186,15 +196,8 @@ void Plane::channel_function_mixer(SRV_Channel::Aux_servo_function_t func1_in, S
     float out1 = constrain_float(in2 - in1, -4500, 4500);
     float out2 = constrain_float(in2 + in1, -4500, 4500);
 
-    const float mixing_diff_attn = (100 - MIN(abs(g.mixing_diff), 90)) * 0.01;
-
-    if ((out1 < 0 && g.mixing_diff > 0) || (out1 > 0 && g.mixing_diff < 0)) {
-        out1 *= mixing_diff_attn;
-    }
-
-    if ((out2 < 0 && g.mixing_diff > 0) || (out2 > 0 && g.mixing_diff < 0)) {
-        out2 *= mixing_diff_attn;
-    }
+    out1 = apply_throws_diff(out1, g.mixing_diff);
+    out2 = apply_throws_diff(out2, g.mixing_diff);
 
     SRV_Channels::set_output_scaled(func1_out, out1);
     SRV_Channels::set_output_scaled(func2_out, out2);
@@ -211,10 +214,13 @@ void Plane::flaperon_update()
       percentage of flaps. Flap input can come from a manual channel
       or from auto flaps.
      */
-    float aileron = SRV_Channels::get_output_scaled(SRV_Channel::k_aileron);
+    float aileron_right = SRV_Channels::get_output_scaled(SRV_Channel::k_aileron);
+    float aileron_left = -aileron_right;
+    aileron_left = apply_throws_diff(aileron_left, g2.ailerons_diff);
+    aileron_right = apply_throws_diff(aileron_right, g2.ailerons_diff);
     float flap_percent = SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_flap_auto);
-    float flaperon_left  = constrain_float(aileron + flap_percent * 45, -4500, 4500);
-    float flaperon_right = constrain_float(aileron - flap_percent * 45, -4500, 4500);
+    float flaperon_left  = constrain_float(aileron_left - flap_percent * 45, -4500, 4500);
+    float flaperon_right = constrain_float(aileron_right - flap_percent * 45, -4500, 4500);
     SRV_Channels::set_output_scaled(SRV_Channel::k_flaperon_left, flaperon_left);
     SRV_Channels::set_output_scaled(SRV_Channel::k_flaperon_right, flaperon_right);
 }
@@ -238,13 +244,14 @@ void Plane::dspoiler_update(void)
     float elevon_left;
     float elevon_right;
     if (flying_wing) {
-        elevon_left = SRV_Channels::get_output_scaled(SRV_Channel::k_elevon_left);
-        elevon_right = SRV_Channels::get_output_scaled(SRV_Channel::k_elevon_right);
+        elevon_left = apply_throws_diff(SRV_Channels::get_output_scaled(SRV_Channel::k_elevon_left), g.mixing_diff);
+        elevon_right = apply_throws_diff(SRV_Channels::get_output_scaled(SRV_Channel::k_elevon_right), g.mixing_diff);
     } else {
         const float aileron = SRV_Channels::get_output_scaled(SRV_Channel::k_aileron);
-        elevon_left = -aileron;
-        elevon_right = aileron;
+        elevon_left = apply_throws_diff(-aileron, g2.ailerons_diff);
+        elevon_right = apply_throws_diff(aileron, g2.ailerons_diff);
     }
+
 
     const float rudder_rate = g.dspoiler_rud_rate * 0.01f;
     const float rudder = SRV_Channels::get_output_scaled(SRV_Channel::k_rudder) * rudder_rate;
@@ -305,9 +312,9 @@ void Plane::dspoiler_update(void)
                 outer_flap_scaled = constrain_float(outer_flap_scaled - 50, 0,50) * 2;
             }
             // scale flaps so when weights are 100 they give full up or down
-            dspoiler_outer_left  = constrain_float(dspoiler_outer_left  + outer_flap_scaled * weight_outer * 0.45, -4500, 4500);
+            dspoiler_outer_left  = constrain_float(dspoiler_outer_left  - outer_flap_scaled * weight_outer * 0.45, -4500, 4500);
             dspoiler_inner_left  = constrain_float(dspoiler_inner_left  - inner_flap_scaled * weight_inner * 0.45, -4500, 4500);
-            dspoiler_outer_right = constrain_float(dspoiler_outer_right + outer_flap_scaled * weight_outer * 0.45, -4500, 4500);
+            dspoiler_outer_right = constrain_float(dspoiler_outer_right - outer_flap_scaled * weight_outer * 0.45, -4500, 4500);
             dspoiler_inner_right = constrain_float(dspoiler_inner_right - inner_flap_scaled * weight_inner * 0.45, -4500, 4500);
         }
     }
@@ -1001,6 +1008,23 @@ void Plane::landing_neutral_control_surface_servos(void)
  
 }
 
+void Plane::channel_function_apply_diff(SRV_Channel::Aux_servo_function_t func, float diff) const
+{
+    const float input = SRV_Channels::get_output_scaled(func);
+    SRV_Channels::set_output_scaled(func, apply_throws_diff(input, diff));
+}
+
+void Plane::set_aileron_outputs() const
+{
+    const float aileron_input = SRV_Channels::get_output_scaled(SRV_Channel::k_aileron);
+
+    const float aileron_left_output = apply_throws_diff(-aileron_input, g2.ailerons_diff);
+    const float aileron_right_output = apply_throws_diff(aileron_input, g2.ailerons_diff);
+
+    SRV_Channels::set_output_scaled(SRV_Channel::k_aileron_left, aileron_left_output);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_aileron_right, aileron_right_output);
+}
+
 /*
   run configured output mixer. This takes calculated servo_out values
   for each channel and calculates PWM values, then pushes them to
@@ -1016,6 +1040,12 @@ void Plane::servos_output(void)
     // run vtail and elevon mixers
     channel_function_mixer(SRV_Channel::k_aileron, SRV_Channel::k_elevator, SRV_Channel::k_elevon_left, SRV_Channel::k_elevon_right);
     channel_function_mixer(SRV_Channel::k_rudder,  SRV_Channel::k_elevator, SRV_Channel::k_vtail_right, SRV_Channel::k_vtail_left);
+
+    // apply elevator differential throws
+    channel_function_apply_diff(SRV_Channel::k_elevator, g2.elevator_diff);
+
+    // set left/right aileron outputs
+    set_aileron_outputs();
 
 #if HAL_QUADPLANE_ENABLED
     // cope with tailsitters and bicopters
@@ -1097,6 +1127,8 @@ void Plane::servos_auto_trim(void)
     float pitch_I = pitchController.get_pid_info().I;
 
     g2.servo_channels.adjust_trim(SRV_Channel::k_aileron, roll_I);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_aileron_left, -roll_I);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_aileron_right, roll_I);
     g2.servo_channels.adjust_trim(SRV_Channel::k_elevator, pitch_I);
 
     g2.servo_channels.adjust_trim(SRV_Channel::k_elevon_left,  pitch_I - roll_I);
@@ -1105,7 +1137,7 @@ void Plane::servos_auto_trim(void)
     g2.servo_channels.adjust_trim(SRV_Channel::k_vtail_left,  pitch_I);
     g2.servo_channels.adjust_trim(SRV_Channel::k_vtail_right, pitch_I);
 
-    g2.servo_channels.adjust_trim(SRV_Channel::k_flaperon_left,  roll_I);
+    g2.servo_channels.adjust_trim(SRV_Channel::k_flaperon_left,  -roll_I);
     g2.servo_channels.adjust_trim(SRV_Channel::k_flaperon_right, roll_I);
 
     // cope with various dspoiler options

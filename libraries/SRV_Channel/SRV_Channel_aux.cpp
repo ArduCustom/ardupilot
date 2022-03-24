@@ -131,6 +131,8 @@ void SRV_Channel::aux_servo_function_setup(void)
     case k_aileron_with_input:
     case k_elevator_with_input:
     case k_aileron:
+    case k_aileron_left:
+    case k_aileron_right:
     case k_elevator:
     case k_dspoilerLeft1:
     case k_dspoilerLeft2:
