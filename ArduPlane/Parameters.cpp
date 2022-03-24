@@ -1248,6 +1248,22 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_SUBGROUPINFO(follow, "FOLL", 33, ParametersG2, AP_Follow),
 #endif
 
+    // @Param: AILERON_DIFF
+    // @DisplayName: Amount of differential throws applied to the ailerons
+    // @Description: Amount of differential throws applied to the ailerons. A positive number reduces the control surfaces down travel. A negative number reduces the control surfaces up travel
+    // @Units: %
+    // @Range: -90 90
+    // @User: Advanced
+    AP_GROUPINFO("AILERON_DIFF", 53, ParametersG2, ailerons_diff, 0),
+    
+    // @Param: ELEVATOR_DIFF
+    // @DisplayName: Amount of differential throws applied to the elevator (does not apply to elevons)
+    // @Description: Amount of differential throws applied to the elevator (does not apply to elevons). A positive number reduces the control surfaces down travel. A negative number reduces the control surfaces up travel
+    // @Units: %
+    // @Range: -90 90
+    // @User: Advanced
+    AP_GROUPINFO("ELEVATOR_DIFF", 54, ParametersG2, elevator_diff, 0),
+    
     // @Param: THR_EXPO_AUTO
     // @DisplayName: Auto throttle square response curve
     // @Description: Amount of square response curve to apply to throttle in auto throttle modes
