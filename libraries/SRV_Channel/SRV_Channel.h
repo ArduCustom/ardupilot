@@ -299,11 +299,16 @@ public:
 
 private:
     AP_Int16 servo_min;
+    AP_Int16 servo_abs_min;
     AP_Int16 servo_max;
+    AP_Int16 servo_abs_max;
     AP_Int16 servo_trim;
     // reversal, following convention that 1 means reversed, 0 means normal
     AP_Int8 reversed;
     AP_Enum16<Aux_servo_function_t> function;
+
+    uint16_t servo_min_backup;
+    uint16_t servo_max_backup;
 
     // a pending output value as PWM
     uint16_t output_pwm;
