@@ -3646,10 +3646,6 @@ function'''
              "Test Loiter mode",
              self.LOITER),
 
-            ("DeepStall",
-             "Test DeepStall Landing",
-             self.fly_deepstall),
-
             ("WatchdogHome",
              "Ensure home is restored after watchdog reset",
              self.WatchdogHome),
