@@ -665,20 +665,32 @@ void SRV_Channels::adjust_trim(SRV_Channel::Aux_servo_function_t function, float
         if (function != c.function) {
             continue;
         }
-        float change = c.reversed?-v:v;
-        uint16_t new_trim = c.servo_trim;
-        if (c.servo_max <= c.servo_min) {
+
+        if (!c.servo_min_backup) {
+            c.servo_min_backup = c.servo_min;
+            c.servo_max_backup = c.servo_max;
+        }
+
+        float change = signbit(v) ? -1 : 1;
+
+        if (c.reversed) {
+            change *= -1;
+        }
+
+        const float range = c.servo_max_backup - c.servo_min_backup;
+        float trim_ratio = (float(c.servo_trim) - (float(c.servo_min_backup) + range / 2)) / range;
+
+        if ((signbit(change) && (trim_ratio <= -0.25f || (c.servo_abs_min != 0 && c.servo_min <= c.servo_abs_min))) ||
+            (!signbit(change) && (trim_ratio >= 0.25f || (c.servo_abs_max != 0 && c.servo_max >= c.servo_abs_max)))) {
             continue;
         }
-        float trim_scaled = float(c.servo_trim - c.servo_min) / (c.servo_max - c.servo_min);
-        if (change > 0 && trim_scaled < 0.6f) {
-            new_trim++;
-        } else if (change < 0 && trim_scaled > 0.4f) {
-            new_trim--;
-        } else {
-            return;
+
+        c.servo_trim.set(c.servo_trim + change);
+
+        if (c.servo_abs_min != 0 && c.servo_abs_max != 0) {
+            c.servo_min.set(c.servo_min + change);
+            c.servo_max.set(c.servo_max + change);
         }
-        c.servo_trim.set(new_trim);
 
         trimmed_mask |= 1U<<i;
     }
