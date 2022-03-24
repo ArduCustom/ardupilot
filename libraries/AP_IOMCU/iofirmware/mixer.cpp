@@ -159,9 +159,14 @@ void AP_IOMCU_FW::run_mixer(void)
             pwm = rc_input.pwm[(uint8_t)(function - SRV_Channel::k_rcin1)];
             break;
 
-        case SRV_Channel::k_aileron:
-        case SRV_Channel::k_aileron_with_input:
+        case SRV_Channel::k_aileron_left:
         case SRV_Channel::k_flaperon_left:
+            pwm = mix_output_angle(i, -roll);
+            break;
+
+        case SRV_Channel::k_aileron:
+        case SRV_Channel::k_aileron_right:
+        case SRV_Channel::k_aileron_with_input:
         case SRV_Channel::k_flaperon_right:
             pwm = mix_output_angle(i, roll);
             break;
