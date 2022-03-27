@@ -469,14 +469,13 @@ void AP_OSD::update_stats()
 
     if (_stats.consumed_mah_available) {
         _stats.consumed_mah += consumed_mah - _stats_last_consumed_mah;
+        _stats_last_consumed_mah = consumed_mah;
     }
 
     if (_stats.consumed_wh_available) {
         _stats.consumed_wh += consumed_wh - _stats_last_consumed_wh;
+        _stats_last_consumed_wh = consumed_wh;
     }
-
-    _stats.consumed_mah_available = battery.consumed_mah(_stats_last_consumed_mah);
-    _stats.consumed_wh_available = battery.consumed_wh(_stats_last_consumed_wh);
 
     Vector2f ground_speed_vector;
     Vector3f wind_speed_vector;
