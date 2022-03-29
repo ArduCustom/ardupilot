@@ -439,3 +439,14 @@ bool Plane::throttle_at_zero(void) const
     }
     return false;
 }
+
+float Plane::rc_max_climb_rate(void) const
+{
+    float max_climb_rate = g.flybywire_climb_rate;
+
+    if (is_zero(max_climb_rate)) {
+        max_climb_rate = MIN(TECS_controller.get_max_climbrate(), TECS_controller.get_max_sinkrate());
+    }
+
+    return max_climb_rate;
+}
