@@ -50,6 +50,10 @@ public:
         return get_singleton() != nullptr && (_options & uint32_t(Option::PLANE_DISABLE_MAN_THR_EXPO));
     }
 
+    bool throttle_battery_compensation_is_disabled_in_manual_mode(void) const {
+        return get_singleton() != nullptr && (_options & uint32_t(Option::PLANE_DISABLE_MAN_BAT_COMP));
+    }
+
     RC_Channel *get_arming_channel(void) const override;
 
 protected:
