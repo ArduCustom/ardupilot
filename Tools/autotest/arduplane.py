@@ -2119,6 +2119,8 @@ function'''
         self.fly_home_land_and_disarm()
 
     def LOITER(self):
+        # first test old loiter behavour
+        self.set_parameter("FLIGHT_OPTIONS", 1 << 23)
         self.takeoff(alt=200)
         self.set_rc(3, 1500)
         self.change_mode("LOITER")
@@ -2140,7 +2142,7 @@ function'''
         initial_throttle = m.throttle
         initial_alt = m.alt
         self.progress("Initial throttle: %u" % initial_throttle)
-        # pitch down, ensure throttle decreases:
+        # pitch down, ensure throttle increases:
         rc2_max = self.get_parameter("RC2_MAX")
         self.set_rc(2, int(rc2_max))
         tstart = self.get_sim_time()
@@ -2164,6 +2166,20 @@ function'''
         self.progress("Centering elevator and ensuring we get back to loiter altitude")
         self.set_rc(2, 1500)
         self.wait_altitude(initial_alt-1, initial_alt+1)
+        # Test new loiter behavour
+        self.set_parameter("FLIGHT_OPTIONS", 0)
+        # should decend at max stick
+        self.set_rc(2, int(rc2_max))
+        self.wait_altitude(initial_alt - 110, initial_alt - 90, timeout=90)
+        # should not climb back at mid stick
+        self.set_rc(2, 1500)
+        self.delay_sim_time(60)
+        self.wait_altitude(initial_alt - 110, initial_alt - 90)
+        # should climb at min stick
+        self.set_rc(2, 1100)
+        self.wait_altitude(initial_alt - 10, initial_alt + 10, timeout=90)
+        # return stick to center and fly home
+        self.set_rc(2, 1500)
         self.fly_home_land_and_disarm()
 
     def CPUFailsafe(self):
