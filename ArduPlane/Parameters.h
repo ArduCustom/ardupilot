@@ -440,7 +440,7 @@ public:
     AP_Float pitch_trim;
     AP_Int16 FBWB_min_altitude_cm;
 
-    AP_Int8 flap_deployed_percent;
+    AP_Float flap_deployed_percent;
     AP_Float flap_retracted_speed;
     AP_Float flap_deployed_speed;
     AP_Int8 takeoff_flap_percent;  
