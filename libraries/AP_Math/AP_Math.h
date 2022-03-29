@@ -301,6 +301,8 @@ float linear_interpolate(float low_output, float high_output,
                          float var_value,
                          float var_low, float var_high);
 
+float square_expo_curve(float v, float expo);
+
 /* cubic "expo" curve generator
  * alpha range: [0,1] min to max expo
  * input range: [-1,1]
