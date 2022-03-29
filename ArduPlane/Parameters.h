@@ -375,7 +375,7 @@ public:
     AP_Float ground_steer_alt;
     AP_Int16 ground_steer_dps;
     AP_Float stab_pitch_down;
-    AP_Int16 stab_pitch_down_curve;
+    AP_Float stab_pitch_down_curve;
 
     // speed used for speed scaling
     AP_Float scaling_speed;
