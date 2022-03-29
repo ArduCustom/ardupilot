@@ -114,6 +114,17 @@ float linear_interpolate(float low_output, float high_output,
     return low_output + p * (high_output - low_output);
 }
 
+// v should be between -100 and 100, curve must be between -100 and 100, return will be between -100 and 100
+float square_expo_curve(float v, float expo)
+{
+    expo = constrain_float(expo, -100, 100);
+    const float expo_scaled_abs = abs(expo * 0.01f);
+    const float v_scaled_abs = abs(constrain_float(v, -100, 100) * 0.01f);
+    const float v_exposed_abs = v_scaled_abs * (1 - expo_scaled_abs) + expo_scaled_abs * (expo < 0 ? sq(v_scaled_abs) : sqrtf(v_scaled_abs));
+    const int8_t sign_factor = signbit(v) ? -1 : 1;
+    return sign_factor * v_exposed_abs * 100;
+}
+
 /* cubic "expo" curve generator
  * alpha range: [0,1] min to max expo
  * input range: [-1,1]
