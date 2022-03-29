@@ -46,6 +46,10 @@ public:
 
     bool has_valid_input() const override;
 
+    bool throttle_expo_is_disabled_in_manual_mode(void) const {
+        return get_singleton() != nullptr && (_options & uint32_t(Option::PLANE_DISABLE_MAN_THR_EXPO));
+    }
+
     RC_Channel *get_arming_channel(void) const override;
 
 protected:

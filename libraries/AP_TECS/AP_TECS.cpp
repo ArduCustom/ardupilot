@@ -735,7 +735,7 @@ void AP_TECS::_update_throttle_with_airspeed(void)
         float K_STE2Thr = 1 / (timeConstant() * (_STEdot_max - _STEdot_min) / (_THRmaxf - _THRminf_clipped_to_zero));
 
         // Calculate feed-forward throttle
-        float nomThr = aparm.throttle_cruise * 0.01f;
+        float nomThr = throttle_cruise() * 0.01f;
         const Matrix3f &rotMat = _ahrs.get_rotation_body_to_ned();
         // Use the demanded rate of change of total energy as the feed-forward demand, but add
         // additional component which scales with (1/cos(bank angle) - 1) to compensate for induced
@@ -817,7 +817,7 @@ void AP_TECS::_update_throttle_without_airspeed(int16_t throttle_nudge)
     if (_flags.is_doing_auto_land && _landThrottle >= 0) {
         nomThr = (_landThrottle + throttle_nudge) * 0.01f;
     } else { //not landing or not using TECS_LAND_THR parameter
-        nomThr = (aparm.throttle_cruise + throttle_nudge)* 0.01f;
+        nomThr = (throttle_cruise() + throttle_nudge)* 0.01f;
     }
 
     if (_pitch_dem > 0.0f && _PITCHmaxf > 0.0f) {
@@ -1005,7 +1005,7 @@ void AP_TECS::_initialise_states(int32_t ptchMinCO_cd, float hgt_afe)
         _integTHR_state      = 0.0f;
         _integSEB_state      = 0.0f;
         if (AP_HAL::millis() - _throttle_dem_ext_update_last_msec > 200) {
-            _throttle_dem = aparm.throttle_cruise * 0.01f;
+            _throttle_dem = throttle_cruise() * 0.01f;
         }
         _last_pitch_dem    = _ahrs.pitch;
         _hgt_dem_adj_last  = hgt_afe;
@@ -1051,12 +1051,15 @@ void AP_TECS::update_pitch_throttle(int32_t hgt_dem_cm,
                                     int32_t ptchMinCO_cd,
                                     int16_t throttle_nudge,
                                     float hgt_afe,
-                                    float load_factor)
+                                    float load_factor,
+                                    float throttle_expo)
 {
     // Calculate time in seconds since last update
     uint64_t now = AP_HAL::micros64();
     _DT = (now - _update_pitch_throttle_last_usec) * 1.0e-6f;
     _update_pitch_throttle_last_usec = now;
+
+    _throttle_expo = throttle_expo;
 
     _flags.is_gliding = _flags.gliding_requested || _flags.propulsion_failed || aparm.throttle_max==0;
     _flags.is_doing_auto_land = (flight_stage == AP_Vehicle::FixedWing::FLIGHT_LAND);
@@ -1072,11 +1075,11 @@ void AP_TECS::update_pitch_throttle(int32_t hgt_dem_cm,
 
     if (aparm.takeoff_throttle_max != 0 &&
         (_flight_stage == AP_Vehicle::FixedWing::FLIGHT_TAKEOFF || _flight_stage == AP_Vehicle::FixedWing::FLIGHT_ABORT_LAND)) {
-        _THRmaxf  = aparm.takeoff_throttle_max * 0.01f;
+        _THRmaxf  = takeoff_throttle_max() * 0.01f;
     } else {
-        _THRmaxf  = aparm.throttle_max * 0.01f;
+        _THRmaxf  = throttle_max() * 0.01f;
     }
-    _THRminf = aparm.throttle_min * 0.01f;
+    _THRminf = throttle_min() * 0.01f;
     _THRminf_clipped_to_zero = MAX(_THRminf, 0);
 
     // min of 1% throttle range to prevent a numerical error

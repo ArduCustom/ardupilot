@@ -600,11 +600,16 @@ protected:
         SUPPRESS_CRSF_MESSAGE   = (1U << 9), // suppress CRSF mode/rate message for ELRS systems
         MULTI_RECEIVER_SUPPORT  = (1U << 10), // allow multiple receivers
         USE_CRSF_LQ_AS_RSSI     = (1U << 11), // returns CRSF link quality as RSSI value, instead of RSSI
+        PLANE_DISABLE_MAN_THR_EXPO  = (1U << 23), // plane only: disable throttle expo in manual mode
     };
 
     void new_override_received() {
         has_new_overrides = true;
     }
+
+protected:
+
+    AP_Int32  _options;
 
 private:
     static RC_Channels *_singleton;
@@ -616,7 +621,6 @@ private:
     bool _has_had_rc_receiver; // true if we have had a direct detach RC reciever, does not include overrides
 
     AP_Float _override_timeout;
-    AP_Int32  _options;
     AP_Int32  _protocols;
 
     RC_Channel *flight_mode_channel() const;
