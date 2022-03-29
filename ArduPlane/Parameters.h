@@ -565,8 +565,8 @@ public:
     AP_Int8         man_expo_pitch;
     AP_Int8         man_expo_rudder;
 
-    AP_Int8         throttle_expo_manual;
-    AP_Int8         throttle_expo_auto;
+    AP_Float        throttle_expo_manual;
+    AP_Float        throttle_expo_auto;
 
     AP_Int32        oneshot_mask;
 
