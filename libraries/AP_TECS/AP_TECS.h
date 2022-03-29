@@ -51,7 +51,8 @@ public:
                                int32_t ptchMinCO_cd,
                                int16_t throttle_nudge,
                                float hgt_afe,
-                               float load_factor);
+                               float load_factor,
+                               float throttle_expo);
 
     // demanded throttle in percentage
     // should return -100 to 100, usually positive unless reverse thrust is enabled via _THRminf < 0
@@ -146,6 +147,22 @@ public:
         _need_reset = true;
     }
 
+    float throttle_cruise(void) {
+        return square_expo_curve(aparm.throttle_cruise, _throttle_expo);
+    }
+
+    float throttle_min(void) {
+        return square_expo_curve(aparm.throttle_min, _throttle_expo);
+    }
+
+    float throttle_max(void) {
+        return square_expo_curve(aparm.throttle_max, _throttle_expo);
+    }
+
+    float takeoff_throttle_max(void) {
+        return square_expo_curve(aparm.takeoff_throttle_max, _throttle_expo);
+    }
+
     AP_Float &thr_ff_damp(void) { return _thr_ff_damp; }
     AP_Float &thr_ff_filter(void) { return _thr_ff_filter; }
 
@@ -175,6 +192,8 @@ private:
     // Logging  bitmask
     const uint32_t _log_bitmask;
 
+    float _throttle_expo;
+    
     // TECS tuning parameters
     AP_Float _hgtCompFiltOmega;
     AP_Float _spdCompFiltOmega;
