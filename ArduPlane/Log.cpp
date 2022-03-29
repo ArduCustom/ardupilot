@@ -7,7 +7,7 @@ void Plane::Log_Write_Attitude(void)
 {
     Vector3f targets;       // Package up the targets into a vector for commonality with Copter usage of Log_Wrote_Attitude
     targets.x = nav_roll_cd;
-    targets.y = nav_pitch_cd;
+    targets.y = nav_pitch_cd + g.pitch_trim * 100;
     targets.z = 0; //Plane does not have the concept of navyaw. This is a placeholder.
 
 #if HAL_QUADPLANE_ENABLED
