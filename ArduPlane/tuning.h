@@ -94,6 +94,9 @@ private:
 
         TUNING_MIXING_DIFF =                  75,
         TUNING_MIXING_OFFSET =                76,
+
+        TUNING_THR_EXPO_MANUAL =              77,
+        TUNING_THR_EXPO_AUTO =                78,
     };
 
     /*
@@ -114,6 +117,7 @@ private:
         TUNING_SET_AGL_ROLL =               12,
         TUNING_SET_AGL_PITCH =              13,
         TUNING_SET_MIXING =                 14,
+        TUNING_SET_THR_EXPO =               15,
     };
 
     AP_Float *get_param_pointer(uint8_t parm) override;
@@ -136,6 +140,7 @@ private:
     static const uint8_t tuning_set_angle_roll[];
     static const uint8_t tuning_set_angle_pitch[];
     static const uint8_t tuning_set_mixing[];
+    static const uint8_t tuning_set_thr_expo[];
 
     // mask of what params have been set
     uint64_t have_set;
