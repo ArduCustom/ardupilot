@@ -688,9 +688,7 @@ void Plane::set_servos_flaps(void)
         } else {
             flapSpeedSource = aparm.throttle_cruise;
         }
-        if (g.flap_deployed_percent != 0) {
-            auto_flap_percent = linear_interpolate(0, g.flap_deployed_percent, flapSpeedSource, g.flap_retracted_speed, g.flap_deployed_speed);
-        } //else flaps stay at default zero deflection
+        auto_flap_percent = linear_interpolate(0, g.flap_deployed_percent, flapSpeedSource, g.flap_retracted_speed, g.flap_deployed_speed);
 
 #if HAL_SOARING_ENABLED
         if (control_mode == &mode_thermal) {
