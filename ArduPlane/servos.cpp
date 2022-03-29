@@ -415,6 +415,10 @@ void Plane::set_servos_manual_passthrough(void)
 #endif
 
     apply_throttle_dz();
+
+    if (!g2.rc_channels.throttle_expo_is_disabled_in_manual_mode()) {
+        apply_throttle_expo();
+    }
 }
 
 /*
@@ -505,6 +509,16 @@ void Plane::apply_throttle_dz(void)
     if (fabsf(SRV_Channels::get_output_scaled(SRV_Channel::k_throttle)) < g.throttle_dz) {
         SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0.0);
     }
+}
+
+void Plane::apply_throttle_expo(void)
+{
+    const float expo_param = control_mode->does_auto_throttle() ? g2.throttle_expo_auto : g2.throttle_expo_manual;
+    const float expo = constrain_int16(expo_param, 0, 100) * 0.01f;
+    const float input_throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) * 0.01f;
+    const int8_t sign_factor = signbit(input_throttle) ? -1 : 1;
+    const float output_throttle = (1 - expo) * abs(input_throttle) + expo * sq(input_throttle);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_throttle , sign_factor * output_throttle * 100);
 }
 
 /*
@@ -633,6 +647,8 @@ void Plane::set_servos_controlled(void)
 
     // conpensate for battery voltage drop
     throttle_voltage_comp(min_throttle, max_throttle);
+
+    apply_throttle_expo();
 }
 
 /*

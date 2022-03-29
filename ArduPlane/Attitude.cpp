@@ -777,7 +777,7 @@ void Plane::adjust_nav_pitch_throttle(void)
 {
     if (flight_stage != AP_Vehicle::FixedWing::FLIGHT_VTOL) {
         float throttle_pitch_mix_ratio = 1;
-        const float throttle_value = throttle_percentage();
+        const float throttle_value = control_mode->does_auto_throttle() ? TECS_controller.get_throttle_demand() : get_throttle_input(true);
 
         if (is_positive(throttle_value)) {
             throttle_pitch_mix_ratio = apply_pitch_curve(linear_interpolate(1, 0, throttle_value, 0, aparm.throttle_cruise), g.stab_pitch_down_curve);
