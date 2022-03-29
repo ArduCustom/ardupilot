@@ -3041,22 +3041,33 @@ void AP_OSD_Screen::draw_eff_wh(uint8_t x, uint8_t y, float value)
     backend->write(x, y, false, fmt, SYMBOL(SYM_EFF), value, SYMBOL(SYM_WH));
 }
 
-void AP_OSD_Screen::draw_eff(uint8_t x, uint8_t y, float speed)
+// returns false if the efficiency is not available (current or power not available or result not finite)
+bool AP_OSD_Screen::calculate_efficiency(float speed, float &efficiency)
 {
     AP_BattMonitor &battery = AP::battery();
     speed = u_scale(SPEED, speed);
     int8_t eff_unit_base = osd->efficiency_unit_base;
-    if (speed < 2.0) goto invalid;
     if (eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH) {
         float current_amps;
-        if (!battery.current_amps(current_amps) || is_negative(current_amps)) goto invalid;
-        const uint16_t efficiency = roundf(1000.0f * current_amps / speed);
-        if (efficiency > 999) goto invalid;
-        draw_eff_mah(x, y, efficiency);
+        if (!battery.current_amps(current_amps) || is_negative(current_amps)) return false;
+        efficiency = 1000.0f * current_amps / speed;
     } else {
         float power_w;
-        if (!battery.power_watts_without_losses(power_w) || is_negative(power_w)) goto invalid;
-        const float efficiency = power_w / speed;
+        if (!battery.power_watts_without_losses(power_w) || is_negative(power_w)) return false;
+        efficiency = power_w / speed;
+    }
+    return isfinite(efficiency);
+}
+
+void AP_OSD_Screen::draw_eff(uint8_t x, uint8_t y, bool available, float efficiency)
+{
+    int8_t eff_unit_base = osd->efficiency_unit_base;
+    if (!available) goto invalid;
+    if (eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH) {
+        const uint16_t efficiency_int = roundf(efficiency);
+        if (efficiency_int > 999) goto invalid;
+        draw_eff_mah(x, y, efficiency_int);
+    } else {
         if (!isfinite(efficiency) || roundf(efficiency) > 999) goto invalid;
         draw_eff_wh(x, y, efficiency);
     }
@@ -3074,7 +3085,13 @@ void AP_OSD_Screen::draw_eff_ground(uint8_t x, uint8_t y)
         WITH_SEMAPHORE(ahrs.get_semaphore());
         ground_speed_vector = ahrs.groundspeed_vector();
     }
-    draw_eff(x, y, ground_speed_vector.length());
+    const float ground_speed = ground_speed_vector.length();
+    float efficiency;
+    const bool efficiency_available = calculate_efficiency(ground_speed, efficiency);
+    if (efficiency_available) {
+        osd->eff_ground_state = osd->eff_ground_state + (efficiency - osd->eff_ground_state) * 0.2f;
+    }
+    draw_eff(x, y, efficiency_available, osd->eff_ground_state);
 }
 
 void AP_OSD_Screen::draw_eff_air(uint8_t x, uint8_t y)
@@ -3086,7 +3103,15 @@ void AP_OSD_Screen::draw_eff_air(uint8_t x, uint8_t y)
         WITH_SEMAPHORE(ahrs.get_semaphore());
         have_airspeed_estimate = ahrs.airspeed_estimate(airspeed_mps);
     }
-    draw_eff(x, y, have_airspeed_estimate ? airspeed_mps : 0);
+    float efficiency;
+    bool efficiency_available;
+    if (have_airspeed_estimate) {
+        efficiency_available = calculate_efficiency(airspeed_mps, efficiency);
+        if (efficiency_available) {
+            osd->eff_air_state = osd->eff_air_state + (efficiency - osd->eff_air_state) * 0.2f;
+        }
+    }
+    draw_eff(x, y, have_airspeed_estimate && efficiency_available, osd->eff_air_state);
 }
 
 void AP_OSD_Screen::draw_avg_eff(uint8_t x, uint8_t y, const float distance_travelled_m, const bool draw_eff_symbol)
@@ -3157,18 +3182,19 @@ void AP_OSD_Screen::draw_climbeff(uint8_t x, uint8_t y)
     } while (false);
     if (is_positive(vspd)) {
         AP_BattMonitor &battery = AP::battery();
-        uint32_t efficiency;
+        float efficiency;
         if (osd->efficiency_unit_base == AP_OSD::EFF_UNIT_BASE_MAH) {
             float amps;
             if (!battery.current_amps(amps) || !is_positive(amps)) goto invalid;
-            efficiency = roundf(3600.0f * vspd / amps);
+            efficiency = 3600.0f * vspd / amps;
         } else {
             float power_w;
             if (!battery.power_watts(power_w) || !is_positive(power_w)) goto invalid;
-            efficiency = roundf(3600.0f * vspd / power_w);
+            efficiency = 3600.0f * vspd / power_w;
         }
-        if (efficiency < 1000) {
-            backend->write(x, y, false,"%c%c%3u%c", SYMBOL(SYM_PTCHUP), SYMBOL(SYM_EFF), (uint16_t)efficiency, unit_icon);
+        osd->climb_eff_state = osd->climb_eff_state + (efficiency - osd->climb_eff_state) * 0.2f;
+        if (osd->climb_eff_state < 1000) {
+            backend->write(x, y, false,"%c%c%3u%c", SYMBOL(SYM_PTCHUP), SYMBOL(SYM_EFF), (uint16_t)lrintf(osd->climb_eff_state), unit_icon);
             return;
         }
     }

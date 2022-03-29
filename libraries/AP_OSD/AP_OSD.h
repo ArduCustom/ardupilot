@@ -317,7 +317,8 @@ private:
     void draw_climbeff(uint8_t x, uint8_t y);
     void draw_eff_mah(uint8_t x, uint8_t y, uint16_t value);
     void draw_eff_wh(uint8_t x, uint8_t y, float value);
-    void draw_eff(uint8_t x, uint8_t y, float speed);
+    bool calculate_efficiency(float speed, float &efficiency);
+    void draw_eff(uint8_t x, uint8_t y, bool available, float efficiency);
     void draw_eff_ground(uint8_t x, uint8_t y);
     void draw_eff_air(uint8_t x, uint8_t y);
     void draw_avg_eff(uint8_t x, uint8_t y, const float distance_travelled_m, const bool draw_eff_symbol = true);
@@ -725,6 +726,9 @@ private:
     float last_distance_m;
     float avg_current_a;
     float avg_power_w;
+    float eff_air_state;
+    float eff_ground_state;
+    float climb_eff_state;
 #endif
     AP_OSD_Backend *backend;
 
