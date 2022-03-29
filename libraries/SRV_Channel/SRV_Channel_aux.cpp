@@ -665,45 +665,63 @@ void SRV_Channels::set_esc_scaling_for(SRV_Channel::Aux_servo_function_t functio
   auto-adjust channel trim from an integrator value. Positive v means
   adjust trim up. Negative means decrease
  */
-void SRV_Channels::adjust_trim(SRV_Channel::Aux_servo_function_t function, float v)
+SRV_Channels::TrimStatus SRV_Channels::adjust_trim(SRV_Channel::Aux_servo_function_t function, float v, int &adjustment, bool &saturation)
 {
     if (is_zero(v)) {
-        return;
+        return function_assigned(function) ? TrimStatus::NoChange : TrimStatus::FunctionUnused;
     }
+
+    saturation = false;
+    bool adjusted = false;
+    bool used = false;
+    int8_t change = signbit(v) ? -1 : 1;
+
     for (uint8_t i=0; i<NUM_SERVO_CHANNELS; i++) {
         SRV_Channel &c = channels[i];
         if (function != c.function) {
             continue;
         }
 
+        used = true;
+
         if (!c.servo_min_backup) {
             c.servo_min_backup = c.servo_min;
             c.servo_max_backup = c.servo_max;
         }
 
-        float change = signbit(v) ? -1 : 1;
-
-        if (c.reversed) {
-            change *= -1;
-        }
+        int8_t servo_change = c.reversed ? -change : change;
 
         const float range = c.servo_max_backup - c.servo_min_backup;
         float trim_ratio = (float(c.servo_trim) - (float(c.servo_min_backup) + range / 2)) / range;
 
-        if ((signbit(change) && (trim_ratio <= -0.25f || (c.servo_abs_min != 0 && c.servo_min <= c.servo_abs_min))) ||
-            (!signbit(change) && (trim_ratio >= 0.25f || (c.servo_abs_max != 0 && c.servo_max >= c.servo_abs_max)))) {
+        if ((servo_change < 0 && (trim_ratio <= -0.25f || (c.servo_abs_min != 0 && c.servo_min <= c.servo_abs_min))) ||
+            (servo_change > 0 && (trim_ratio >= 0.25f || (c.servo_abs_max != 0 && c.servo_max >= c.servo_abs_max)))) {
+            saturation = true;
             continue;
         }
 
-        c.servo_trim.set(c.servo_trim + change);
+        c.servo_trim.set(c.servo_trim + servo_change);
+        adjusted = true;
 
         if (c.servo_abs_min != 0 && c.servo_abs_max != 0) {
-            c.servo_min.set(c.servo_min + change);
-            c.servo_max.set(c.servo_max + change);
+            c.servo_min.set(c.servo_min + servo_change);
+            c.servo_max.set(c.servo_max + servo_change);
         }
 
         trimmed_mask |= 1U<<i;
     }
+
+    if (!used) {
+        return TrimStatus::FunctionUnused;
+    }
+
+    // will be true if v != 0 and not all the servo channels assigned to this function are saturated
+    if (adjusted) {
+        adjustment += change;
+        return TrimStatus::Adjusted;
+    }
+
+    return TrimStatus::NoChange;
 }
 
 // get pwm output for the first channel of the given function type.
