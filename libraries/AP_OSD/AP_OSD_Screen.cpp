@@ -2444,7 +2444,10 @@ void AP_OSD_Screen::draw_vspeed(uint8_t x, uint8_t y)
         vspd = baro.get_climb_rate();
     }
 
-    const float vs_scaled_abs = u_scale(VSPEED, fabsf(vspd));
+    osd->vspd_state = osd->vspd_state + (vspd - osd->vspd_state) * 0.33f;
+
+    vspd = osd->vspd_state;
+    const float vs_scaled_abs = u_scale(VSPEED, abs(vspd));
 
     float edge_sym_slow;
     const float edge_sym_high = 3.0f;
