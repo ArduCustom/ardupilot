@@ -152,3 +152,7 @@ dumpstack_*out
 build.tmp.binaries/
 tasklist.json
 modules/esp_idf
+aircraft_binaries
+aircraft_params
+aircrafts.yaml
+aircraft_statuses.yaml
