@@ -425,6 +425,13 @@ void Plane::set_servos_manual_passthrough(void)
 
     apply_throttle_dz();
 
+    if (!g2.rc_channels.throttle_battery_compensation_is_disabled_in_manual_mode()) {
+        // conpensate for battery voltage drop
+        int8_t min_throttle = -100;
+        int8_t max_throttle = 100;
+        throttle_voltage_comp(min_throttle, max_throttle);
+    }
+
     if (!g2.rc_channels.throttle_expo_is_disabled_in_manual_mode()) {
         apply_throttle_expo();
     }
