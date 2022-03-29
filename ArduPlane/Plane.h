@@ -945,8 +945,6 @@ private:
     bool verify_nav_script_time(const AP_Mission::Mission_Command& cmd);
 #endif
 
-    static float apply_pitch_curve(float v, int8_t curve);
-
     // commands.cpp
     void set_guided_WP(const Location &loc);
     void update_home();
@@ -1078,6 +1076,7 @@ private:
     void set_servos();
     void set_servos_manual_passthrough(void);
     void apply_throttle_dz(void);
+    void apply_throttle_expo(void);
     void set_servos_controlled(void);
     void set_servos_old_elevons(void);
     void set_servos_flaps(void);
