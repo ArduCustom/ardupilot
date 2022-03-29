@@ -528,7 +528,7 @@ void Plane::apply_throttle_dz(void)
 void Plane::apply_throttle_expo(void)
 {
     const float expo_param = control_mode->does_auto_throttle() ? g2.throttle_expo_auto : g2.throttle_expo_manual;
-    const float expo = constrain_int16(expo_param, 0, 100) * 0.01f;
+    const float expo = constrain_float(expo_param, 0, 100) * 0.01f;
     const float input_throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) * 0.01f;
     const int8_t sign_factor = signbit(input_throttle) ? -1 : 1;
     const float output_throttle = (1 - expo) * abs(input_throttle) + expo * sq(input_throttle);
