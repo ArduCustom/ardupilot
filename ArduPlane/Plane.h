@@ -748,9 +748,50 @@ private:
 
     // loop performance monitoring:
     AP::PerfInfo perf_info;
+
+    typedef enum {
+        AdjustPitch,
+        AdjustRoll,
+        AdjustRollInverted,
+        AdjustPitchAndRoll,
+        AdjustPitchAndRollInverted
+    } TrimAdjustmentType;
+
+    typedef struct {
+        SRV_Channel::Aux_servo_function_t function;
+        TrimAdjustmentType adjustment_type;
+        const char *channel_saturation_message;
+    } ServoTrimSetEntry;
+
+    static const ServoTrimSetEntry aileron_trim_set[5];
+    static const ServoTrimSetEntry elevator_trim_set[3];
+    static const ServoTrimSetEntry elevon_trim_set[2];
+    static const ServoTrimSetEntry dspoiler_outer_trim_set[2];
+    static const ServoTrimSetEntry dspoiler_inner_trim_set[2];
+
+    #define SERVOS_TRIM_SET_ENTRIES_COUNT(name) ARRAY_SIZE(name##_trim_set)
+    #define SERVOS_TRIM_SET_STATUS(name) auto_trim.set_status.name
+    #define SERVOS_TRIM_SET_EXT(name, apply_pitch) servos_auto_trim_set(name##_trim_set, SERVOS_TRIM_SET_ENTRIES_COUNT(name), pitch_I, roll_I, SERVOS_TRIM_SET_STATUS(name).adjustment, SERVOS_TRIM_SET_STATUS(name).saturation, apply_pitch);
+    #define SERVOS_TRIM_SET(name) SERVOS_TRIM_SET_EXT(name, true)
+    #define SERVOS_TRIM_SET_STATUS_DEF(name) \
+        struct { \
+            int adjustment; \
+            bool finished; \
+            bool saturation[SERVOS_TRIM_SET_ENTRIES_COUNT(name)]; \
+        } name;
+
     struct {
         uint32_t last_trim_check;
         uint32_t last_trim_save;
+        bool run;
+        struct {
+            SERVOS_TRIM_SET_STATUS_DEF(aileron);
+            SERVOS_TRIM_SET_STATUS_DEF(elevator);
+            SERVOS_TRIM_SET_STATUS_DEF(elevon);
+            SERVOS_TRIM_SET_STATUS_DEF(dspoiler_outer);
+            SERVOS_TRIM_SET_STATUS_DEF(dspoiler_inner);
+            bool dspoiler_finished;
+        } set_status;
     } auto_trim;
 
     struct {
@@ -818,6 +859,7 @@ private:
     };
     static const TerrainLookupTable Terrain_lookup[];
 #endif
+
 
     // Attitude.cpp
     void adjust_nav_pitch_throttle(void);
@@ -1085,6 +1127,8 @@ private:
     void landing_neutral_control_surface_servos(void);
     void servos_output(void);
     void servos_auto_trim(void);
+    void servos_auto_trim_prepare(void) { memset(&auto_trim, 0, sizeof(auto_trim)); }
+    bool servos_auto_trim_set(const ServoTrimSetEntry *const trim_set, uint trim_set_entries_count, float pitch_I, float roll_I, int &adjustments, bool *saturation_status, bool adjust_pitch_if_relevant = true);
     void servos_twin_engine_mix();
     void force_flare();
     void throttle_voltage_comp(int8_t &min_throttle, int8_t &max_throttle) const;
@@ -1228,7 +1272,14 @@ public:
     bool set_velocity_match(const Vector2f &velocity) override;
 #endif // AP_SCRIPTING_ENABLED
 
-    bool run_servos_auto_tune;
+    void servos_auto_trim_start() {
+        servos_auto_trim_prepare();
+        auto_trim.run = true;
+    }
+
+    void servos_auto_trim_stop() {
+        auto_trim.run = false;
+    }
 
 };
 
