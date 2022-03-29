@@ -761,7 +761,7 @@ void Plane::calc_nav_roll()
 }
 
 // v should be between 0 and 1, curve must be between -100 and 100, return will be between 0 and 1
-float Plane::apply_pitch_curve(float v, int8_t curve)
+float Plane::apply_pitch_curve(float v, float curve)
 {
     const float curve_scaled = abs(curve * 0.01f);
     return v * (1 - curve_scaled) + curve_scaled * (curve < 0 ? sq(v) : sqrtf(v));
