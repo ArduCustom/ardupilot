@@ -75,24 +75,25 @@ private:
         TUNING_TRIM_PITCH =                   59,
         TUNING_KFF_THRAT2PTCH =               60,
         TUNING_STAB_PITCH_DOWN =              61,
+        TUNING_STAB_PITCH_DCRV =              62,
 
-        TUNING_RLL2PTCH =                     62,
-        TUNING_KFF_RDDRMIX =                  63,
+        TUNING_RLL2PTCH =                     63,
+        TUNING_KFF_RDDRMIX =                  64,
 
-        TUNING_TECS_THR_FF_DAMP =             64,
-        TUNING_TECS_THR_FF_FILT =             65,
+        TUNING_TECS_THR_FF_DAMP =             65,
+        TUNING_TECS_THR_FF_FILT =             66,
 
-        TUNING_AGL_ROLL_P =                   66,
-        TUNING_AGL_ROLL_I =                   67,
-        TUNING_AGL_ROLL_D =                   68,
-        TUNING_AGL_ROLL_FLTT =                69,
-        TUNING_AGL_PITCH_P =                  70,
-        TUNING_AGL_PITCH_I =                  71,
-        TUNING_AGL_PITCH_D =                  72,
-        TUNING_AGL_PITCH_FLTT =               73,
+        TUNING_AGL_ROLL_P =                   67,
+        TUNING_AGL_ROLL_I =                   68,
+        TUNING_AGL_ROLL_D =                   69,
+        TUNING_AGL_ROLL_FLTT =                70,
+        TUNING_AGL_PITCH_P =                  71,
+        TUNING_AGL_PITCH_I =                  72,
+        TUNING_AGL_PITCH_D =                  73,
+        TUNING_AGL_PITCH_FLTT =               74,
 
-        TUNING_MIXING_DIFF =                  74,
-        TUNING_MIXING_OFFSET =                75,
+        TUNING_MIXING_DIFF =                  75,
+        TUNING_MIXING_OFFSET =                76,
     };
 
     /*
