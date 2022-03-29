@@ -427,8 +427,14 @@ public:
 
     void disable_autotrim_if_temporary_enabled();
 
+    typedef enum {
+        FunctionUnused,
+        NoChange,
+        Adjusted,
+    } TrimStatus;
+
     // adjust trim of a channel by a small increment
-    void adjust_trim(SRV_Channel::Aux_servo_function_t function, float v);
+    TrimStatus adjust_trim(SRV_Channel::Aux_servo_function_t function, float v, int &adjustment, bool &saturation);
 
     // set MIN/MAX parameters for a function
     static void set_output_min_max(SRV_Channel::Aux_servo_function_t function, uint16_t min_pwm, uint16_t max_pwm);
