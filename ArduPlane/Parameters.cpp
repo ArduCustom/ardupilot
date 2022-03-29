@@ -319,7 +319,7 @@ const AP_Param::Info Plane::var_info[] = {
     // @Units: m/s
 	// @Increment: 0.1
     // @User: Standard
-    GSCALAR(flybywire_climb_rate, "FBWB_CLIMB_RATE",  2.0f),
+    GSCALAR(flybywire_climb_rate, "FBWB_CLIMB_RATE",  0),
 
     // @Param: THR_MIN
     // @DisplayName: Minimum Throttle
