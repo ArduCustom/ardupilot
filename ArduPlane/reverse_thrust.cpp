@@ -126,15 +126,18 @@ bool Plane::have_reverse_thrust(void) const
 float Plane::get_throttle_input(bool no_deadzone) const
 {
     float ret;
+
     if (no_deadzone) {
         ret = channel_throttle->get_control_in_zero_dz();
     } else {
         ret = channel_throttle->get_control_in();
     }
+
     if (reversed_throttle) {
         // RC option for reverse throttle has been set
         ret = -ret;
     }
+
     return ret;
 }
 
