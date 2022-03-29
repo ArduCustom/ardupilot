@@ -770,13 +770,6 @@ void Plane::calc_nav_roll()
     update_load_factor();
 }
 
-// v should be between 0 and 1, curve must be between -100 and 100, return will be between 0 and 1
-float Plane::apply_pitch_curve(float v, int8_t curve)
-{
-    const float curve_scaled = abs(curve * 0.01f);
-    return v * (1 - curve_scaled) + curve_scaled * (curve < 0 ? sq(v) : sqrtf(v));
-}
-
 /*
   adjust nav_pitch_cd for STAB_PITCH_DOWN_CD. This is used to make
   keeping up good airspeed in FBWA mode easier, as the plane will
@@ -786,14 +779,14 @@ float Plane::apply_pitch_curve(float v, int8_t curve)
 void Plane::adjust_nav_pitch_throttle(void)
 {
     if (flight_stage != AP_Vehicle::FixedWing::FLIGHT_VTOL) {
-        float throttle_pitch_mix_ratio = 1;
-        const float throttle_value = throttle_percentage();
+        float throttle_pitch_mix = 100; // %
+        const float throttle_value = control_mode->does_auto_throttle() ? TECS_controller.get_throttle_demand() : get_throttle_input(true);
 
         if (is_positive(throttle_value)) {
-            throttle_pitch_mix_ratio = apply_pitch_curve(linear_interpolate(1, 0, throttle_value, 0, aparm.throttle_cruise), g.stab_pitch_down_curve);
+            throttle_pitch_mix = square_expo_curve(linear_interpolate(100, 0, throttle_value, 0, aparm.throttle_cruise), g.stab_pitch_down_curve);
         }
 
-        nav_pitch_cd -= throttle_pitch_mix_ratio * g.stab_pitch_down * 100.0f;
+        nav_pitch_cd -= throttle_pitch_mix * g.stab_pitch_down;
     }
 }
 
