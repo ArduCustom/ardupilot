@@ -729,6 +729,7 @@ private:
     float eff_air_state;
     float eff_ground_state;
     float climb_eff_state;
+    float vspd_state;
 #endif
     AP_OSD_Backend *backend;
 
