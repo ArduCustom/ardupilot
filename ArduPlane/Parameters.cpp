@@ -1248,6 +1248,22 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Path: ../libraries/AP_Follow/AP_Follow.cpp
     AP_SUBGROUPINFO(follow, "FOLL", 33, ParametersG2, AP_Follow),
 #endif
+
+    // @Param: THR_EXPO_AUTO
+    // @DisplayName: Auto throttle square response curve
+    // @Description: Amount of square response curve to apply to throttle in auto throttle modes
+    // @Units: %
+    // @Range: 0 100
+    // @User: Advanced
+    AP_GROUPINFO("THR_EXPO_AUTO", 55, ParametersG2, throttle_expo_auto, 90),
+
+    // @Param: THR_EXPO_MANUAL
+    // @DisplayName: Manual throttle square response curve
+    // @Description: Amount of square response curve to apply to throttle in manual throttle modes
+    // @Units: %
+    // @Range: 0 100
+    // @User: Advanced
+    AP_GROUPINFO("THR_EXPO_MANUAL", 56, ParametersG2, throttle_expo_manual, 0),
     
     // @Param: FLTMODE_EXT
     // @DisplayName: Enable extra modes
