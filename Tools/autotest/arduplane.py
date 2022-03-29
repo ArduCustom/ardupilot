@@ -2319,7 +2319,7 @@ class AutoTestPlane(AutoTest):
         initial_throttle = m.throttle
         initial_alt = m.alt
         self.progress("Initial throttle: %u" % initial_throttle)
-        # pitch down, ensure throttle decreases:
+        # pitch down, ensure throttle increases:
         rc2_max = self.get_parameter("RC2_MAX")
         self.set_rc(2, int(rc2_max))
         tstart = self.get_sim_time()
