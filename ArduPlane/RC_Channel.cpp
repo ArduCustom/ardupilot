@@ -404,7 +404,14 @@ bool RC_Channel_Plane::do_aux_function(const aux_func_t ch_option, const AuxSwit
         break;
 
     case AUX_FUNC::SERVOS_AUTO_TRIM:
-        plane.run_servos_auto_tune = ch_flag == AuxSwitchPos::HIGH;
+        if (ch_flag == AuxSwitchPos::HIGH) {
+            plane.servos_auto_trim_start();
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Servos auto trim %s", "started");
+        }
+        if (ch_flag == AuxSwitchPos::LOW) {
+            plane.servos_auto_trim_stop();
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Servos auto trim %s", "stopped");
+        }
         break;
 
     case AUX_FUNC::EMERGENCY_LANDING_EN:
