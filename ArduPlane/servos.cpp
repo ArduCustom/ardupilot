@@ -417,6 +417,10 @@ void Plane::set_servos_manual_passthrough(void)
 #endif
 
     apply_throttle_dz();
+
+    if (!g2.rc_channels.throttle_expo_is_disabled_in_manual_mode()) {
+        apply_throttle_expo();
+    }
 }
 
 /*
@@ -509,6 +513,14 @@ void Plane::apply_throttle_dz(void)
     }
 }
 
+void Plane::apply_throttle_expo(void)
+{
+    const float expo_param = control_mode->does_auto_throttle() ? g2.throttle_expo_auto : g2.throttle_expo_manual;
+    const float input_throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
+    const float output_throttle = square_expo_curve(input_throttle, -expo_param);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, output_throttle);
+}
+
 /*
   setup output channels all non-manual modes
  */
@@ -520,8 +532,8 @@ void Plane::set_servos_controlled(void)
     }
 
     // convert 0 to 100% (or -100 to +100) into PWM
-    int8_t min_throttle = aparm.throttle_min.get();
-    int8_t max_throttle = aparm.throttle_max.get();
+    int8_t min_throttle = square_expo_curve(aparm.throttle_min.get(), g2.throttle_expo_auto);
+    int8_t max_throttle = square_expo_curve(aparm.throttle_max.get(), g2.throttle_expo_auto);
 
 #if AP_ICENGINE_ENABLED
     // apply idle governor
@@ -637,6 +649,8 @@ void Plane::set_servos_controlled(void)
 
     // conpensate for battery voltage drop
     throttle_voltage_comp(min_throttle, max_throttle);
+
+    apply_throttle_expo();
 }
 
 /*
