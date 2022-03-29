@@ -162,6 +162,7 @@ enum FlightOptions {
     OSD_REMOVE_TRIM_PITCH_CD = (1 << 9),
     CENTER_THROTTLE_TRIM = (1<<10),
     DISABLE_GROUND_PID_SUPPRESSION = (1<<11),
+    DISABLE_LOITER_ALT_CONTROL = (1<<23),
 };
 
 enum CrowFlapOptions {
