@@ -84,6 +84,14 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Advanced
     GSCALAR(kff_throttle_above_trim_to_elevator,  "KFF_THRAT2ELEV",   0),
 
+    // @Param: KFF_FLAP2ELEV
+    // @DisplayName: Flap position to elevator PWM offset mix
+    // @Description: The elevator and elevon servos will be offset by that much at 100% flaps
+    // @Range: -500 500
+    // @Increment: PWM
+    // @User: Advanced
+    GSCALAR(kff_flap_to_elevator,  "KFF_FLAP2ELEV",   0),
+
     // @Param: STAB_PITCH_DOWN
     // @DisplayName: Low throttle pitch down trim
     // @Description: Degrees of down pitch added when throttle is below TRIM_THROTTLE in FBWA and AUTOTUNE modes. Scales linearly so full value is added when THR_MIN is reached. Helps to keep airspeed higher in glides or landing approaches and prevents accidental stalls. 2 degrees recommended for most planes.
