@@ -387,6 +387,8 @@ public:
     // get pwm output for the first channel of the given function type.
     static bool get_output_pwm(SRV_Channel::Aux_servo_function_t function, uint16_t &value);
 
+    static void shift_output_pwm(SRV_Channel::Aux_servo_function_t function, int16_t pwm_shift);
+
     // get normalised output (-1 to 1 with 0 at mid point of servo_min/servo_max)
     // Value is taken from pwm value.  Returns zero on error.
     static float get_output_norm(SRV_Channel::Aux_servo_function_t function);
