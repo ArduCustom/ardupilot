@@ -535,16 +535,13 @@ void Plane::apply_throttle_expo(void)
     SRV_Channels::set_output_scaled(SRV_Channel::k_throttle , sign_factor * output_throttle * 100);
 }
 
-void Plane::apply_throttle_to_elevator_mix(void)
+void Plane::shift_elevator_output_pwm(int16_t elev_pwm_shift)
 {
-    const float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
-    const float elev_mix_pwm = linear_interpolate(0, g.kff_throttle_above_trim_to_elevator, throttle, aparm.throttle_cruise, 100);
-
-    SRV_Channels::shift_output_pwm(SRV_Channel::k_elevator, elev_mix_pwm);
-    SRV_Channels::shift_output_pwm(SRV_Channel::k_elevon_left, elev_mix_pwm);
-    SRV_Channels::shift_output_pwm(SRV_Channel::k_elevon_right, elev_mix_pwm);
-    SRV_Channels::shift_output_pwm(SRV_Channel::k_vtail_left, elev_mix_pwm);
-    SRV_Channels::shift_output_pwm(SRV_Channel::k_vtail_right, elev_mix_pwm);
+    SRV_Channels::shift_output_pwm(SRV_Channel::k_elevator, elev_pwm_shift);
+    SRV_Channels::shift_output_pwm(SRV_Channel::k_elevon_left, elev_pwm_shift);
+    SRV_Channels::shift_output_pwm(SRV_Channel::k_elevon_right, elev_pwm_shift);
+    SRV_Channels::shift_output_pwm(SRV_Channel::k_vtail_left, elev_pwm_shift);
+    SRV_Channels::shift_output_pwm(SRV_Channel::k_vtail_right, elev_pwm_shift);
 
     const int8_t bitmask = g2.crow_flap_options.get();
     const bool flying_wing       = (bitmask & CrowFlapOptions::FLYINGWING) != 0;
@@ -552,15 +549,29 @@ void Plane::apply_throttle_to_elevator_mix(void)
 
     if (flying_wing) {
 
-        SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerLeft1, elev_mix_pwm);
-        SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerRight1, elev_mix_pwm);
+        SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerLeft1, elev_pwm_shift);
+        SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerRight1, elev_pwm_shift);
 
         if (full_span_aileron) {
-            SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerLeft2, elev_mix_pwm);
-            SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerRight2, elev_mix_pwm);
+            SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerLeft2, elev_pwm_shift);
+            SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerRight2, elev_pwm_shift);
         }
 
     }
+}
+
+void Plane::apply_throttle_to_elevator_mix(void)
+{
+    const float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
+    const int16_t elev_mix_pwm = lrintf(linear_interpolate(0, g.kff_throttle_above_trim_to_elevator, throttle, aparm.throttle_cruise, 100));
+    shift_elevator_output_pwm(elev_mix_pwm);
+}
+
+void Plane::apply_flap_to_elevator_mix(void)
+{
+    const float flap_position = SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_flap_auto);
+    const uint16_t elev_mix_pwm = lrintf(flap_position * g.kff_flap_to_elevator * 0.01f);
+    shift_elevator_output_pwm(elev_mix_pwm);
 }
 
 /*
@@ -1087,6 +1098,7 @@ void Plane::servos_output(void)
     landing_neutral_control_surface_servos();
 
     apply_throttle_to_elevator_mix();
+    apply_flap_to_elevator_mix();
 
     // support MANUAL_RCMASK
     if (g2.manual_rc_mask.get() != 0 && control_mode == &mode_manual) {
