@@ -103,6 +103,7 @@ private:
         TUNING_FLAP_EXTED_PCT =               81,
 
         TUNING_KFF_THRAT2ELEV =               82,
+        TUNING_KFF_FLAP2ELEV =                83,
     };
 
     /*
