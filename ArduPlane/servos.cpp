@@ -535,6 +535,34 @@ void Plane::apply_throttle_expo(void)
     SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, output_throttle);
 }
 
+void Plane::apply_throttle_to_elevator_mix(void)
+{
+    const float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
+    const float elev_mix_pwm = linear_interpolate(0, g.kff_throttle_above_trim_to_elevator, throttle, aparm.throttle_cruise, 100);
+
+    SRV_Channels::shift_output_pwm(SRV_Channel::k_elevator, elev_mix_pwm);
+    SRV_Channels::shift_output_pwm(SRV_Channel::k_elevon_left, elev_mix_pwm);
+    SRV_Channels::shift_output_pwm(SRV_Channel::k_elevon_right, elev_mix_pwm);
+    SRV_Channels::shift_output_pwm(SRV_Channel::k_vtail_left, elev_mix_pwm);
+    SRV_Channels::shift_output_pwm(SRV_Channel::k_vtail_right, elev_mix_pwm);
+
+    const int8_t bitmask = g2.crow_flap_options.get();
+    const bool flying_wing       = (bitmask & CrowFlapOptions::FLYINGWING) != 0;
+    const bool full_span_aileron = (bitmask & CrowFlapOptions::FULLSPAN) != 0;
+
+    if (flying_wing) {
+
+        SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerLeft1, elev_mix_pwm);
+        SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerRight1, elev_mix_pwm);
+
+        if (full_span_aileron) {
+            SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerLeft2, elev_mix_pwm);
+            SRV_Channels::shift_output_pwm(SRV_Channel::k_dspoilerRight2, elev_mix_pwm);
+        }
+
+    }
+}
+
 /*
   setup output channels all non-manual modes
  */
@@ -1066,6 +1094,8 @@ void Plane::servos_output(void)
 
     //  set control surface servos to neutral
     landing_neutral_control_surface_servos();
+
+    apply_throttle_to_elevator_mix();
 
     // support MANUAL_RCMASK
     if (g2.manual_rc_mask.get() != 0 && control_mode == &mode_manual) {
