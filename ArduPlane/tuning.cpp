@@ -37,7 +37,7 @@ const uint8_t AP_Tuning_Plane::tuning_set_angle_roll_pitch[] = { TUNING_AGL_ROLL
                                                                  TUNING_AGL_PITCH_P, TUNING_AGL_PITCH_D, TUNING_AGL_PITCH_FLTT };
 const uint8_t AP_Tuning_Plane::tuning_set_angle_roll[] =      { TUNING_AGL_ROLL_D, TUNING_AGL_ROLL_P, TUNING_AGL_ROLL_FLTT };
 const uint8_t AP_Tuning_Plane::tuning_set_angle_pitch[] =     { TUNING_AGL_PITCH_D, TUNING_AGL_PITCH_P, TUNING_AGL_PITCH_FLTT };
-const uint8_t AP_Tuning_Plane::tuning_set_mixing[] =          { TUNING_MIXING_DIFF, TUNING_MIXING_OFFSET };
+const uint8_t AP_Tuning_Plane::tuning_set_mixing[] =          { TUNING_MIXING_DIFF, TUNING_MIXING_OFFSET, TUNING_KFF_THRAT2ELEV, TUNING_KFF_FLAP2ELEV };
 const uint8_t AP_Tuning_Plane::tuning_set_thr_expo[] =        { TUNING_THR_EXPO_MANUAL, TUNING_THR_EXPO_AUTO };
 const uint8_t AP_Tuning_Plane::tuning_set_flap[] =            { TUNING_FLAP_RETED_SPD, TUNING_FLAP_EXTED_SPD, TUNING_FLAP_EXTED_PCT };
 
