@@ -279,7 +279,7 @@ public:
         //
         k_param_kff_pitch_compensation = 200, // unused
         k_param_kff_rudder_mix,
-        k_param_kff_pitch_to_throttle, // unused
+        k_param_kff_throttle_above_trim_to_elevator,
         k_param_kff_throttle_above_trim_to_pitch,
         k_param_scaling_speed,
         k_param_quadplane,
@@ -370,8 +370,8 @@ public:
     // Feed-forward gains
     //
     AP_Float kff_rudder_mix;
-    AP_Float kff_pitch_to_throttle;
     AP_Float kff_throttle_above_trim_to_pitch;
+    AP_Float kff_throttle_above_trim_to_elevator;
     AP_Float ground_steer_alt;
     AP_Int16 ground_steer_dps;
     AP_Float stab_pitch_down;
