@@ -8,7 +8,7 @@ const AP_Param::GroupInfo AP_Tuning_Plane::var_info[] = {
     // @Param: PARAM
     // @DisplayName: Transmitter tuning parameter or set of parameters
     // @Description: This sets which parameter or set of parameters will be tuned. Values greater than 100 indicate a set of parameters rather than a single parameter. Parameters less than 50 are for QuadPlane vertical lift motors only.
-    // @Values: 0:None,1:RateRollPI,2:RateRollP,3:RateRollI,4:RateRollD,5:RatePitchPI,6:RatePitchP,7:RatePitchI,8:RatePitchD,9:RateYawPI,10:RateYawP,11:RateYawI,12:RateYawD,13:AngleRollP,14:AnglePitchP,15:AngleYawP,16:PosXYP,17:PosZP,18:VelXYP,19:VelXYI,20:VelZP,21:AccelZP,22:AccelZI,23:AccelZD,24:RatePitchFF,25:RateRollFF,26:RateYawFF,50:FixedWingRollP,51:FixedWingRollI,52:FixedWingRollD,53:FixedWingRollFF,54:FixedWingPitchP,55:FixedWingPitchI,56:FixedWingPitchD,57:FixedWingPitchFF,58:TRIM_THROTTLE,59:TRIM_PITCH,60:KFF_THRAT2PTCH,61:FW STAB PITCH DOWN,62:FW STAB PITCH DOWN curve,63:RLL2PTCH,64:KFF_RDDRMIX,65:TECSTFFDAMP,66:TECSTFF_FILT,67:FWAglRollP,68:FWAglRollI,69:AglRollD,70:AglRollFLTT,71:FWAglPitchP,72:FWAglPitchI,73:AglPitchD,74:AglPitchFLTT,75:MixingDiff,76:MixingOffset,77:THR expo manual,78:THR expo auto,79:Flap retracted speed,80:Flap extended speed,81:Flap extended percent,82:KFF_THRAT2ELEV,101:Set_RateRollPitch,102:Set_RateRoll,103:Set_RatePitch,104:Set_RateYaw,105:Set_AngleRollPitch,106:Set_VelXY,107:Set_AccelZ,108:Set_TRIM_THR_PTCH,109:Set turn coordination,110:TECSTHRFF,111:Set_AglRollPitch,112:Set_AglRoll,113:Set_AglPitch,114:Set_Mixing,115:Set_THRExpo,116:Set_flap
+    // @Values: 0:None,1:RateRollPI,2:RateRollP,3:RateRollI,4:RateRollD,5:RatePitchPI,6:RatePitchP,7:RatePitchI,8:RatePitchD,9:RateYawPI,10:RateYawP,11:RateYawI,12:RateYawD,13:AngleRollP,14:AnglePitchP,15:AngleYawP,16:PosXYP,17:PosZP,18:VelXYP,19:VelXYI,20:VelZP,21:AccelZP,22:AccelZI,23:AccelZD,24:RatePitchFF,25:RateRollFF,26:RateYawFF,50:FixedWingRollP,51:FixedWingRollI,52:FixedWingRollD,53:FixedWingRollFF,54:FixedWingPitchP,55:FixedWingPitchI,56:FixedWingPitchD,57:FixedWingPitchFF,58:TRIM_THROTTLE,59:TRIM_PITCH,60:KFF_THRAT2PTCH,61:FW STAB PITCH DOWN,62:FW STAB PITCH DOWN curve,63:RLL2PTCH,64:KFF_RDDRMIX,65:TECSTFFDAMP,66:TECSTFF_FILT,67:FWAglRollP,68:FWAglRollI,69:AglRollD,70:AglRollFLTT,71:FWAglPitchP,72:FWAglPitchI,73:AglPitchD,74:AglPitchFLTT,75:MixingDiff,76:MixingOffset,77:THR expo manual,78:THR expo auto,79:Flap retracted speed,80:Flap extended speed,81:Flap extended percent,82:KFF_THRAT2ELEV,83:KFF_FLAP2ELEV,101:Set_RateRollPitch,102:Set_RateRoll,103:Set_RatePitch,104:Set_RateYaw,105:Set_AngleRollPitch,106:Set_VelXY,107:Set_AccelZ,108:Set_TRIM_THR_PTCH,109:Set turn coordination,110:TECSTHRFF,111:Set_AglRollPitch,112:Set_AglRoll,113:Set_AglPitch,114:Set_Mixing,115:Set_THRExpo,116:Set_flap
     // @User: Standard
     AP_GROUPINFO("PARAM", 1, AP_Tuning_Plane, parmset, 0),
 
@@ -128,6 +128,7 @@ const AP_Tuning_Plane::tuning_name AP_Tuning_Plane::tuning_names[] = {
     { TUNING_FLAP_EXTED_SPD, "FLAP_EXTED_SPD"},
     { TUNING_FLAP_EXTED_PCT, "FLAP_EXTED_PCT"},
     { TUNING_KFF_THRAT2ELEV, "THRAT2ELEV"},
+    { TUNING_KFF_FLAP2ELEV,  "FLAP2ELEV"},
     { TUNING_NONE, nullptr }
 };
 
@@ -325,6 +326,9 @@ AP_Float *AP_Tuning_Plane::get_param_pointer(uint8_t parm)
 
     case TUNING_KFF_THRAT2ELEV:
         return &plane.g.kff_throttle_above_trim_to_elevator;
+
+    case TUNING_KFF_FLAP2ELEV:
+        return &plane.g.kff_flap_to_elevator;
     }
 
     return nullptr;
