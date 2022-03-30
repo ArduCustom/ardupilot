@@ -739,6 +739,24 @@ bool SRV_Channels::get_output_pwm(SRV_Channel::Aux_servo_function_t function, ui
     return true;
 }
 
+void SRV_Channels::shift_output_pwm(SRV_Channel::Aux_servo_function_t function, int16_t pwm_shift)
+{
+    if (!SRV_Channel::valid_function(function)) {
+        return;
+    }
+    const auto func_output_scaled = functions[function].output_scaled;
+
+    for (uint8_t i=0; i<NUM_SERVO_CHANNELS; i++) {
+        if (channels[i].function == function) {
+            auto &channel = channels[i];
+            const int16_t channel_shift = channel.get_reversed() ? -pwm_shift : pwm_shift;
+            channel.calc_pwm(func_output_scaled);
+            const uint16_t new_output_pwm = constrain_int16(channel.output_pwm + channel_shift, channel.servo_min, channel.servo_max);
+            channel.set_output_pwm(new_output_pwm);
+        }
+    }
+}
+
 // set output pwm to trim for the given function
 void SRV_Channels::set_output_to_trim(SRV_Channel::Aux_servo_function_t function)
 {
