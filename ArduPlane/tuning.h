@@ -104,6 +104,9 @@ private:
 
         TUNING_KFF_THRAT2ELEV =               82,
         TUNING_KFF_FLAP2ELEV =                83,
+
+        TUNING_AILERONS_DIFF =                84,
+        TUNING_ELEVATOR_DIFF =                85,
     };
 
     /*
