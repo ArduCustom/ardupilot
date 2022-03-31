@@ -121,6 +121,9 @@ public:
 
     // set soaring flag
     void set_gliding_requested_flag(bool gliding_requested) {
+        if (!_flags.gliding_requested && gliding_requested) {
+            _was_gliding = false;
+        }
         _flags.gliding_requested = gliding_requested;
     }
 
@@ -150,6 +153,8 @@ public:
 
     // this supports the TECS_* user settable parameters
     static const struct AP_Param::GroupInfo var_info[];
+
+    bool is_using_synthetic_airspeed() const { return _use_synthetic_airspeed; }
 
 private:
     // Last time update_50Hz was called
@@ -274,6 +279,8 @@ private:
     float _TAS_dem;
 
     float current_vel_rate;
+
+    bool _was_gliding;
 
     // Equivalent airspeed demand
     float _EAS_dem;

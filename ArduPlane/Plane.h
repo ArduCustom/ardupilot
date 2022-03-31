@@ -709,6 +709,8 @@ private:
     // A value used in condition commands.  For example the rate at which to change altitude.
     int16_t condition_rate;
 
+    bool gliding_requested;
+
     // 3D Location vectors
     // Location structure defined in AP_Common
     const struct Location &home = ahrs.get_home();
@@ -1062,6 +1064,7 @@ private:
     void loiter_angle_reset(void);
     void loiter_angle_update(void);
     void navigate();
+    void set_gliding_requested(bool value);
     void calc_airspeed_errors();
     float mode_auto_target_airspeed_cm();
     void calc_gndspeed_undershoot();
