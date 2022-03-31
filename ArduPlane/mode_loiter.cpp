@@ -18,9 +18,9 @@ bool ModeLoiter::_enter()
 void ModeLoiter::update()
 {
     plane.calc_nav_roll();
-    if (plane.stick_mixing_enabled() && ((plane.g2.flight_options & FlightOptions::DISABLE_LOITER_ALT_CONTROL) == 0)) {
+    if ((plane.g2.flight_options & FlightOptions::DISABLE_LOITER_ALT_CONTROL) == 0) {
         plane.update_fbwb_speed_height();
-    } else {
+    } else if (plane.stick_mixing_enabled()) {
         plane.calc_nav_pitch();
         plane.calc_throttle();
     }
