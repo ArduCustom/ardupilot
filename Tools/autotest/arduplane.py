@@ -2378,6 +2378,30 @@ class AutoTestPlane(AutoTest):
         self.wait_altitude(250, 260, timeout=100, relative=True)
         self.fly_home_land_and_disarm()
 
+    def EmergencyLanding(self):
+        '''Test EmergencyLanding'''
+        self.set_parameter("FLIGHT_OPTIONS", 1 << 22)
+        self.takeoff(alt=100)
+        self.set_parameter("THR_FS_VALUE", 960)
+        self.progress("Failing receiver (throttle-to-950)")
+        self.context_collect("STATUSTEXT")
+        self.progress("Failsafe and wait for the plane to go down")
+        self.set_parameter("SIM_RC_FAIL", 2) # throttle-to-950
+        self.wait_mode('RTL') # long failsafe
+        self.wait_altitude(20, 30, timeout=300, relative=True)
+        self.progress("Unfailsafe and check the plane climbs back to RTL altitude")
+        self.set_parameter("SIM_RC_FAIL", 0) # unfailsafe
+        self.wait_servo_channel_value(3, 1200, timeout=4, comparator=operator.ge)
+        expected_alt = self.get_parameter("ALT_HOLD_RTL") / 100.0
+        self.wait_altitude(expected_alt-5, expected_alt+5, timeout=100, relative=True)
+        self.progress("Failsafe again and wait for landing complete and auto disarm")
+        self.set_parameter("SIM_RC_FAIL", 2) # throttle-to-950
+        self.delay_sim_time(118)
+        self.wait_servo_channel_value(3, 1000, timeout=130, comparator=operator.eq)
+        self.wait_altitude(-5, 5, timeout=300, relative=True)
+        self.wait_statustext("Auto disarmed", timeout=240, check_context=True)
+        self.set_parameter("SIM_RC_FAIL", 0) # unfailsafe
+
     def CPUFailsafe(self):
         '''In lockup Plane should copy RC inputs to RC outputs'''
         self.plane_CPUFailsafe()
@@ -4037,6 +4061,7 @@ class AutoTestPlane(AutoTest):
             self.RTL_CLIMB_MIN,
             self.ClimbBeforeTurn,
             self.CruiseGliding,
+            # self.EmergencyLanding,
             self.IMUTempCal,
             self.MAV_DO_AUX_FUNCTION,
             self.SmartBattery,
