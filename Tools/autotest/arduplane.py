@@ -2120,6 +2120,7 @@ function'''
 
     def LOITER(self):
         # first test old loiter behavour
+        self.set_parameter("STICK_MIXING", 1)
         self.set_parameter("FLIGHT_OPTIONS", 1 << 23)
         self.takeoff(alt=200)
         self.set_rc(3, 1500)
