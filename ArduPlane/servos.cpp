@@ -640,7 +640,8 @@ void Plane::set_servos_controlled(void)
         if (landing.is_flaring() && landing.use_thr_min_during_flare() ) {
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, aparm.throttle_min.get());
         }
-        if (g.throttle_suppress_manual) {
+        if (g.throttle_suppress_manual && ((control_mode == &mode_auto && flight_stage == AP_Vehicle::FixedWing::FLIGHT_NORMAL &&
+            mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF) || control_mode == &mode_takeoff)) {
             // manual pass through of throttle while throttle is suppressed
             float throttle_input = get_throttle_input(true);
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle_input);
