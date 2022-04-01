@@ -160,7 +160,7 @@ private:
     AP_OSD_Setting gspeed{true, 2, 14};
     AP_OSD_Setting horizon{true, 14, 8};
     AP_OSD_Setting home{true, 14, 1};
-    AP_OSD_Setting throttle{true, 24, 11};
+    AP_OSD_Setting throttle_output{true, 24, 11};
     AP_OSD_Setting heading{true, 13, 2};
     AP_OSD_Setting compass{true, 15, 3};
     AP_OSD_Setting wind{false, 2, 12};
@@ -266,8 +266,8 @@ private:
     void draw_gspeed(uint8_t x, uint8_t y);
     void draw_horizon(uint8_t x, uint8_t y);
     void draw_home(uint8_t x, uint8_t y);
-    void draw_throttle(uint8_t x, uint8_t y);
-    void draw_throttle_value(uint8_t x, uint8_t y, float throttle_v);
+    void draw_throttle_output(uint8_t x, uint8_t y);
+    void draw_throttle_value(uint8_t x, uint8_t y, float throttle_v, bool blink=false);
     void draw_heading(uint8_t x, uint8_t y);
 #ifdef HAL_OSD_SIDEBAR_ENABLE
     void draw_sidebars(uint8_t x, uint8_t y);

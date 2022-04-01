@@ -458,6 +458,16 @@ void Plane::update_control_mode(void)
         steer_state.hold_course_cd = -1;
     }
 
+    if ((g2.flight_options & FlightOptions::ALLOW_GLIDING_IN_AUTO_THR_MODES) && control_mode->does_auto_throttle() && control_mode != &mode_takeoff && control_mode != &mode_auto) {
+        set_auto_thr_gliding(!failsafe.rc_failsafe && get_throttle_input() < g.throttle_dz);
+
+        if (auto_thr_gliding_state == ATGS_GLIDING) {
+            set_target_altitude_current();
+        }
+    } else {
+        auto_thr_gliding_state = ATGS_DISABLED;
+    }
+
     update_fly_forward();
 
     control_mode->update();

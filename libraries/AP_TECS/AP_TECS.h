@@ -127,6 +127,16 @@ public:
         _flags.gliding_requested = gliding_requested;
     }
 
+    void set_auto_thr_gliding(bool gliding_requested) {
+        if (gliding_requested) {
+            if (_auto_thr_gliding_state == ATGS_DISABLED) {
+                _auto_thr_gliding_state = ATGS_SPEED_BLEEDING_OFF;
+            }
+        } else {
+            _auto_thr_gliding_state = ATGS_DISABLED;
+        }
+    }
+
     // set propulsion failed flag
     void set_propulsion_failed_flag(bool propulsion_failed) {
         _flags.propulsion_failed = propulsion_failed;
@@ -169,6 +179,8 @@ public:
 
     // this supports the TECS_* user settable parameters
     static const struct AP_Param::GroupInfo var_info[];
+
+    bool is_using_synthetic_airspeed() const { return _use_synthetic_airspeed; }
 
 private:
     // Last time update_50Hz was called
@@ -299,6 +311,8 @@ private:
 
     float current_vel_rate;
 
+    bool _was_auto_thr_gliding;
+
     // Equivalent airspeed demand
     float _EAS_dem;
 
@@ -351,6 +365,14 @@ private:
         struct flags _flags;
         uint8_t _flags_byte;
     };
+
+    typedef enum {
+        ATGS_DISABLED,
+        ATGS_SPEED_BLEEDING_OFF,
+        ATGS_GLIDING
+    } AutoThrGlidingState;
+
+    AutoThrGlidingState _auto_thr_gliding_state;
 
     // time when underspeed started
     uint32_t _underspeed_start_ms;
