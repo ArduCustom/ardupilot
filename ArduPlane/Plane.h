@@ -702,6 +702,14 @@ private:
     // A value used in condition commands.  For example the rate at which to change altitude.
     int16_t condition_rate;
 
+    typedef enum {
+        ATGS_DISABLED,
+        ATGS_GLIDING,
+        ATGS_WAITING_FOR_CRUISE_THR
+    } AutoThrGlidingState;
+
+    AutoThrGlidingState auto_thr_gliding_state;
+
     // 3D Location vectors
     // Location structure defined in AP_Common
     const struct Location &home = ahrs.get_home();
@@ -871,6 +879,7 @@ private:
     void set_target_altitude_current(void);
     void set_target_altitude_current_adjusted(void);
     void set_target_altitude_location(const Location &loc);
+    void set_auto_thr_gliding(bool value);
     int32_t relative_target_altitude_cm(void);
     void change_target_altitude(int32_t change_cm);
     void set_target_altitude_proportion(const Location &loc, float proportion);
@@ -1267,6 +1276,8 @@ private:
 
 public:
     AP_Tuning *get_tuning_object(void) override { return &tuning; }
+
+    bool is_auto_throttle_gliding(void) const override { return auto_thr_gliding_state == ATGS_GLIDING; }
 
     void failsafe_check(void);
 #if AP_SCRIPTING_ENABLED
