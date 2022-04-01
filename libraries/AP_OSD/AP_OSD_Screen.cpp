@@ -265,21 +265,21 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(heading, "HEADING", 15, AP_OSD_Screen, AP_OSD_Setting),
 
-    // @Param: THROTTLE_EN
-    // @DisplayName: THROTTLE_EN
+    // @Param: THR_OUT_EN
+    // @DisplayName: THR_OUT_EN
     // @Description: Displays actual throttle percentage being sent to motor(s)
     // @Values: 0:Disabled,1:Enabled
 
-    // @Param: THROTTLE_X
-    // @DisplayName: THROTTLE_X
+    // @Param: THR_OUT_X
+    // @DisplayName: THR_OUT_X
     // @Description: Horizontal position on screen
     // @Range: 0 29
 
-    // @Param: THROTTLE_Y
-    // @DisplayName: THROTTLE_Y
+    // @Param: THR_OUT_Y
+    // @DisplayName: THR_OUT_Y
     // @Description: Vertical position on screen
     // @Range: 0 15
-    AP_SUBGROUPINFO(throttle, "THROTTLE", 16, AP_OSD_Screen, AP_OSD_Setting),
+    AP_SUBGROUPINFO(throttle_output, "THR_OUT", 16, AP_OSD_Screen, AP_OSD_Setting),
 
     // @Param: COMPASS_EN
     // @DisplayName: COMPASS_EN
@@ -2252,7 +2252,7 @@ void AP_OSD_Screen::draw_heading(uint8_t x, uint8_t y)
     backend->write(x, y, false, "%3d%c", yaw, SYMBOL(SYM_DEGR));
 }
 
-void AP_OSD_Screen::draw_throttle_value(uint8_t x, uint8_t y, float throttle_v)
+void AP_OSD_Screen::draw_throttle_value(uint8_t x, uint8_t y, float throttle_v, bool blink)
 {
     const char *format;
     uint8_t spaces;
@@ -2283,12 +2283,12 @@ void AP_OSD_Screen::draw_throttle_value(uint8_t x, uint8_t y, float throttle_v)
     if (signbit(throttle_v)) {
         spaces -= 1;
     }
-    backend->write(x + spaces, y, AP_Notify::flags.throttle_cut, format, throttle_v, SYMBOL(SYM_PCNT));
+    backend->write(x + spaces, y, blink, format, throttle_v, SYMBOL(SYM_PCNT));
 }
 
-void AP_OSD_Screen::draw_throttle(uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_throttle_output(uint8_t x, uint8_t y)
 {
-    draw_throttle_value(x, y, gcs().get_hud_throttle());
+    draw_throttle_value(x, y, gcs().get_hud_throttle(), AP_Notify::flags.throttle_cut || AP::vehicle()->is_auto_throttle_gliding());
 }
 
 #if HAL_OSD_SIDEBAR_ENABLE
@@ -3530,7 +3530,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(aspd1);
     DRAW_SETTING(aspd2);
     DRAW_SETTING(vspeed);
-    DRAW_SETTING(throttle);
+    DRAW_SETTING(throttle_output);
     DRAW_SETTING(heading);
     DRAW_SETTING(wind);
     DRAW_SETTING(home);
