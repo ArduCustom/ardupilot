@@ -124,6 +124,14 @@ public:
         _flags.gliding_requested = gliding_requested;
     }
 
+    void set_auto_thr_gliding_requested_flag(bool gliding_requested) {
+        if (!_flags.auto_thr_gliding_requested && gliding_requested) {
+            _was_auto_thr_gliding = false;
+            _flags.gliding_requested = false;
+        }
+        _flags.auto_thr_gliding_requested = gliding_requested;
+    }
+
     // set propulsion failed flag
     void set_propulsion_failed_flag(bool propulsion_failed) {
         _flags.propulsion_failed = propulsion_failed;
@@ -150,6 +158,8 @@ public:
 
     // this supports the TECS_* user settable parameters
     static const struct AP_Param::GroupInfo var_info[];
+
+    bool is_using_synthetic_airspeed() const { return _use_synthetic_airspeed; }
 
 private:
     // Last time update_50Hz was called
@@ -275,6 +285,8 @@ private:
 
     float current_vel_rate;
 
+    bool _was_auto_thr_gliding;
+
     // Equivalent airspeed demand
     float _EAS_dem;
 
@@ -313,6 +325,8 @@ private:
 
         // true if the soaring feature has requested gliding flight
         bool gliding_requested:1;
+
+        bool auto_thr_gliding_requested:1;
 
         // true when we are in gliding flight, in one of three situations;
         //   - THR_MAX=0

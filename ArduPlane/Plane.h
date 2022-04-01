@@ -709,6 +709,9 @@ private:
     // A value used in condition commands.  For example the rate at which to change altitude.
     int16_t condition_rate;
 
+    bool auto_thr_gliding_requested;
+    bool auto_thr_gliding_cruise_throttle_reached;
+
     // 3D Location vectors
     // Location structure defined in AP_Common
     const struct Location &home = ahrs.get_home();
@@ -878,6 +881,7 @@ private:
     void set_target_altitude_current(void);
     void set_target_altitude_current_adjusted(void);
     void set_target_altitude_location(const Location &loc);
+    void set_auto_thr_gliding_requested(bool value);
     int32_t relative_target_altitude_cm(void);
     void change_target_altitude(int32_t change_cm);
     void set_target_altitude_proportion(const Location &loc, float proportion);

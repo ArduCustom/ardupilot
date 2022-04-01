@@ -701,18 +701,38 @@ void Plane::calc_nav_yaw_ground(void)
     steering_control.steering = constrain_int16(steering_control.steering, -4500, 4500);
 }
 
+void Plane::set_auto_thr_gliding_requested(bool value)
+{
+    TECS_controller.set_auto_thr_gliding_requested_flag(value);
+    if (auto_thr_gliding_requested && !value && !(ahrs.airspeed_sensor_enabled() || TECS_controller.is_using_synthetic_airspeed())) {
+        auto_thr_gliding_cruise_throttle_reached = false;
+    }
+    auto_thr_gliding_requested = value;
+}
+
 
 /*
   calculate a new nav_pitch_cd from the speed height controller
  */
 void Plane::calc_nav_pitch()
 {
+
+    if ((auto_thr_gliding_requested || !auto_thr_gliding_cruise_throttle_reached) && !(ahrs.airspeed_sensor_enabled() || TECS_controller.is_using_synthetic_airspeed())) {
+        if (!auto_thr_gliding_cruise_throttle_reached && TECS_controller.get_throttle_demand() >= aparm.throttle_cruise) {
+            auto_thr_gliding_cruise_throttle_reached = true;
+        } else {
+            nav_pitch_cd = 0;
+            adjust_nav_pitch_throttle();
+            return;
+        }
+    }
+
     // Calculate the Pitch of the plane
     // --------------------------------
     int32_t commanded_pitch = TECS_controller.get_pitch_demand();
 
     // Received an external msg that guides roll in the last 3 seconds?
-    if (control_mode->is_guided_mode() &&
+    if (!auto_thr_gliding_requested && control_mode->is_guided_mode() &&
             plane.guided_state.last_forced_rpy_ms.y > 0 &&
             millis() - plane.guided_state.last_forced_rpy_ms.y < 3000) {
         commanded_pitch = plane.guided_state.forced_rpy_cd.y;

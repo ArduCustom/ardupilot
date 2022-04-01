@@ -410,6 +410,12 @@ void AP_TECS::_update_speed(float load_factor)
     _TASmax   = aparm.airspeed_max * EAS2TAS;
     _TASmin   = aparm.airspeed_min * EAS2TAS;
 
+    // just started gliding, reset adjusted TAS demand to prevent sudden pitch down to keep the airspeed high
+    if (!_was_auto_thr_gliding && _flags.auto_thr_gliding_requested) {
+        _TAS_dem_adj = _TAS_dem;
+        current_vel_rate = 0;
+    }
+
     if (aparm.stall_prevention) {
         // when stall prevention is active we raise the mimimum
         // airspeed based on aerodynamic load factor
@@ -551,8 +557,12 @@ void AP_TECS::_update_height_demand(void)
     }
     _hgt_dem_prev = _hgt_dem;
 
-    // Apply first order lag to height demand
-    _hgt_dem_adj = 0.05f * _hgt_dem + 0.95f * _hgt_dem_adj_last;
+    if (_flags.auto_thr_gliding_requested) {
+        _hgt_dem_adj = _hgt_dem;
+    } else {
+        // Apply first order lag to height demand
+        _hgt_dem_adj = 0.05f * _hgt_dem + 0.95f * _hgt_dem_adj_last;
+    }
 
     // when flaring force height rate demand to the
     // configured sink rate and adjust the demanded height to
@@ -737,7 +747,7 @@ void AP_TECS::_update_throttle_with_airspeed(void)
     {
         _throttle_dem = 1.0f;
     }
-    else if (_flags.is_gliding)
+    else if (_flags.is_gliding || _flags.auto_thr_gliding_requested)
     {
         _throttle_dem = 0.0f;
     }
@@ -858,7 +868,7 @@ void AP_TECS::_update_throttle_without_airspeed(int16_t throttle_nudge)
         _throttle_dem = nomThr;
     }
 
-    if (_flags.is_gliding)
+    if (_flags.is_gliding || _flags.auto_thr_gliding_requested)
     {
         _throttle_dem = 0.0f;
         return;
@@ -917,6 +927,19 @@ void AP_TECS::_update_pitch(void)
         // height. This is needed as the usual relationship of speed
         // and height is broken by the VTOL motors
         SKE_weighting = 0.0f;        
+    } else if (_flags.auto_thr_gliding_requested && !_was_auto_thr_gliding) {
+        // started gliding, bleed off speed slowly, no need to pitch up to reduce speed
+        if (_SKE_est > _SKE_dem * 1.1f) {
+            SKE_weighting = 0.0f;
+            _pitch_dem = _last_pitch_dem = 0;
+            return;
+        } else {
+            SKE_weighting = 2.0f;
+            _integSEB_state = 0;
+            _was_auto_thr_gliding = true;
+            _flags.gliding_requested = true;
+            _flags.is_gliding = true;
+        }
     } else if ( _flags.underspeed || _flight_stage == AP_Vehicle::FixedWing::FLIGHT_TAKEOFF || _flight_stage == AP_Vehicle::FixedWing::FLIGHT_ABORT_LAND || _flags.is_gliding) {
         SKE_weighting = 2.0f;
     } else if (_flags.is_doing_auto_land) {
@@ -1012,7 +1035,7 @@ void AP_TECS::_update_pitch(void)
 
 
     // Add a feedforward term from demanded airspeed to pitch.
-    if (_flags.is_gliding) {
+    if (_flags.is_gliding || _flags.auto_thr_gliding_requested) {
         _pitch_dem_unc += (_TAS_dem_adj - _pitch_ff_v0) * _pitch_ff_k;
     }
 
