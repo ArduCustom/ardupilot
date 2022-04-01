@@ -410,6 +410,8 @@ void AP_TECS::_update_speed(float load_factor)
     _TASmax   = aparm.airspeed_max * EAS2TAS;
     _TASmin   = aparm.airspeed_min * EAS2TAS;
 
+    // just started gliding, reset adjusted TAS demand to prevent sudden pitch down to keep the airspeed high
+
     if (aparm.stall_prevention) {
         // when stall prevention is active we raise the mimimum
         // airspeed based on aerodynamic load factor
@@ -539,15 +541,22 @@ void AP_TECS::_update_height_demand(void)
         max_sink_rate = _maxSinkRate_approach;
     }
 
-    // Limit height rate of change
-    if ((_hgt_dem - _hgt_dem_prev) > (_maxClimbRate * 0.1f)) {
-        _hgt_dem = _hgt_dem_prev + _maxClimbRate * 0.1f;
-    } else if ((_hgt_dem - _hgt_dem_prev) < (-max_sink_rate * 0.1f)) {
-        _hgt_dem = _hgt_dem_prev - max_sink_rate * 0.1f;
-    }
+    if (_auto_thr_gliding_state == ATGS_DISABLED) {
 
-    // Apply first order lag to height demand
-    _hgt_dem_adj = 0.05f * _hgt_dem + 0.95f * _hgt_dem_adj_last;
+        // Limit height rate of change
+        if ((_hgt_dem - _hgt_dem_prev) > (_maxClimbRate * 0.1f)) {
+            _hgt_dem = _hgt_dem_prev + _maxClimbRate * 0.1f;
+        } else if ((_hgt_dem - _hgt_dem_prev) < (-max_sink_rate * 0.1f)) {
+            _hgt_dem = _hgt_dem_prev - max_sink_rate * 0.1f;
+        }
+
+        // Apply first order lag to height demand
+        _hgt_dem_adj = 0.05f * _hgt_dem + 0.95f * _hgt_dem_adj_last;
+
+    } else {
+        // force height dem_adj and dem_prev to current demanded height, no need to filter or limit it
+        _hgt_dem_adj = _hgt_dem_prev = _hgt_dem;
+    }
 
     // when flaring force height rate demand to the
     // configured sink rate and adjust the demanded height to
@@ -882,7 +891,17 @@ void AP_TECS::_update_pitch(void)
         // speed. Speed is also taken care of independently of
         // height. This is needed as the usual relationship of speed
         // and height is broken by the VTOL motors
-        SKE_weighting = 0.0f;
+        SKE_weighting = 0.0f;        
+    } else if (_auto_thr_gliding_state == ATGS_SPEED_BLEEDING_OFF) {
+        // started gliding, bleed off speed slowly, no need to pitch up to reduce speed
+        if (_SKE_est > _SKE_dem) {
+            _pitch_dem = _last_pitch_dem = 0;
+            return;
+        } else {
+            SKE_weighting = 2.0f;
+            _integSEB_state = 0;
+            _auto_thr_gliding_state = ATGS_GLIDING;
+        }
     } else if ( _flags.underspeed || _flight_stage == AP_Vehicle::FixedWing::FLIGHT_TAKEOFF || _flight_stage == AP_Vehicle::FixedWing::FLIGHT_ABORT_LAND || _flags.is_gliding) {
         SKE_weighting = 2.0f;
     } else if (_flags.is_doing_auto_land) {
@@ -1061,7 +1080,7 @@ void AP_TECS::update_pitch_throttle(int32_t hgt_dem_cm,
 
     _throttle_expo = throttle_expo;
 
-    _flags.is_gliding = _flags.gliding_requested || _flags.propulsion_failed || aparm.throttle_max==0;
+    _flags.is_gliding = _flags.gliding_requested || _auto_thr_gliding_state != ATGS_DISABLED || _flags.propulsion_failed || aparm.throttle_max==0;
     _flags.is_doing_auto_land = (flight_stage == AP_Vehicle::FixedWing::FLIGHT_LAND);
     _distance_beyond_land_wp = distance_beyond_land_wp;
     _flight_stage = flight_stage;
