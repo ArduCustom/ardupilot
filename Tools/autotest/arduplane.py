@@ -2359,6 +2359,25 @@ class AutoTestPlane(AutoTest):
         self.set_rc(2, 1500)
         self.fly_home_land_and_disarm()
 
+    def CruiseGliding(self):
+        '''Test CruiseGliding'''
+        self.set_parameter("FLIGHT_OPTIONS", 1 << 23)
+        self.takeoff(alt=200)
+        self.change_mode('CRUISE')
+        self.progress("Climbing to 250m at half speed")
+        self.set_rc(3, 1500)
+        self.set_rc(2, 1100)
+        self.wait_altitude(250, 260, timeout=100, relative=True)
+        self.progress("Gliding back down to 200m")
+        self.set_rc(3, 1000)
+        self.wait_servo_channel_value(3, 1000, timeout=4, comparator=operator.eq)
+        self.wait_altitude(195, 205, timeout=100, relative=True)
+        self.progress("Climbing back up to 250m at full speed")
+        self.set_rc(3, 2000)
+        self.wait_servo_channel_value(3, 1200, timeout=4, comparator=operator.ge)
+        self.wait_altitude(250, 260, timeout=100, relative=True)
+        self.fly_home_land_and_disarm()
+
     def CPUFailsafe(self):
         '''In lockup Plane should copy RC inputs to RC outputs'''
         self.plane_CPUFailsafe()
@@ -4017,6 +4036,7 @@ class AutoTestPlane(AutoTest):
             self.AirspeedDrivers,
             self.RTL_CLIMB_MIN,
             self.ClimbBeforeTurn,
+            self.CruiseGliding,
             self.IMUTempCal,
             self.MAV_DO_AUX_FUNCTION,
             self.SmartBattery,

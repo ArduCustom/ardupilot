@@ -110,6 +110,8 @@ public:
 
     virtual float get_throttle_input(bool no_deadzone=false) const { return 0; }
 
+    virtual bool is_auto_throttle_gliding(void) const { return false; }
+
     /*
       common parameters for fixed wing aircraft
      */
