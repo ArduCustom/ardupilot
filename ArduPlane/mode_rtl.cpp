@@ -6,6 +6,9 @@ bool ModeRTL::_enter()
     plane.prev_WP_loc = plane.current_loc;
     plane.do_RTL(plane.get_RTL_altitude_cm());
     plane.rtl.done_climb = false;
+    plane.auto_state.emergency_landing = false;
+    plane.auto_state.reached_home_in_fs_ms = 0;
+    plane.auto_state.reached_emergency_landing_no_return_altitude = false;
 #if HAL_QUADPLANE_ENABLED
     plane.vtol_approach_s.approach_stage = Plane::Landing_ApproachStage::RTL;
 
@@ -59,6 +62,8 @@ void ModeRTL::update()
 
 void ModeRTL::navigate()
 {
+    const uint32_t now = AP_HAL::millis();
+
 #if HAL_QUADPLANE_ENABLED
     if (plane.control_mode->mode_number() != QRTL) {
         // QRTL shares this navigate function with RTL
@@ -74,9 +79,40 @@ void ModeRTL::navigate()
             return;
         }
 
-        if ((AP_HAL::millis() - plane.last_mode_change_ms > 1000) && switch_QRTL()) {
+        if ((now - plane.last_mode_change_ms > 1000) && switch_QRTL()) {
             return;
         }
+#endif
+
+        if (plane.failsafe.rc_failsafe &&
+            !(plane.mission.contains_item(MAV_CMD_DO_LAND_START) && (plane.g.rtl_autoland == RtlAutoland::RTL_THEN_DO_LAND_START || plane.g.rtl_autoland == RtlAutoland::RTL_IMMEDIATE_DO_LAND_START)) &&
+            plane.g2.flight_options & FlightOptions::RTL_FAILSAFE_LAND_AFTER_2MIN && plane.reached_loiter_target()) {
+            if (plane.auto_state.reached_home_in_fs_ms) {
+                if (now - plane.auto_state.reached_home_in_fs_ms > 120000) {
+                    plane.set_auto_thr_gliding(true);
+                    if (!plane.auto_state.emergency_landing) {
+                        plane.auto_state.emergency_landing = true;
+                        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Emergency landing started");
+                    }
+                }
+            } else {
+                plane.auto_state.reached_home_in_fs_ms = now;
+            }
+
+            if (plane.auto_state.emergency_landing && plane.relative_altitude < 10) {
+                plane.auto_state.reached_emergency_landing_no_return_altitude = true;
+            }
+        } else if (!plane.auto_state.reached_emergency_landing_no_return_altitude) {
+            plane.set_auto_thr_gliding(false);
+            plane.auto_state.emergency_landing = false;
+            plane.auto_state.reached_home_in_fs_ms = 0;
+        }
+
+        if (plane.auto_state.reached_emergency_landing_no_return_altitude && !plane.is_flying()) {
+            plane.disarm_if_autoland_complete();
+        }
+
+#if HAL_QUADPLANE_ENABLED
     }
 #endif
 
