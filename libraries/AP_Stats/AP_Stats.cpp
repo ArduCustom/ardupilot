@@ -3,6 +3,10 @@
 #include <AP_Math/AP_Math.h>
 #include <AP_RTC/AP_RTC.h>
 
+#include <AP_AHRS/AP_AHRS.h>
+
+
+
 const extern AP_HAL::HAL& hal;
 
 // table of user settable parameters
@@ -39,6 +43,14 @@ const AP_Param::GroupInfo AP_Stats::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_RESET",    3, AP_Stats, params.reset, 1),
 
+    // @Param: _FLTDIST
+    // @DisplayName: Total FlightDistance
+    // @Description: Total FlightDistance (meter)
+    // @Units: m
+    // @ReadOnly: True
+    // @User: Standard
+    AP_GROUPINFO("_FLTDIST",    4, AP_Stats, params.fltdist, 0),
+
     AP_GROUPEND
 };
 
@@ -53,6 +65,7 @@ AP_Stats::AP_Stats(void)
 void AP_Stats::copy_variables_from_parameters()
 {
     flttime = params.flttime;
+    _fltdist = fltdist = params.fltdist;
     runtime = params.runtime;
     reset = params.reset;
     flttime_boot = flttime;
@@ -70,6 +83,7 @@ void AP_Stats::init()
 void AP_Stats::flush()
 {
     params.flttime.set_and_save_ifchanged(flttime);
+    params.fltdist.set_and_save_ifchanged(fltdist);
     params.runtime.set_and_save_ifchanged(runtime);
 }
 
@@ -84,6 +98,38 @@ void AP_Stats::update_flighttime()
     }
 }
 
+void AP_Stats::update_flightdistance()
+{
+    if (_flying_ms) {
+
+        uint32_t now = AP_HAL::millis();
+
+        if (_last_distance_ms) {
+            uint32_t delta_ms = now - _last_distance_ms;
+
+            Vector2f ground_speed_vector;
+            {
+                // minimize semaphore scope
+                AP_AHRS &ahrs = AP::ahrs();
+                WITH_SEMAPHORE(ahrs.get_semaphore());
+                ground_speed_vector = ahrs.groundspeed_vector();
+            }
+
+            float ground_speed_mps = ground_speed_vector.length();
+
+            float dist_ground_m = (ground_speed_mps * delta_ms)*0.001f;
+            _fltdist += dist_ground_m;
+            fltdist = lrintf(_fltdist);
+        }
+
+        _last_distance_ms = now;
+
+    } else {
+        _last_distance_ms = 0;
+    }
+
+}
+
 void AP_Stats::update_runtime()
 {
     const uint32_t now = AP_HAL::millis();
@@ -96,6 +142,7 @@ void AP_Stats::update()
 {
     WITH_SEMAPHORE(sem);
     const uint32_t now_ms = AP_HAL::millis();
+    update_flightdistance();
     if (now_ms -  last_flush_ms > flush_interval_ms) {
         update_flighttime();
         update_runtime();
@@ -106,6 +153,7 @@ void AP_Stats::update()
     if (params_reset != reset || params_reset == 0) {
         params.bootcount.set_and_save_ifchanged(params_reset == 0 ? 1 : 0);
         params.flttime.set_and_save_ifchanged(0);
+        params.fltdist.set_and_save_ifchanged(0);
         params.runtime.set_and_save_ifchanged(0);
         uint32_t system_clock = 0; // in seconds
         uint64_t rtc_clock_us;
