@@ -2200,6 +2200,17 @@ function'''
         self.wait_altitude(250, 260, timeout=100, relative=True)
         self.disarm_vehicle(force=True)
 
+    def test_emergency_landing(self):
+        self.set_parameter("FLIGHT_OPTIONS", 1 << 21)
+        self.takeoff(alt=100)
+        self.set_parameter("THR_FS_VALUE", 960)
+        self.progress("Failing receiver (throttle-to-950)")
+        self.context_collect("STATUSTEXT")
+        self.set_parameter("SIM_RC_FAIL", 2) # throttle-to-950
+        self.wait_mode('RTL') # long failsafe
+        self.wait_altitude(-5, 5, timeout=600, relative=True)
+        self.wait_statustext("Auto disarmed", timeout=240, check_context=True)
+
     def CPUFailsafe(self):
         '''In lockup Plane should copy RC inputs to RC outputs'''
         self.plane_CPUFailsafe()
@@ -3696,6 +3707,10 @@ function'''
             ("CruiseGliding",
              "Test cruise gliding",
              self.test_cruise_gliding),
+
+            ("EmergencyLanding",
+             "Test emergency landing",
+             self.test_emergency_landing),
 
             ("WatchdogHome",
              "Ensure home is restored after watchdog reset",
