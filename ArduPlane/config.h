@@ -248,6 +248,8 @@
  # define SCALING_SPEED          15.0
 #endif
 
+#define LEVEL_ROLL_LIMIT_DEFAULT 5
+
 // use this to disable geo-fencing
 #ifndef AC_FENCE
  # define AC_FENCE ENABLED
