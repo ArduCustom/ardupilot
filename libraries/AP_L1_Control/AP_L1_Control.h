@@ -68,6 +68,8 @@ public:
         return _data_is_stale;
     }
 
+    void reset_reached_loiter_target(void) override { _WPcircle = false; }
+
     // this supports the NAVl1_* user settable parameters
     static const struct AP_Param::GroupInfo var_info[];
 
