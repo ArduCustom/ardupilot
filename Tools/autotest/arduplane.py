@@ -2380,6 +2380,23 @@ function'''
         self.wait_statustext("Auto disarmed", timeout=240, check_context=True)
         self.set_parameter("SIM_RC_FAIL", 0) # unfailsafe
 
+    def rtl_home_altitude(self):
+        self.reboot_sitl()
+        self.wait_ready_to_arm()
+        self.set_parameters({
+            "RTL_ALT_MIN": 200,
+            "RTL_ALT_HOME": 100,
+        })
+        self.takeoff(alt=100)
+        self.change_mode("CRUISE")
+        self.wait_distance_to_home(790, 810, timeout=200)
+        self.change_mode("RTL")
+        self.wait_altitude(195, 205, timeout=100, relative=True)
+        self.wait_distance_to_home(90, 110, timeout=20)
+        self.wait_altitude(95, 105, timeout=100, relative=True)
+        self.wait_distance_to_home(90, 110, timeout=2)
+        self.disarm_vehicle(force=True)
+
     def CPUFailsafe(self):
         '''In lockup Plane should copy RC inputs to RC outputs'''
         self.plane_CPUFailsafe()
@@ -4069,6 +4086,10 @@ function'''
             ("EmergencyLanding",
              "Test emergency landing",
              self.test_emergency_landing),
+
+            ("RTLHomeAlt",
+             "Test RTL home altitude",
+             self.rtl_home_altitude),
 
             ("WatchdogHome",
              "Ensure home is restored after watchdog reset",
