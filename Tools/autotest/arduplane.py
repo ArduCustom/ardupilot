@@ -1821,6 +1821,43 @@ class AutoTestPlane(AutoTest):
     def deadreckoning_no_airspeed_sensor(self):
         self.deadreckoning_main(disable_airspeed_sensor=True)
 
+    def manual_rtl_alt_control(self):
+        self.wait_ready_to_arm()
+        rtl_alt = 100 # m
+        self.set_parameters({
+            "FLIGHT_OPTIONS": (1<<19),
+            "ALT_HOLD_RTL": rtl_alt * 100,
+            "THR_FS_VALUE": 960
+        })
+        takeoff_alt = 10
+        self.takeoff(alt=takeoff_alt)
+        self.set_rc(3, 1500)
+        self.change_mode("CRUISE")
+        self.wait_distance_to_home(1500, 2100, timeout=120)
+        self.change_mode("RTL")
+        self.progress("Manually ascending to 100m")
+        self.set_rc(2, 1100)
+        self.wait_altitude(95, 105, timeout=30, relative=True)
+        self.progress("Manually descending to 50m")
+        self.set_rc(2, 1900)
+        self.wait_altitude(45, 55, timeout=30, relative=True)
+        self.set_rc(2, 1500)
+        self.progress("Failing receiver (throttle-to-950) and waiting to reach RTL alt")
+        self.set_parameter("SIM_RC_FAIL", 2) # throttle-to-950
+        self.wait_altitude(rtl_alt-5, rtl_alt+5, timeout=30, relative=True)
+        self.progress("Checking we are reaching home and staying there")
+        self.wait_distance_to_home(90, 110, timeout=120)
+        self.delay_sim_time(60)
+        self.wait_distance_to_home(90, 110, timeout=120)
+        self.progress("Unfailsafe and climb to 200m")
+        self.set_parameter("SIM_RC_FAIL", 0)
+        self.set_rc(2, 1100)
+        self.wait_altitude(195, 205, timeout=30, relative=True)
+        self.progress("Should still be around home")
+        self.wait_distance_to_home(90, 110, timeout=2)
+        self.disarm_vehicle(force=True)
+        self.reboot_sitl()
+
     def climb_before_turn(self):
         self.wait_ready_to_arm()
         self.set_parameters({
@@ -4088,6 +4125,10 @@ function'''
             ("ClimbBeforeTurn",
              "Test climb-before-turn",
              self.climb_before_turn),
+
+            ("ManualRTLAltControl",
+             "Test manual RTL alt control",
+             self.manual_rtl_alt_control),
 
             ("IMUTempCal",
              "Test IMU temperature calibration",

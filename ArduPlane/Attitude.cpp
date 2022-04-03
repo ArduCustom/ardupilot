@@ -249,6 +249,11 @@ void Plane::stabilize_stick_mixing_direct()
         return;
     }
 
+    if ((control_mode == &mode_rtl) && plane.g2.flight_options & FlightOptions::RTL_MANUAL_ALT_CONTROL) {
+        // RTL is using altitude control based on the pitch stick, don't use it again here
+        return;
+    }
+
     float elevator = SRV_Channels::get_output_scaled(SRV_Channel::k_elevator);
     elevator = channel_pitch->stick_mixing(elevator);
     SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, elevator);
@@ -296,6 +301,11 @@ void Plane::stabilize_stick_mixing_fbw()
 
     if ((control_mode == &mode_loiter) && (plane.g2.flight_options & FlightOptions::ENABLE_LOITER_ALT_CONTROL)) {
         // loiter is using altitude control based on the pitch stick, don't use it again here
+        return;
+    }
+
+    if ((control_mode == &mode_rtl) && plane.g2.flight_options & FlightOptions::RTL_MANUAL_ALT_CONTROL) {
+        // RTL is using altitude control based on the pitch stick, don't use it again here
         return;
     }
 
