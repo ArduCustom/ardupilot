@@ -702,6 +702,13 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Standard
     GSCALAR(RTL_altitude,        "RTL_ALT_MIN",   RTL_ALT_MIN),
 
+    // @Param: RTL_ALT_HOME
+    // @DisplayName: Altitude to go to after reaching home
+    // @Description: Altitude to go to after reaching home. Set to -1 to stay at RTL_ALT_MIN
+    // @Units: m
+    // @User: Standard
+    GSCALAR(RTL_home_altitude,   "RTL_ALT_HOME",   -1),
+
     // @Param: ALT_HOLD_FBWCM
     // @DisplayName: Minimum altitude for FBWB mode
     // @Description: This is the minimum altitude in centimeters that FBWB and CRUISE modes will allow. If you attempt to descend below this altitude then the plane will level off. A value of zero means no limit.
