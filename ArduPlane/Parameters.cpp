@@ -696,12 +696,12 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Advanced
     GSCALAR(pitch_trim,        "TRIM_PITCH",  1.0f),
 
-    // @Param: ALT_HOLD_RTL
-    // @DisplayName: RTL altitude
+    // @Param: RTL_ALT_MIN
+    // @DisplayName: Minimum RTL altitude
     // @Description: Target altitude above home for RTL mode. Maintains current altitude if set to -1. Rally point altitudes are used if plane does not return to home.
-    // @Units: cm
+    // @Units: m
     // @User: Standard
-    GSCALAR(RTL_altitude_cm,        "ALT_HOLD_RTL",   ALT_HOLD_HOME_CM),
+    GSCALAR(RTL_altitude,        "RTL_ALT_MIN",   RTL_ALT_MIN),
 
     // @Param: ALT_HOLD_FBWCM
     // @DisplayName: Minimum altitude for FBWB mode
@@ -1123,7 +1123,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Param: FLIGHT_OPTIONS
     // @DisplayName: Flight mode options
     // @Description: Flight mode specific options
-    // @Bitmask: 0:Rudder mixing in direct flight modes only (Manual / Stabilize / Acro),1:Use centered throttle in Cruise or FBWB to indicate trim airspeed, 2:Disable attitude check for takeoff arming, 3:Force target airspeed to trim airspeed in Cruise or FBWB, 4: Climb to ALT_HOLD_RTL before turning for RTL, 5: Enable yaw damper in acro mode, 6: Surpress speed scaling during auto takeoffs to be 1 or less to prevent oscillations without airpseed sensor., 7:EnableDefaultAirspeed for takeoff, 8: Remove the TRIM_PITCH_CD on the GCS horizon, 9: Remove the TRIM_PITCH_CD on the OSD horizon, 10: Adjust mid-throttle to be TRIM_THROTTLE in non-auto throttle modes except MANUAL, 11:Disable suppression of fixed wing rate gains in ground mode, 19: Enable manual altitude control in RTL mode, 20: Climb first in RTL only during RC failsafe, 21:If RTL in failsafe land with 0 throttle spiraling down 2 minutes after reaching home, 22: Glide in auto throttle modes if throttle bellow THR_DZ, 23: remove FBWB style loiter altitude control
+    // @Bitmask: 0:Rudder mixing in direct flight modes only (Manual / Stabilize / Acro),1:Use centered throttle in Cruise or FBWB to indicate trim airspeed, 2:Disable attitude check for takeoff arming, 3:Force target airspeed to trim airspeed in Cruise or FBWB, 4: Climb to RTL_ALT_MIN before turning for RTL, 5: Enable yaw damper in acro mode, 6: Surpress speed scaling during auto takeoffs to be 1 or less to prevent oscillations without airpseed sensor., 7:EnableDefaultAirspeed for takeoff, 8: Remove the TRIM_PITCH_CD on the GCS horizon, 9: Remove the TRIM_PITCH_CD on the OSD horizon, 10: Adjust mid-throttle to be TRIM_THROTTLE in non-auto throttle modes except MANUAL, 11:Disable suppression of fixed wing rate gains in ground mode, 19: Enable manual altitude control in RTL mode, 20: Climb first in RTL only during RC failsafe, 21:If RTL in failsafe land with 0 throttle spiraling down 2 minutes after reaching home, 22: Glide in auto throttle modes if throttle bellow THR_DZ, 23: remove FBWB style loiter altitude control
     // @User: Advanced
     AP_GROUPINFO("FLIGHT_OPTIONS", 13, ParametersG2, flight_options, 0),
 
