@@ -696,12 +696,12 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Advanced
     GSCALAR(pitch_trim,        "TRIM_PITCH",  1.0f),
 
-    // @Param: ALT_HOLD_RTL
-    // @DisplayName: RTL altitude
+    // @Param: RTL_ALT_MIN
+    // @DisplayName: Minimum RTL altitude
     // @Description: Target altitude above home for RTL mode. Maintains current altitude if set to -1. Rally point altitudes are used if plane does not return to home.
-    // @Units: cm
+    // @Units: m
     // @User: Standard
-    GSCALAR(RTL_altitude_cm,        "ALT_HOLD_RTL",   ALT_HOLD_HOME_CM),
+    GSCALAR(RTL_altitude,        "RTL_ALT_MIN",   RTL_ALT_MIN),
 
     // @Param: ALT_HOLD_FBWCM
     // @DisplayName: Minimum altitude for FBWB mode
