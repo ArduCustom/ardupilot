@@ -148,7 +148,7 @@ int32_t AP_Avoidance_Copter::get_altitude_minimum() const
 {
 #if MODE_RTL_ENABLED == ENABLED
     // do not descend if below RTL alt
-    return copter.g.rtl_altitude;
+    return copter.g.rtl_altitude_m * 100;
 #else
     return 0;
 #endif
