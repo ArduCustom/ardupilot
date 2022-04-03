@@ -80,7 +80,7 @@ public:
         k_param_takeoff_throttle_min_accel,
         k_param_takeoff_heading_hold, // unused
         k_param_level_roll_limit,
-        k_param_hil_servos_unused,  // unused
+        k_param_rtl_level_roll_limit,
         k_param_vtail_output, // unused
         k_param_nav_controller, // unused
         k_param_elevon_output, // unused
@@ -455,6 +455,7 @@ public:
     AP_Int8 takeoff_throttle_slewrate;
     AP_Float takeoff_pitch_limit_reduction_sec;
     AP_Int8 level_roll_limit;
+    AP_Int8 rtl_level_roll_limit;
 #if AP_TERRAIN_AVAILABLE
     AP_Int32 terrain_follow;
     AP_Int16 terrain_lookahead;
