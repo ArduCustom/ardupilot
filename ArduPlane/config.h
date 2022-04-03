@@ -241,6 +241,8 @@
  # define SCALING_SPEED          15.0
 #endif
 
+#define LEVEL_ROLL_LIMIT_DEFAULT 5
+
 // a digital pin to set high when the geo-fence triggers. Defaults
 // to -1, which means don't activate a pin
 #ifndef FENCE_TRIGGERED_PIN
