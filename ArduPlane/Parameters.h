@@ -215,7 +215,7 @@ public:
         k_param_pitch_limit_min_cd,
         k_param_airspeed_cruise_cm,
         k_param_RTL_altitude_cm, // unused
-        k_param_inverted_flight_ch_unused, // unused
+        k_param_RTL_home_altitude,
         k_param_min_gndspeed_cm,
         k_param_crosstrack_use_wind, // unused
 
@@ -437,6 +437,7 @@ public:
     AP_Int16 num_resets;
     AP_Int32 log_bitmask;
     AP_Int32 RTL_altitude;
+    AP_Int32 RTL_home_altitude;
     AP_Float pitch_trim;
     AP_Int16 FBWB_min_altitude_cm;
 
