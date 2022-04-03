@@ -153,6 +153,17 @@ int32_t Plane::get_RTL_altitude_cm() const
 }
 
 /*
+  return home RTL altitude as AMSL cm
+ */
+int32_t Plane::get_home_RTL_altitude_cm() const
+{
+    if (g.RTL_home_altitude < 0) {
+        return get_RTL_altitude_cm();
+    }
+    return g.RTL_home_altitude * 100 + home.alt;
+}
+
+/*
   return relative altitude in meters (relative to terrain, if available,
   or home otherwise)
  */
