@@ -116,6 +116,8 @@
 #endif
 #include "AP_Arming.h"
 
+#define LEVEL_ROLL_LIMIT_DEFAULT 5
+
 /*
   main APM:Plane class
  */
