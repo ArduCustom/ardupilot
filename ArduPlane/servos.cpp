@@ -425,6 +425,8 @@ void Plane::set_servos_manual_passthrough(void)
 
     apply_throttle_dz();
 
+    TECS_controller.set_throttle_demand(SRV_Channels::get_output_scaled(SRV_Channel::k_throttle));
+
     if (!g2.rc_channels.throttle_battery_compensation_is_disabled_in_manual_mode()) {
         // conpensate for battery voltage drop
         int8_t min_throttle = -100;
@@ -645,7 +647,6 @@ void Plane::set_servos_controlled(void)
             // manual pass through of throttle while throttle is suppressed
             float throttle_input = get_throttle_input(true);
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle_input);
-            TECS_controller.set_throttle_demand(throttle_input);
         }
 #if AP_SCRIPTING_ENABLED
     } else if (plane.nav_scripting.current_ms > 0 && nav_scripting.enabled) {
@@ -682,6 +683,10 @@ void Plane::set_servos_controlled(void)
         }
         SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, fwd_thr);
 #endif  // HAL_QUADPLANE_ENABLED
+    }
+    
+    if (suppress_throttle() || !control_mode->does_auto_throttle()) {
+        TECS_controller.set_throttle_demand(SRV_Channels::get_output_scaled(SRV_Channel::k_throttle));
     }
 
     apply_throttle_dz();
