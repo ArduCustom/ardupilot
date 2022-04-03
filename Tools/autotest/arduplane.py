@@ -2257,6 +2257,21 @@ function'''
         self.wait_servo_channel_value(3, 1000, timeout=130, comparator=operator.eq)
         self.wait_altitude(-5, 5, timeout=300, relative=True)
         self.wait_statustext("Auto disarmed", timeout=240, check_context=True)
+    
+    def rtl_home_altitude(self):
+        self.set_parameters({
+            "RTL_ALT_MIN": 200,
+            "RTL_ALT_HOME": 100,
+        })
+        self.takeoff(alt=100)
+        self.change_mode("CRUISE")
+        self.wait_distance_to_home(790, 810, timeout=150)
+        self.change_mode("RTL")
+        self.wait_altitude(195, 205, timeout=100, relative=True)
+        self.wait_distance_to_home(90, 110, timeout=20)
+        self.wait_altitude(95, 105, timeout=100, relative=True)
+        self.wait_distance_to_home(90, 110, timeout=2)
+        self.disarm_vehicle(force=True)
 
     def CPUFailsafe(self):
         '''In lockup Plane should copy RC inputs to RC outputs'''
@@ -3758,6 +3773,10 @@ function'''
             ("EmergencyLanding",
              "Test emergency landing",
              self.test_emergency_landing),
+
+            ("RTLHomeAlt",
+             "Test RTL home altitude",
+             self.rtl_home_altitude),
 
             ("WatchdogHome",
              "Ensure home is restored after watchdog reset",
