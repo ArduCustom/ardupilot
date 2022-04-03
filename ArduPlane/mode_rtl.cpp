@@ -7,6 +7,7 @@ bool ModeRTL::_enter()
     plane.do_RTL(plane.get_RTL_altitude_cm());
     plane.rtl.done_climb = false;
     plane.rtl.triggered_by_rc_failsafe = plane.failsafe.rc_failsafe;
+    plane.rtl.manual_alt_control = false;
     plane.auto_state.emergency_landing = false;
     plane.auto_state.reached_home_in_fs_ms = 0;
     plane.auto_state.reached_emergency_landing_no_return_altitude = false;
@@ -20,6 +21,13 @@ bool ModeRTL::_enter()
        return true;
     }
 
+    // make sure the local target altitude is the same as the nav target used for loiter nav
+    // this allows us to do FBWB style stick control
+    if (plane.g2.flight_options & FlightOptions::RTL_MANUAL_ALT_CONTROL && !plane.rtl.triggered_by_rc_failsafe) {
+        plane.rtl.manual_alt_control = true;
+        IGNORE_RETURN(plane.prev_WP_loc.get_alt_cm(Location::AltFrame::ABSOLUTE, plane.target_altitude.amsl_cm));
+    }
+
     // do not check if we have reached the loiter target if switching from loiter this will trigger as the nav controller has not yet proceeded the new destination
     switch_QRTL(false);
 #endif
@@ -30,12 +38,32 @@ bool ModeRTL::_enter()
 void ModeRTL::update()
 {
     plane.calc_nav_roll();
+
+    if (!plane.failsafe.rc_failsafe && !plane.rtl.triggered_by_rc_failsafe) {
+        // not int FS
+
+        if (plane.g2.flight_options & FlightOptions::RTL_MANUAL_ALT_CONTROL) {
+            plane.rtl.manual_alt_control = true;
+            plane.update_fbwb_speed_height();
+            return;
+        }
+
+        if (plane.g2.flight_options & FlightOptions::RTL_CLIMB_FIRST_ONLY_IN_FS) {
+            plane.rtl.done_climb = true;
+            plane.calc_nav_pitch();
+            plane.calc_throttle();
+            return;
+        }
+
+    } else if (plane.rtl.manual_alt_control) {
+        // was not in FS but now is and was already in RTL with manual control enabled
+        plane.prev_WP_loc = plane.current_loc;
+        plane.do_RTL(plane.get_RTL_altitude_cm());
+        plane.rtl.manual_alt_control = false;
+    }
+
     plane.calc_nav_pitch();
     plane.calc_throttle();
-
-    if (plane.g2.flight_options & FlightOptions::RTL_CLIMB_FIRST_ONLY_IN_FS && !plane.failsafe.rc_failsafe && !plane.rtl.triggered_by_rc_failsafe) {
-        return;
-    }
 
     bool alt_threshold_reached = false;
     if (plane.g2.flight_options & FlightOptions::CLIMB_BEFORE_TURN) {
