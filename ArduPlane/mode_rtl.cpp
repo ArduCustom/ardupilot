@@ -6,6 +6,7 @@ bool ModeRTL::_enter()
     plane.prev_WP_loc = plane.current_loc;
     plane.do_RTL(plane.get_RTL_altitude_cm());
     plane.rtl.done_climb = false;
+    plane.rtl.triggered_by_rc_failsafe = plane.failsafe.rc_failsafe;
     plane.auto_state.emergency_landing = false;
     plane.auto_state.reached_home_in_fs_ms = 0;
     plane.auto_state.reached_emergency_landing_no_return_altitude = false;
@@ -31,6 +32,10 @@ void ModeRTL::update()
     plane.calc_nav_roll();
     plane.calc_nav_pitch();
     plane.calc_throttle();
+
+    if (plane.g2.flight_options & FlightOptions::RTL_CLIMB_FIRST_ONLY_IN_FS && !plane.failsafe.rc_failsafe && !plane.rtl.triggered_by_rc_failsafe) {
+        return;
+    }
 
     bool alt_threshold_reached = false;
     if (plane.g2.flight_options & FlightOptions::CLIMB_BEFORE_TURN) {
