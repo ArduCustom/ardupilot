@@ -813,6 +813,7 @@ private:
     struct {
         bool done_climb;
         bool triggered_by_rc_failsafe;
+        bool manual_alt_control;
     } rtl;
 
     // last time home was updated while disarmed
