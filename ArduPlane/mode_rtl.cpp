@@ -71,7 +71,7 @@ void ModeRTL::update()
         alt_threshold_reached = plane.current_loc.alt > plane.next_WP_loc.alt;
     } else if (plane.g2.rtl_climb_min > 0) {
         /*
-           when RTL first starts limit bank angle to LEVEL_ROLL_LIMIT
+           when RTL first starts limit bank angle to RTL_LVL_RLL_LMT
            until we have climbed by RTL_CLIMB_MIN meters
            */
         alt_threshold_reached = (plane.current_loc.alt - plane.prev_WP_loc.alt)*0.01 > plane.g2.rtl_climb_min;
@@ -88,8 +88,8 @@ void ModeRTL::update()
         // Constrain the roll limit as a failsafe, that way if something goes wrong the plane will
         // eventually turn back and go to RTL instead of going perfectly straight. This also leaves
         // some leeway for fighting wind.
-        plane.roll_limit_cd = MIN(plane.roll_limit_cd, plane.g.level_roll_limit*100);
-        plane.nav_roll_cd = constrain_int32(plane.nav_roll_cd, -plane.roll_limit_cd, plane.roll_limit_cd);
+        const int level_roll_limit_cd = MIN(plane.roll_limit_cd, plane.g.rtl_level_roll_limit*100);
+        plane.nav_roll_cd = constrain_int32(plane.nav_roll_cd, -level_roll_limit_cd, level_roll_limit_cd);
     }
 }
 
