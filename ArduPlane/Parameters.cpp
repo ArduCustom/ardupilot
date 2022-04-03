@@ -223,7 +223,16 @@ const AP_Param::Info Plane::var_info[] = {
     // @Range: 0 45
     // @Increment: 1
     // @User: Standard
-    GSCALAR(level_roll_limit,              "LEVEL_ROLL_LIMIT",   5),
+    GSCALAR(level_roll_limit,              "LEVEL_ROLL_LIMIT",   LEVEL_ROLL_LIMIT_DEFAULT),
+
+    // @Param: RTL_LVL_RLL_LMT
+    // @DisplayName: RTL level flight roll limit
+    // @Description: This controls the maximum bank angle in degrees during RTL climb before turning
+    // @Units: deg
+    // @Range: 0 45
+    // @Increment: 1
+    // @User: Standard
+    GSCALAR(rtl_level_roll_limit,              "RTL_LVL_RLL_LMT",   LEVEL_ROLL_LIMIT_DEFAULT),
 
     // @Param: USE_REV_THRUST
     // @DisplayName: Bitmask for when to allow negative reverse thrust
@@ -1215,7 +1224,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 
     // @Param: RTL_CLIMB_MIN
     // @DisplayName: RTL minimum climb
-    // @Description: The vehicle will climb this many m during the initial climb portion of the RTL. During this time the roll will be limited to LEVEL_ROLL_LIMIT degrees.
+    // @Description: The vehicle will climb this many m during the initial climb portion of the RTL. During this time the roll will be limited to RTL_LVL_RLL_LMT degrees.
     // @Units: m
     // @Range: 0 30
     // @Increment: 1
