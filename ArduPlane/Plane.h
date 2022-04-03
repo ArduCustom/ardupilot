@@ -813,6 +813,7 @@ private:
         bool done_climb;
         bool triggered_by_rc_failsafe;
         bool manual_alt_control;
+        bool reached_home_altitude;
     } rtl;
 
     // last time home was updated while disarmed
@@ -884,6 +885,7 @@ private:
     void adjust_altitude_target();
     void setup_glide_slope(void);
     int32_t get_RTL_altitude_cm() const;
+    int32_t get_home_RTL_altitude_cm() const;
     float relative_ground_altitude(bool use_rangefinder_if_available);
     void set_target_altitude_current(void);
     void set_target_altitude_current_adjusted(void);

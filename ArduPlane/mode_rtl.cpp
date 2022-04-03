@@ -3,11 +3,13 @@
 
 bool ModeRTL::_enter()
 {
+    plane.nav_controller->reset_reached_loiter_target();
     plane.prev_WP_loc = plane.current_loc;
     plane.do_RTL(plane.get_RTL_altitude_cm());
     plane.rtl.done_climb = false;
     plane.rtl.triggered_by_rc_failsafe = plane.failsafe.rc_failsafe;
     plane.rtl.manual_alt_control = false;
+    plane.rtl.reached_home_altitude = false;
     plane.auto_state.emergency_landing = false;
     plane.auto_state.reached_home_in_fs_ms = 0;
     plane.auto_state.reached_emergency_landing_no_return_altitude = false;
@@ -128,7 +130,8 @@ void ModeRTL::navigate()
                         GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Emergency landing started");
                     }
                 }
-            } else {
+            } else if (plane.rtl.reached_home_altitude) {
+                // trigger emergency landing counter only when the plane has reached home altitude
                 plane.auto_state.reached_home_in_fs_ms = now;
             }
 
@@ -143,6 +146,27 @@ void ModeRTL::navigate()
 
         if (plane.auto_state.reached_emergency_landing_no_return_altitude && !plane.is_flying()) {
             plane.disarm_if_autoland_complete();
+        }
+
+        if (((plane.g2.flight_options & FlightOptions::RTL_MANUAL_ALT_CONTROL) == 0 || plane.failsafe.rc_failsafe || plane.rtl.triggered_by_rc_failsafe) && plane.reached_loiter_target()) {
+
+            int32_t home_altitude_cm;
+            if (plane.g.RTL_home_altitude > -1) {
+                home_altitude_cm = plane.get_home_RTL_altitude_cm();
+                plane.next_WP_loc.set_alt_cm(home_altitude_cm, Location::AltFrame::ABSOLUTE);
+                plane.setup_terrain_target_alt(plane.next_WP_loc);
+                plane.set_target_altitude_location(plane.next_WP_loc);
+            } else {
+                home_altitude_cm = plane.get_RTL_altitude_cm();
+            }
+
+            plane.rtl.done_climb = true;
+
+            if (abs(home_altitude_cm - plane.current_loc.alt) < 500) {
+                // less than 5m away from target home altitude
+                plane.rtl.reached_home_altitude = true;
+            }
+
         }
 
 #if HAL_QUADPLANE_ENABLED
