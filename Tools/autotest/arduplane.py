@@ -2439,6 +2439,22 @@ class AutoTestPlane(AutoTest):
         self.wait_statustext("Auto disarmed", timeout=240, check_context=True)
         self.set_parameter("SIM_RC_FAIL", 0) # unfailsafe
 
+    def RTLHomeAltitude(self):
+        '''Test RTL home altitude'''
+        self.set_parameters({
+            "RTL_ALT_MIN": 200,
+            "RTL_ALT_HOME": 100,
+        })
+        self.takeoff(alt=100)
+        self.change_mode("CRUISE")
+        self.wait_distance_to_home(790, 810, timeout=200)
+        self.set_parameter("SIM_RC_FAIL", 1)
+        self.wait_altitude(195, 205, timeout=100, relative=True)
+        self.wait_distance_to_home(90, 110, timeout=40)
+        self.wait_altitude(95, 105, timeout=100, relative=True)
+        self.wait_distance_to_home(90, 110, timeout=2)
+        self.fly_home_land_and_disarm()
+
     def CPUFailsafe(self):
         '''In lockup Plane should copy RC inputs to RC outputs'''
         self.plane_CPUFailsafe()
@@ -4097,6 +4113,7 @@ class AutoTestPlane(AutoTest):
             self.AirspeedDrivers,
             self.RTL_CLIMB_MIN,
             self.ClimbBeforeTurn,
+            self.RTLHomeAltitude,
             self.ManualRTLAltControl,
             self.CruiseGliding,
             # self.EmergencyLanding,
