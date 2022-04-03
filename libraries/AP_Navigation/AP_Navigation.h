@@ -103,6 +103,8 @@ public:
     // the update_loiter() method is used
     virtual bool reached_loiter_target(void) = 0;
 
+    virtual void reset_reached_loiter_target(void) = 0;
+
     // notify Navigation controller that a new waypoint has just been
     // processed. This means that until we handle an update_XXX() function
     // the data is stale with old navigation information.
