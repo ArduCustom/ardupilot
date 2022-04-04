@@ -52,7 +52,9 @@ public:
                                int16_t throttle_nudge,
                                float hgt_afe,
                                float load_factor,
-                               float throttle_expo);
+                               float throttle_expo,
+                               float max_climb_rate,
+                               float max_sin_rate);
 
     // demanded throttle in percentage
     // should return -100 to 100, usually positive unless reverse thrust is enabled via _THRminf < 0
@@ -323,6 +325,9 @@ private:
     float _hgt_rate_dem;
     float _hgt_dem_prev;
     float _land_hgt_dem;
+
+    float _max_climb_rate;
+    float _max_sink_rate;
 
     // Speed demand after application of rate limiting
     // This is the demand tracked by the TECS control loops
