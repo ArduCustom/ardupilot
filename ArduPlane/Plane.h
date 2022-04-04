@@ -1288,6 +1288,21 @@ public:
 
     bool is_auto_throttle_gliding(void) const override { return auto_thr_gliding_state == ATGS_GLIDING; }
 
+    bool get_cruise_locked_heading(uint16_t &locked_heading) const override {
+        if (control_mode != &mode_cruise) {
+            return false;
+        }
+
+        int32_t locked_heading_cd;
+        const bool heading_locked = mode_cruise.get_target_heading_cd(locked_heading_cd);
+
+        if (heading_locked) {
+            locked_heading = lrintf(locked_heading_cd * 0.01f);
+        }
+
+        return heading_locked;
+    }
+
     void failsafe_check(void);
 #if AP_SCRIPTING_ENABLED
     bool set_target_location(const Location& target_loc) override;

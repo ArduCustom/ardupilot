@@ -60,7 +60,7 @@ class AP_MSP;
 #define PARAM_INDEX(key, idx, group) (uint32_t(uint32_t(key) << 23 | uint32_t(idx) << 18 | uint32_t(group)))
 #define PARAM_TOKEN_INDEX(token) PARAM_INDEX(AP_Param::get_persistent_key(token.key), token.idx, token.group_element)
 
-#define AP_OSD_NUM_SYMBOLS 104
+#define AP_OSD_NUM_SYMBOLS 105
 /*
   class to hold one setting
  */
@@ -244,6 +244,8 @@ private:
     AP_OSD_Setting tuned_param_value{false, 0, 0};
     AP_OSD_Setting peak_roll_rate{false, 0, 0};
     AP_OSD_Setting peak_pitch_rate{false, 0, 0};
+    AP_OSD_Setting cruise_heading{false, 0, 0};
+    AP_OSD_Setting cruise_heading_adjustment{false, 0, 0};
 
     // MSP OSD only
     AP_OSD_Setting crosshair{false, 0, 0};
@@ -374,8 +376,11 @@ private:
     void draw_tuned_param_value(uint8_t x, uint8_t y);
     void draw_peak_roll_rate(uint8_t x, uint8_t y);
     void draw_peak_pitch_rate(uint8_t x, uint8_t y);
+    void draw_cruise_heading(uint8_t x, uint8_t y);
+    void draw_cruise_heading_adjustment(uint8_t x, uint8_t y);
 
     bool has_tuned_param_changed();
+    bool cruise_heading_changed(uint16_t &locked_heading);
 
     struct {
         bool load_attempted;
