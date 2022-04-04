@@ -1126,7 +1126,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Param: FLIGHT_OPTIONS
     // @DisplayName: Flight mode options
     // @Description: Flight mode specific options
-    // @Bitmask: 0:Rudder mixing in direct flight modes only (Manual / Stabilize / Acro),1:Use centered throttle in Cruise or FBWB to indicate trim airspeed, 2:Disable attitude check for takeoff arming, 3:Force target airspeed to trim airspeed in Cruise or FBWB, 4: Climb to RTL_ALT_MIN before turning for RTL, 5: Enable yaw damper in acro mode, 6: Surpress speed scaling during auto takeoffs to be 1 or less to prevent oscillations without airpseed sensor., 7:EnableDefaultAirspeed for takeoff, 8: Remove the TRIM_PITCH_CD on the GCS horizon, 9: Remove the TRIM_PITCH_CD on the OSD horizon, 10: Adjust mid-throttle to be TRIM_THROTTLE in non-auto throttle modes except MANUAL, 11:Disable suppression of fixed wing rate gains in ground mode, 12: Enable FBWB style loiter altitude control, 20: Enable manual altitude control in RTL mode, 21: Climb first in RTL only during RC failsafe, 22:If RTL in failsafe land with 0 throttle spiraling down 2 minutes after reaching home, 23: Glide in auto throttle modes if throttle bellow THR_DZ
+    // @Bitmask: 0:Rudder mixing in direct flight modes only (Manual / Stabilize / Acro),1:Use centered throttle in Cruise or FBWB to indicate trim airspeed, 2:Disable attitude check for takeoff arming, 3:Force target airspeed to trim airspeed in Cruise or FBWB, 4: Climb to RTL_ALT_MIN before turning for RTL, 5: Enable yaw damper in acro mode, 6: Surpress speed scaling during auto takeoffs to be 1 or less to prevent oscillations without airpseed sensor., 7:EnableDefaultAirspeed for takeoff, 8: Remove the TRIM_PITCH_CD on the GCS horizon, 9: Remove the TRIM_PITCH_CD on the OSD horizon, 10: Adjust mid-throttle to be TRIM_THROTTLE in non-auto throttle modes except MANUAL, 11:Disable suppression of fixed wing rate gains in ground mode, 12: Enable FBWB style loiter altitude control, 19: Cruise heading control with rudder channel, 20: Enable manual altitude control in RTL mode, 21: Climb first in RTL only during RC failsafe, 22:If RTL in failsafe land with 0 throttle spiraling down 2 minutes after reaching home, 23: Glide in auto throttle modes if throttle bellow THR_DZ
     // @User: Advanced
     AP_GROUPINFO("FLIGHT_OPTIONS", 13, ParametersG2, flight_options, 0),
 
@@ -1279,6 +1279,15 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Path: ../libraries/AP_Follow/AP_Follow.cpp
     AP_SUBGROUPINFO(follow, "FOLL", 33, ParametersG2, AP_Follow),
 #endif
+
+    // @Param: CRUISE_YAW_RATE
+    // @DisplayName: Max cruise yaw rate commanded with rudder channel
+    // @Description: Max cruise yaw rate commanded with rudder channel if the rudder channel heading control is enabled in FLIGHT_OPTIONS
+    // @Units: deg/s
+    // @Range: 5 360
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("CRUISE_YAW_RATE", 52, ParametersG2, cruise_yaw_rate, 18),
 
     // @Param: AILERON_DIFF
     // @DisplayName: Amount of differential throws applied to the ailerons

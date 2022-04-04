@@ -589,6 +589,8 @@ public:
     // plane throws diff
     AP_Float ailerons_diff;
     AP_Float elevator_diff;
+
+    AP_Int16 cruise_yaw_rate;
 };
 
 extern const AP_Param::Info var_info[];
