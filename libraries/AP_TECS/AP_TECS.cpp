@@ -531,7 +531,7 @@ void AP_TECS::_update_height_demand(void)
     _hgt_dem = 0.5f * (_hgt_dem + _hgt_dem_in_old);
     _hgt_dem_in_old = _hgt_dem;
 
-    float max_sink_rate = _maxSinkRate;
+    float max_sink_rate = _max_sink_rate;
     if (_maxSinkRate_approach > 0 && _flags.is_doing_auto_land) {
         // special sink rate for approach to accommodate steep slopes and reverse thrust.
         // A special check must be done to see if we're LANDing on approach but also if
@@ -1071,7 +1071,9 @@ void AP_TECS::update_pitch_throttle(int32_t hgt_dem_cm,
                                     int16_t throttle_nudge,
                                     float hgt_afe,
                                     float load_factor,
-                                    float throttle_expo)
+                                    float throttle_expo,
+                                    float max_climb_rate,
+                                    float max_sink_rate)
 {
     // Calculate time in seconds since last update
     uint64_t now = AP_HAL::micros64();
@@ -1079,6 +1081,9 @@ void AP_TECS::update_pitch_throttle(int32_t hgt_dem_cm,
     _update_pitch_throttle_last_usec = now;
 
     _throttle_expo = throttle_expo;
+
+    _max_climb_rate = is_zero(max_climb_rate) ? _maxClimbRate : MIN(max_climb_rate, _maxClimbRate);
+    _max_sink_rate = is_zero(max_sink_rate) ? _maxSinkRate : MIN(max_sink_rate, _maxSinkRate);
 
     _flags.is_gliding = _flags.gliding_requested || _auto_thr_gliding_state != ATGS_DISABLED || _flags.propulsion_failed || aparm.throttle_max==0;
     _flags.is_doing_auto_land = (flight_stage == AP_Vehicle::FixedWing::FLIGHT_LAND);
