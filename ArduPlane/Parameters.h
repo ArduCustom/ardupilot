@@ -591,6 +591,11 @@ public:
     AP_Float elevator_diff;
 
     AP_Int16 cruise_yaw_rate;
+
+    AP_Float auto_climb_max;
+    AP_Float auto_sink_max;
+    AP_Float rtl_climb_max;
+    AP_Float rtl_sink_max;
 };
 
 extern const AP_Param::Info var_info[];
