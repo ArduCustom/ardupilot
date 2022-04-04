@@ -1457,6 +1457,38 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(peak_pitch_rate, "PEAK_PR", 40, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: CRS_HEAD_EN
+    // @DisplayName: CRS_HEAD_EN
+    // @Description: Displays the locked heading when in cruise mode (plane only)
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: CRS_HEAD_X
+    // @DisplayName: CRS_HEAD_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: CRS_HEAD_Y
+    // @DisplayName: CRS_HEAD_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(cruise_heading, "CRS_HEAD", 39, AP_OSD_Screen, AP_OSD_Setting),
+
+    // @Param: CRS_HADJ_EN
+    // @DisplayName: CRS_HADJ_EN
+    // @Description: Displays the recent cruise mode heading adjustment (plane only)
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: CRS_HADJ_X
+    // @DisplayName: CRS_HADJ_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: CRS_HADJ_Y
+    // @DisplayName: CRS_HADJ_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(cruise_heading_adjustment, "CRS_HADJ", 38, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -1580,6 +1612,7 @@ uint8_t AP_OSD_AbstractScreen::symbols_lookup_table[AP_OSD_NUM_SYMBOLS];
 #define SYM_ROLL 101
 #define SYM_PITCH 102
 #define SYM_DPS 103
+#define SYM_HEADING 104
 
 #define SYMBOL(n) AP_OSD_AbstractScreen::symbols_lookup_table[n]
 
@@ -2233,7 +2266,7 @@ void AP_OSD_Screen::draw_heading(uint8_t x, uint8_t y)
 {
     AP_AHRS &ahrs = AP::ahrs();
     uint16_t yaw = ahrs.yaw_sensor / 100;
-    backend->write(x, y, false, "%3d%c", yaw, SYMBOL(SYM_DEGR));
+    backend->write(x, y, false, "%c%3d%c", SYMBOL(SYM_HEADING), yaw, SYMBOL(SYM_DEGR));
 }
 
 void AP_OSD_Screen::draw_throttle_value(uint8_t x, uint8_t y, float throttle_v, bool blink)
@@ -2940,6 +2973,61 @@ void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
 
 }
 
+bool AP_OSD_Screen::cruise_heading_changed(uint16_t &locked_heading)
+{
+    static uint32_t last_changed;
+    static uint16_t last_value;
+    const bool heading_locked = AP::vehicle()->get_cruise_locked_heading(locked_heading);
+
+    if (!heading_locked) {
+        last_changed = 0;
+        return false;
+    }
+
+    const uint32_t now = AP_HAL::millis();
+    if (locked_heading != last_value) {
+        if (last_changed) last_value = locked_heading;
+        last_changed = now;
+    }
+    if (!last_changed || now - last_changed > 2000) {
+        return false;
+    }
+
+    return true;
+}
+
+void AP_OSD_Screen::draw_cruise_heading_adjustment(uint8_t x, uint8_t y)
+{
+    if (!AP_Notify::flags.armed) {
+        backend->write(x, y, false, "%c----%c", SYMBOL(SYM_HEADING), SYMBOL(SYM_DEGR));
+        return;
+    }
+
+    static int16_t last_fixed = -1;
+    uint16_t locked_heading;
+    if (cruise_heading_changed(locked_heading) && last_fixed != -1) {
+        int16_t heading_adj = locked_heading - last_fixed;
+        if (heading_adj > 180) heading_adj -= 360;
+        if (heading_adj < -180) heading_adj += 360;
+        backend->write(x, y, false, "%c%4d%c", SYMBOL(SYM_HEADING), heading_adj, SYMBOL(SYM_DEGR));
+    } else {
+        last_fixed = locked_heading;
+    }
+}
+
+void AP_OSD_Screen::draw_cruise_heading(uint8_t x, uint8_t y)
+{
+    if (!AP_Notify::flags.armed) {
+        backend->write(x, y, false, "%c---%c", SYMBOL(SYM_HEADING), SYMBOL(SYM_DEGR));
+        return;
+    }
+
+    uint16_t locked_heading;
+    if (cruise_heading_changed(locked_heading)) {
+        backend->write(x, y, false, "%c%3d%c", SYMBOL(SYM_HEADING), locked_heading, SYMBOL(SYM_DEGR));
+    }
+}
+
 bool AP_OSD_Screen::has_tuned_param_changed()
 {
     static uint32_t last_changed;
@@ -3572,6 +3660,8 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(tuned_param_value);
     DRAW_SETTING(peak_roll_rate);
     DRAW_SETTING(peak_pitch_rate);
+    DRAW_SETTING(cruise_heading);
+    DRAW_SETTING(cruise_heading_adjustment);
 }
 #endif
 #endif // OSD_ENABLED
