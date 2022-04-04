@@ -5,6 +5,7 @@ bool ModeCruise::_enter()
 {
     locked_heading = false;
     lock_timer_ms = 0;
+    heading_update_tstamp = 0;
 
 #if HAL_SOARING_ENABLED
     // for ArduSoar soaring_controller
@@ -23,7 +24,7 @@ void ModeCruise::update()
       roll when heading is locked. Heading becomes unlocked on
       any aileron or rudder input
     */
-    if (!is_zero(plane.channel_roll->get_control_in()) || !is_zero(plane.channel_rudder->get_control_in())) {
+    if (!is_zero(plane.channel_roll->get_control_in()) || ((plane.g2.flight_options & FlightOptions::CRUISE_HEADING_CONTROL_WITH_YAW_STICK) == 0 && !is_zero(plane.channel_rudder->get_control_in()))) {
         locked_heading = false;
         lock_timer_ms = 0;
     }
@@ -43,6 +44,7 @@ void ModeCruise::update()
  */
 void ModeCruise::navigate()
 {
+    const uint32_t now = millis();
     if (!locked_heading &&
         is_zero(plane.channel_roll->get_control_in()) &&
         plane.rudder_input() == 0 &&
@@ -50,7 +52,7 @@ void ModeCruise::navigate()
         plane.gps.ground_speed() >= 3 &&
         lock_timer_ms == 0) {
         // user wants to lock the heading - start the timer
-        lock_timer_ms = millis();
+        lock_timer_ms = now;
     }
     if (lock_timer_ms != 0 &&
         (millis() - lock_timer_ms) > 500) {
@@ -62,10 +64,22 @@ void ModeCruise::navigate()
         plane.prev_WP_loc = plane.current_loc;
     }
     if (locked_heading) {
+        if (plane.g2.flight_options & FlightOptions::CRUISE_HEADING_CONTROL_WITH_YAW_STICK) {
+            if (plane.rudder_input() != 0 && heading_update_tstamp) {
+                plane.prev_WP_loc = plane.current_loc;
+                const float dt = (now - heading_update_tstamp) * 0.001f;
+                locked_heading_cd += plane.rudder_input() * (1.0f/45) * plane.g2.cruise_yaw_rate * dt;
+                locked_heading_cd = wrap_360_cd(locked_heading_cd);
+            }
+            heading_update_tstamp = now;
+        }
+
         plane.next_WP_loc = plane.prev_WP_loc;
         // always look 1km ahead
         plane.next_WP_loc.offset_bearing(locked_heading_cd*0.01f, plane.prev_WP_loc.get_distance(plane.current_loc) + 1000);
         plane.nav_controller->update_waypoint(plane.prev_WP_loc, plane.next_WP_loc);
+    } else {
+        heading_update_tstamp = 0;
     }
 }
 
