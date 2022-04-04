@@ -455,6 +455,7 @@ protected:
     bool locked_heading;
     int32_t locked_heading_cd;
     uint32_t lock_timer_ms;
+    uint32_t heading_update_tstamp;
 };
 
 #if HAL_ADSB_ENABLED
