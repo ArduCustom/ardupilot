@@ -1204,6 +1204,29 @@ class AutoTestPlane(AutoTest):
                 raise NotAchievedException("fence status incorrect; %s want=%u got=%u" %
                                            (name, want, got))
 
+    def CruiseRudderControl(self):
+        '''Test CruiseRudderControl'''
+        self.progress("Rudder control")
+        self.takeoff(alt=50)
+        self.change_mode('CRUISE')
+        self.set_rc(3, 1500)
+        self.wait_servo_channel_value(4, 1500)
+        self.set_rc(4, 2000)
+        rudder_max = self.get_parameter("SERVO4_MAX")
+        self.wait_servo_channel_value(4, rudder_max - 5, timeout=4, comparator=operator.ge)
+        self.set_rc(4, 1500)
+        self.progress("Heading control")
+        self.set_parameters({
+            "FLIGHT_OPTIONS": 1<<19,
+            "CRUISE_YAW_RATE": 9
+        })
+        m = self.mav.recv_match(type='VFR_HUD', blocking=True)
+        initial_heading = m.heading
+        adjusted_heading = (initial_heading + 90) % 360
+        self.set_rc(4, 1000)
+        self.wait_heading(adjusted_heading, accuracy=2, timeout=20)
+        self.fly_home_land_and_disarm()
+
     def wait_circling_point_with_radius(self, loc, want_radius, epsilon=5.0, min_circle_time=5, timeout=120):
         on_radius_start_heading = None
         average_radius = 0.0
@@ -4116,6 +4139,7 @@ class AutoTestPlane(AutoTest):
             self.RTLHomeAltitude,
             self.ManualRTLAltControl,
             self.CruiseGliding,
+            self.CruiseRudderControl,
             # self.EmergencyLanding,
             self.IMUTempCal,
             self.MAV_DO_AUX_FUNCTION,
