@@ -568,6 +568,24 @@ void Plane::update_alt()
             tecs_target_alt_cm = MAX(tecs_target_alt_cm, prev_WP_loc.alt - home.alt) + (g2.rtl_climb_min+10)*100;
         }
 
+        float max_climb_rate = 0;
+        float max_sink_rate = 0;
+
+        switch (control_mode->mode_number()) {
+            case Mode::Number::AUTO:
+                max_climb_rate = g2.auto_climb_max;
+                max_sink_rate = g2.auto_sink_max;
+                break;
+            case Mode::Number::RTL:
+                if (!rtl.manual_alt_control) {
+                    max_climb_rate = g2.rtl_climb_max;
+                    max_sink_rate = g2.rtl_sink_max;
+                }
+                break;
+            default:
+                break;
+        }
+
         TECS_controller.update_pitch_throttle(tecs_target_alt_cm,
                                                  target_airspeed_cm,
                                                  flight_stage,
@@ -576,7 +594,9 @@ void Plane::update_alt()
                                                  throttle_nudge,
                                                  tecs_hgt_afe(),
                                                  aerodynamic_load_factor,
-                                                 g2.throttle_expo_auto);
+                                                 g2.throttle_expo_auto,
+                                                 max_climb_rate,
+                                                 max_sink_rate);
     }
 }
 
