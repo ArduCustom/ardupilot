@@ -436,8 +436,6 @@ void Plane::set_servos_manual_passthrough(void)
         // as it prevents the VTOL motors from running
         int8_t min_throttle = aparm.throttle_min.get();
 
-        // apply idle governor
-        g2.ice_control.update_idle_governor(min_throttle);
         throttle = MAX(throttle, min_throttle);
         SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle);
     }
@@ -620,9 +618,6 @@ void Plane::set_servos_controlled(void)
     // convert 0 to 100% (or -100 to +100) into PWM
     int8_t min_throttle = square_expo_curve_100(aparm.throttle_min.get(), g2.throttle_expo_auto);
     int8_t max_throttle = square_expo_curve_100(aparm.throttle_max.get(), g2.throttle_expo_auto);
-
-    // apply idle governor
-    g2.ice_control.update_idle_governor(min_throttle);
 
     if (min_throttle < 0 && !allow_reverse_thrust()) {
         // reverse thrust is available but inhibited.
@@ -964,11 +959,10 @@ void Plane::force_flare(void)
         SRV_Channels::set_output_scaled(SRV_Channel::k_tiltMotorRear, tilt);
         SRV_Channels::set_output_scaled(SRV_Channel::k_tiltMotorRearLeft, tilt);
         SRV_Channels::set_output_scaled(SRV_Channel::k_tiltMotorRearRight, tilt);
-        float throttle_min = MAX(aparm.throttle_min.get(),0); //allows ICE to run if used but accounts for reverse thrust setups
         if (arming.is_armed()) {  //prevent running motors if unarmed
-            SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle_min);
-            SRV_Channels::set_output_scaled(SRV_Channel::k_throttleLeft, throttle_min);
-            SRV_Channels::set_output_scaled(SRV_Channel::k_throttleRight, throttle_min);
+            SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0);
+            SRV_Channels::set_output_scaled(SRV_Channel::k_throttleLeft, 0);
+            SRV_Channels::set_output_scaled(SRV_Channel::k_throttleRight, 0);
         }
     }
 #endif
@@ -1085,12 +1079,6 @@ void Plane::set_servos(void)
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttleRight, min_throttle);
             break;
         }
-    }
-
-    uint8_t override_pct;
-    if (g2.ice_control.throttle_override(override_pct)) {
-        // the ICE controller wants to override the throttle for starting
-        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, override_pct);
     }
 
     {
