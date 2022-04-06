@@ -231,6 +231,7 @@ private:
     AP_OSD_Setting peak_pitch_rate{false, 0, 0};
     AP_OSD_Setting cruise_heading{false, 0, 0};
     AP_OSD_Setting cruise_heading_adjustment{false, 0, 0};
+    AP_OSD_Setting rc_failsafe{false, 0, 0};
 
     // MSP OSD only
     AP_OSD_Setting crosshair{false, 0, 0};
@@ -357,6 +358,7 @@ private:
     void draw_peak_pitch_rate(uint8_t x, uint8_t y);
     void draw_cruise_heading(uint8_t x, uint8_t y);
     void draw_cruise_heading_adjustment(uint8_t x, uint8_t y);
+    void draw_rc_failsafe(uint8_t x, uint8_t y);
 
     bool has_tuned_param_changed();
     bool cruise_heading_changed(uint16_t &locked_heading);
