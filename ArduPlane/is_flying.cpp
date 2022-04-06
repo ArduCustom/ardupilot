@@ -164,7 +164,7 @@ void Plane::update_is_flying_5Hz(void)
     parachute.set_is_flying(new_is_flying);
 #endif
 #if STATS_ENABLED == ENABLED
-    g2.stats.set_flying(new_is_flying);
+    g2.stats.set_flying(new_is_flying && arming.is_armed());
 #endif
     AP_Notify::flags.flying = new_is_flying;
 
