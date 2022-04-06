@@ -202,7 +202,7 @@ private:
     AP_OSD_Setting hdop{false, 0, 0};
     AP_OSD_Setting waypoint{false, 0, 0};
     AP_OSD_Setting xtrack_error{false, 0, 0};
-    AP_OSD_Setting dist{false,22,11};
+    AP_OSD_Setting traveled_ground_distance{false,22,11};
     AP_OSD_Setting stats{false,0,0};
     AP_OSD_Setting flightime{false, 23, 10};
     AP_OSD_Setting climbeff{false,0,0};
@@ -334,7 +334,7 @@ private:
     void draw_hdop(uint8_t x, uint8_t y);
     void draw_waypoint(uint8_t x, uint8_t y);
     void draw_xtrack_error(uint8_t x, uint8_t y);
-    void draw_dist(uint8_t x, uint8_t y);
+    void draw_traveled_ground_distance(uint8_t x, uint8_t y);
     void draw_stats(uint8_t x, uint8_t y);
     void draw_flightime(uint8_t x, uint8_t y);
     void draw_climbeff(uint8_t x, uint8_t y);
@@ -645,39 +645,8 @@ public:
         uint16_t wp_number;
     };
 
-    bool have_stats() const;
-
-    struct StatsInfo {
-        uint32_t last_update_ms;
-        float last_ground_distance_m;
-        float last_air_distance_m;
-        float max_dist_m;
-        float max_alt_m;
-        float max_ground_speed_mps;
-        float max_air_speed_mps;
-        float max_wind_speed_mps;
-        float max_current_a;
-        float avg_current_a;
-        float max_power_w;
-        float avg_power_w;
-        float avg_wind_speed_mps;
-        bool wind_speeds_available;
-        float min_voltage_v = FLT_MAX;
-        float min_cell_voltage_v = FLT_MAX;
-        float min_rssi = FLT_MAX;   // 0-1
-        int8_t min_rssi_dbm = -1;
-        int16_t max_tx_power;
-        bool esc_temperature_available;
-        int16_t max_esc_temp;
-        int16_t avg_esc_temp;
-        bool consumed_mah_available;
-        float consumed_mah;
-        bool consumed_wh_available;
-        float consumed_wh;
-    };
-
     void set_nav_info(NavInfo &nav_info);
-    const volatile StatsInfo& get_stats_info() const {return _stats;};
+
     // disable the display
     void disable() {
         _disable = true;
@@ -726,7 +695,6 @@ private:
     void osd_thread();
 #if OSD_ENABLED
     void update_osd();
-    void update_stats();
     void update_current_screen();
     void next_screen();
 
@@ -742,19 +710,14 @@ private:
     bool was_failsafe;
     bool _disable;
 
-    StatsInfo _stats;
-    uint32_t _stats_samples;
-    float _stats_last_consumed_mah;
-    float _stats_last_consumed_wh;
-    bool _stats_have_been_flying_for_a_while;
-    uint32_t _stats_first_seen_flying;
-    float last_distance_m;
-    float avg_current_a;
-    float avg_power_w;
-    float eff_air_state;
-    float eff_ground_state;
-    float climb_eff_state;
-    float vspd_state;
+    struct {
+        float current_a;
+        float power_w;
+        float eff_air;
+        float eff_ground;
+        float eff_climb;
+        float vspd_mps;
+    } filtered;
 #endif
     AP_OSD_Backend *backend;
 
