@@ -967,6 +967,7 @@ private:
     bool fly_inverted(void);
     uint8_t get_mode() const override { return (uint8_t)control_mode->mode_number(); }
     Mode *mode_from_mode_num(const enum Mode::Number num);
+    bool control_mode_does_auto_throttle(void) const override { return control_mode->does_auto_throttle(); }
 
     // events.cpp
     void failsafe_short_on_event(enum failsafe_state fstype, ModeReason reason);
@@ -1026,6 +1027,7 @@ private:
     void update_fbwb_speed_height(void);
     void setup_turn_angle(void);
     bool reached_loiter_target(void);
+    float demanded_airspeed(void) const override { return target_airspeed_cm * 0.01f; };
 
     // radio.cpp
     void set_control_channels(void) override;
