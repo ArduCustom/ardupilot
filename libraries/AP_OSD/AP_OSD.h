@@ -207,6 +207,7 @@ private:
     AP_OSD_Setting power{true, 1, 1};
     AP_OSD_Setting energy{false, 0, 0};
     AP_OSD_Setting rc_throttle{false, 0, 0};
+    AP_OSD_Setting aspd_dem{false, 0, 0};
 
     // MSP OSD only
     AP_OSD_Setting crosshair{false, 0, 0};
@@ -288,6 +289,7 @@ private:
     void draw_fence(uint8_t x, uint8_t y);
     void draw_rngf(uint8_t x, uint8_t y);
     void draw_rc_throttle(uint8_t x, uint8_t y);
+    void draw_aspd_dem(uint8_t x, uint8_t y);
 
 
     struct {
