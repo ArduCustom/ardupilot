@@ -879,6 +879,7 @@ private:
     static const TerrainLookupTable Terrain_lookup[];
 #endif
 
+    bool rc_failsafe(void) const override { return failsafe.rc_failsafe; }
 
     // Attitude.cpp
     void adjust_nav_pitch_throttle(void);

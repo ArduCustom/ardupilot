@@ -638,6 +638,7 @@ private:
                   "_failsafe_priorities is missing the sentinel");
 
 
+    bool rc_failsafe(void) const override { return failsafe.radio; }
 
     // AP_State.cpp
     void set_auto_armed(bool b);

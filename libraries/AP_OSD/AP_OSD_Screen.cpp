@@ -1505,6 +1505,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(cruise_heading_adjustment, "CRS_HADJ", 38, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: RC_FS_EN
+    // @DisplayName: RC_FS_EN
+    // @Description: Displays the RC failsafe status
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: RC_FS_X
+    // @DisplayName: RC_FS_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: RC_FS_Y
+    // @DisplayName: RC_FS_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(rc_failsafe, "RC_FS", 37, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -3556,6 +3572,18 @@ void AP_OSD_Screen::draw_peak_pitch_rate(uint8_t x, uint8_t y) {
     backend->write(x, y, false, "%c%3u%c", SYMBOL(SYM_PITCH), (uint)lrintf(ToDeg(last_max_pitch_rate)), SYMBOL(SYM_DPS));
 }
 
+void AP_OSD_Screen::draw_rc_failsafe(uint8_t x, uint8_t y)
+{
+    if (AP::vehicle()->rc_failsafe()) {
+        backend->write(x, y, true, "!!! RC FS !!!");
+        return;
+    }
+
+    if (!AP_Notify::flags.armed) {
+        backend->write(x, y, false, "--- RC FS ---");
+    }
+}
+
 #define DRAW_SETTING(n) if (n.enabled) draw_ ## n(n.xpos, n.ypos)
 
 #if HAL_WITH_OSD_BITMAP || HAL_WITH_MSP_DISPLAYPORT
@@ -3664,6 +3692,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(peak_pitch_rate);
     DRAW_SETTING(cruise_heading);
     DRAW_SETTING(cruise_heading_adjustment);
+    DRAW_SETTING(rc_failsafe);
 }
 #endif
 #endif // OSD_ENABLED
