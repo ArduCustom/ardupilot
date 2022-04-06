@@ -1194,9 +1194,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_SUBGROUPPTR(button_ptr, "BTN_", 1, ParametersG2, AP_Button),
 #endif
 
-    // @Group: ICE_
-    // @Path: ../libraries/AP_ICEngine/AP_ICEngine.cpp
-    AP_SUBGROUPINFO(ice_control, "ICE_", 2, ParametersG2, AP_ICEngine),
+    // 2 was used for ICE control
 
     // 3 was used by prototype for servo_channels
 
@@ -1578,12 +1576,14 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 };
 
 ParametersG2::ParametersG2(void) :
-    ice_control(plane.rpm_sensor)
 #if HAL_SOARING_ENABLED
-    ,soaring_controller(plane.TECS_controller, plane.aparm)
+    soaring_controller(plane.TECS_controller, plane.aparm)
 #endif
 #if HAL_BUTTON_ENABLED
-    ,button_ptr(&plane.button)
+#if HAL_SOARING_ENABLED
+    ,
+#endif
+    button_ptr(&plane.button)
 #endif
 {
     AP_Param::setup_object_defaults(this, var_info);

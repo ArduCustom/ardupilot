@@ -82,7 +82,6 @@ const AP_Scheduler::Task Plane::scheduler_tasks[] = {
     SCHED_TASK_CLASS(AC_Fence,       &plane.fence,   update, 10, 100, 75),
 #endif
     SCHED_TASK(read_rangefinder,       50,    100, 78),
-    SCHED_TASK_CLASS(AP_ICEngine,      &plane.g2.ice_control, update,     10, 100,  81),
     SCHED_TASK_CLASS(Compass,          &plane.compass,        cal_update, 50,  50,  84),
 #if AP_OPTICALFLOW_ENABLED
     SCHED_TASK_CLASS(OpticalFlow, &plane.optflow, update,    50,    50,  87),
