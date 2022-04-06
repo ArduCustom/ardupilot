@@ -156,7 +156,7 @@ void AP_Hott_Telem::send_EAM(void)
 
     AP_Stats *stats = AP::stats();
     if (stats) {
-        uint32_t t = stats->get_flight_time_s();
+        uint32_t t = stats->get_boot_flying_time_s();
         msg.electric_min = t / 60U;
         msg.electric_sec = t % 60U;
     }
