@@ -101,6 +101,8 @@ public:
     // parameters for example.
     void notify_no_such_mode(uint8_t mode_number);
 
+    virtual float get_throttle_input(bool no_deadzone=false) const { return 0; }
+
     /*
       common parameters for fixed wing aircraft
      */

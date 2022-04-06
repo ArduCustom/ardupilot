@@ -1123,7 +1123,7 @@ private:
     bool have_reverse_throttle_rc_option;
     bool allow_reverse_thrust(void) const;
     bool have_reverse_thrust(void) const;
-    float get_throttle_input(bool no_deadzone=false) const;
+    float get_throttle_input(bool no_deadzone=false) const override;
     float get_adjusted_throttle_input(bool no_deadzone=false) const;
 
 #if AP_SCRIPTING_ENABLED
