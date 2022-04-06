@@ -506,9 +506,6 @@ public:
     AP_Stats stats;
 #endif
 
-    // internal combustion engine control
-    AP_ICEngine ice_control;
-
     // RC input channels
     RC_Channels_Plane rc_channels;
     
