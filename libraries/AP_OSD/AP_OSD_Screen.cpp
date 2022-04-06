@@ -314,6 +314,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     AP_SUBGROUPINFO(wind, "WIND", 18, AP_OSD_Screen, AP_OSD_Setting),
 
 
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     // @Param: ASPEED_EN
     // @DisplayName: ASPEED_EN
     // @Description: Displays airspeed value being used by TECS (fused value)
@@ -329,6 +330,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @Description: Vertical position on screen
     // @Range: 0 15
     AP_SUBGROUPINFO(aspeed, "ASPEED", 19, AP_OSD_Screen, AP_OSD_Setting),
+#endif
 
     // @Param: VSPEED_EN
     // @DisplayName: VSPEED_EN
@@ -717,7 +719,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(bat2used, "BAT2USED", 40, AP_OSD_Screen, AP_OSD_Setting),
 
-
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     // @Param: ASPD2_EN
     // @DisplayName: ASPD2_EN
     // @Description: Displays airspeed reported directly from secondary airspeed sensor
@@ -749,6 +751,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @Description: Vertical position on screen
     // @Range: 0 15
     AP_SUBGROUPINFO(aspd1, "ASPD1", 42, AP_OSD_Screen, AP_OSD_Setting),
+#endif
 
     // @Param: CLK_EN
     // @DisplayName: CLK_EN
@@ -1121,6 +1124,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(rc_throttle, "RC_THR", 62, AP_OSD_Screen, AP_OSD_Setting),
 
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     // @Param: ASPD_DEM_EN
     // @DisplayName: ASPD_DEM_EN
     // @Description: Displays the demanded airspeed in auto throttle modes (plane only)
@@ -1136,6 +1140,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Description: Vertical position on screen
     // @Range: 0 15
     AP_SUBGROUPINFO(aspd_dem, "ASPD_DEM", 61, AP_OSD_Screen, AP_OSD_Setting),
+#endif
 
     // @Param: ACC_LONG_EN
     // @DisplayName: ACC_LONG_EN
@@ -1185,6 +1190,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(acc_vert, "ACC_VERT", 58, AP_OSD_Screen, AP_OSD_Setting),
 
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     // @Param: AUTO_FLP_EN
     // @DisplayName: AUTO_FLAPS_EN
     // @Description: Displays the requested auto flaps position
@@ -1216,6 +1222,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Description: Vertical position on screen
     // @Range: 0 15
     AP_SUBGROUPINFO(aoa, "AOA", 56, AP_OSD_Screen, AP_OSD_Setting),
+#endif
 
     // @Param: CRSFPWR_EN
     // @DisplayName: CRSFPWR_EN
@@ -1345,6 +1352,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(avg_eff_ground, "AVG_EFFG", 48, AP_OSD_Screen, AP_OSD_Setting),
 
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     // @Param: AVG_EFFA_EN
     // @DisplayName: AVG_EFFA_EN
     // @Description: Displays average air flight efficiency (mAh or Wh / km or mi)
@@ -1376,6 +1384,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Description: Vertical position on screen
     // @Range: 0 15
     AP_SUBGROUPINFO(eff_air, "EFFA", 46, AP_OSD_Screen, AP_OSD_Setting),
+#endif
 
     // @Param: BATREM_EN
     // @DisplayName: BATREM_EN
@@ -1441,6 +1450,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(tuned_param_value, "TUNED_PV", 42, AP_OSD_Screen, AP_OSD_Setting),
 
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     // @Param: PEAK_RR_EN
     // @DisplayName: PEAK_RR_EN
     // @Description: Displays the peak roll rate in the last OSD_PEAKR_TMOUT seconds
@@ -1504,6 +1514,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Description: Vertical position on screen
     // @Range: 0 15
     AP_SUBGROUPINFO(cruise_heading_adjustment, "CRS_HADJ", 38, AP_OSD_Screen, AP_OSD_Setting),
+#endif
 
     // @Param: RC_FS_EN
     // @DisplayName: RC_FS_EN
@@ -2466,35 +2477,6 @@ void AP_OSD_Screen::draw_wind(uint8_t x, uint8_t y)
     backend->write(x, y, false, "%c", SYMBOL(SYM_WSPD));
 }
 
-void AP_OSD_Screen::draw_aspeed(uint8_t x, uint8_t y)
-{
-    float aspd = 0.0f;
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    bool have_estimate = ahrs.airspeed_estimate(aspd);
-    if (have_estimate) {
-        const bool blink = (is_positive(osd->warn_aspd_low) && aspd < osd->warn_aspd_low) || (is_positive(osd->warn_aspd_high) && aspd > osd->warn_aspd_high);
-        backend->write(x, y, blink, "%c", SYMBOL(SYM_ASPD));
-        draw_speed(x+2, y, true, aspd, blink);
-    } else {
-        backend->write(x, y, false, "%c", SYMBOL(SYM_ASPD));
-        draw_speed(x+2, y, false);
-    }
-}
-
-void AP_OSD_Screen::draw_aspd_dem(uint8_t x, uint8_t y)
-{
-    if (!AP_Notify::flags.armed) {
-        backend->write(x, y, false, "%c", SYMBOL(SYM_ASPD));
-        draw_speed(x+2, y, false);
-    } else if (AP::vehicle()->control_mode_does_auto_throttle()) {
-        const float aspd = AP::vehicle()->demanded_airspeed();
-        const bool blink = (is_positive(osd->warn_aspd_low) && aspd < osd->warn_aspd_low) || (is_positive(osd->warn_aspd_high) && aspd > osd->warn_aspd_high);
-        backend->write(x, y, blink, "%c", SYMBOL(SYM_ASPD));
-        draw_speed(x+2, y, true, aspd, blink);
-    }
-}
-
 void AP_OSD_Screen::draw_vspeed(uint8_t x, uint8_t y)
 {
     Vector3f v;
@@ -2749,24 +2731,6 @@ void AP_OSD_Screen::draw_acc_long(uint8_t x, uint8_t y) {
     draw_acc_value(x, y, acc, false, true);
 }
 
-void AP_OSD_Screen::draw_auto_flaps(uint8_t x, uint8_t y)
-{
-    if (!AP_Notify::flags.armed) {
-        backend->write(x, y, false, "---%c", SYMBOL(SYM_PCNT));
-    } else if (AP::vehicle()->control_mode_does_auto_throttle()) {
-        uint8_t flaps_pcnt = AP::vehicle()->auto_flap_percent();
-        backend->write(x, y, false, "%3u%c", (uint)lrintf(flaps_pcnt), SYMBOL(SYM_PCNT));
-    }
-}
-
-void AP_OSD_Screen::draw_aoa(uint8_t x, uint8_t y)
-{
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    float aoa_val = ahrs.getAOA();
-    draw_pitch(x, y, aoa_val);
-}
-
 void AP_OSD_Screen::draw_tx_power(uint8_t x, uint8_t y, int16_t value, bool blink)
 {
     if (value > 0) {
@@ -2909,6 +2873,7 @@ void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
     backend->write(x+col_offset+5, y, false, "/");
     draw_energy(x+col_offset+6, y, have_stats && ap_stats->energy_is_available(), false, ap_stats->get_boot_flying_energy_wh());
 
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     y += 1;
     backend->write(x, y, false, "AVG %c/%c/%c", SYMBOL(SYM_ASPD), SYMBOL(SYM_GSPD), SYMBOL(SYM_WSPD));
     draw_speed(x+col_offset+1, y, ap_stats->avg_air_speed_is_available(), ap_stats->get_boot_avg_air_speed_mps());
@@ -2936,6 +2901,29 @@ void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
     draw_distance(x+col_offset, y, ap_stats->get_boot_flying_air_traveled_m(), true, have_stats);
     backend->write(x+col_offset+5, y, false, "/");
     draw_distance(x+col_offset+6, y, ap_stats->get_boot_flying_ground_traveled_m(), true, have_stats);
+#else // APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+
+    y += 1;
+    backend->write(x, y, false, "AVG %c/%c", SYMBOL(SYM_GSPD), SYMBOL(SYM_WSPD));
+    draw_speed(x+col_offset+1, y, ap_stats->avg_ground_speed_is_available(), ap_stats->get_boot_avg_ground_speed_mps());
+    backend->write(x+col_offset+5, y, false, "/");
+    draw_speed(x+col_offset+6, y, have_stats, ap_stats->get_boot_avg_wind_speed_mps());
+
+    y += 1;
+    backend->write(x, y, false, "MAX %c/%c", SYMBOL(SYM_GSPD), SYMBOL(SYM_WSPD));
+    draw_speed(x+col_offset+1, y, have_stats, ap_stats->get_boot_max_ground_speed_mps());
+    backend->write(x+col_offset+5, y, false, "/");
+    draw_speed(x+col_offset+6, y, have_stats, ap_stats->get_boot_max_wind_speed_mps());
+
+    y += 1;
+    backend->write(x, y, false, "EFF");
+    draw_avg_eff_ground(x+col_offset+1, y, false);
+
+    y += 1;
+    backend->write(x, y, false, "TRV");
+    draw_distance(x+col_offset, y, ap_stats->get_boot_flying_ground_traveled_m(), true, have_stats);
+
+#endif // APM_BUILD_TYPE(APM_BUILD_ArduPlane)
 
     y += 1;
     backend->write(x, y, false, "MAX %cDIST", SYMBOL(SYM_HOME));
@@ -2995,61 +2983,6 @@ void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
         draw_temperature(x+col_offset+1+4+1, y, have_stats, ap_stats->get_boot_avg_esc_temperature_degc(), false);
     }
 
-}
-
-bool AP_OSD_Screen::cruise_heading_changed(uint16_t &locked_heading)
-{
-    static uint32_t last_changed;
-    static uint16_t last_value;
-    const bool heading_locked = AP::vehicle()->get_cruise_locked_heading(locked_heading);
-
-    if (!heading_locked) {
-        last_changed = 0;
-        return false;
-    }
-
-    const uint32_t now = AP_HAL::millis();
-    if (locked_heading != last_value) {
-        if (last_changed) last_value = locked_heading;
-        last_changed = now;
-    }
-    if (!last_changed || now - last_changed > 2000) {
-        return false;
-    }
-
-    return true;
-}
-
-void AP_OSD_Screen::draw_cruise_heading_adjustment(uint8_t x, uint8_t y)
-{
-    if (!AP_Notify::flags.armed) {
-        backend->write(x, y, false, "%c----%c", SYMBOL(SYM_HEADING), SYMBOL(SYM_DEGR));
-        return;
-    }
-
-    static int16_t last_fixed = -1;
-    uint16_t locked_heading;
-    if (cruise_heading_changed(locked_heading) && last_fixed != -1) {
-        int16_t heading_adj = locked_heading - last_fixed;
-        if (heading_adj > 180) heading_adj -= 360;
-        if (heading_adj < -180) heading_adj += 360;
-        backend->write(x, y, false, "%c%4d%c", SYMBOL(SYM_HEADING), heading_adj, SYMBOL(SYM_DEGR));
-    } else {
-        last_fixed = locked_heading;
-    }
-}
-
-void AP_OSD_Screen::draw_cruise_heading(uint8_t x, uint8_t y)
-{
-    if (!AP_Notify::flags.armed) {
-        backend->write(x, y, false, "%c---%c", SYMBOL(SYM_HEADING), SYMBOL(SYM_DEGR));
-        return;
-    }
-
-    uint16_t locked_heading;
-    if (cruise_heading_changed(locked_heading)) {
-        backend->write(x, y, false, "%c%3d%c", SYMBOL(SYM_HEADING), locked_heading, SYMBOL(SYM_DEGR));
-    }
 }
 
 bool AP_OSD_Screen::has_tuned_param_changed()
@@ -3209,26 +3142,6 @@ void AP_OSD_Screen::draw_eff_ground(uint8_t x, uint8_t y)
     draw_eff(x, y, efficiency_available, osd->filtered.eff_ground);
 }
 
-void AP_OSD_Screen::draw_eff_air(uint8_t x, uint8_t y)
-{
-    bool have_airspeed_estimate;
-    float airspeed_mps;
-    {
-        AP_AHRS &ahrs = AP::ahrs();
-        WITH_SEMAPHORE(ahrs.get_semaphore());
-        have_airspeed_estimate = ahrs.airspeed_estimate(airspeed_mps);
-    }
-    float efficiency;
-    bool efficiency_available;
-    if (have_airspeed_estimate) {
-        efficiency_available = calculate_efficiency(airspeed_mps, efficiency);
-        if (efficiency_available) {
-            osd->filtered.eff_air += (efficiency - osd->filtered.eff_air) * 0.2f;
-        }
-    }
-    draw_eff(x, y, have_airspeed_estimate && efficiency_available, osd->filtered.eff_air);
-}
-
 void AP_OSD_Screen::draw_avg_eff(uint8_t x, uint8_t y, const float distance_travelled_m, const bool draw_eff_symbol)
 {
     const int8_t eff_unit_base = osd->efficiency_unit_base;
@@ -3264,11 +3177,6 @@ invalid:
 void AP_OSD_Screen::draw_avg_eff_ground(uint8_t x, uint8_t y, bool draw_eff_symbol)
 {
     draw_avg_eff(x, y, AP::stats()->get_boot_flying_ground_traveled_m(), draw_eff_symbol);
-}
-
-void AP_OSD_Screen::draw_avg_eff_air(uint8_t x, uint8_t y, bool draw_eff_symbol)
-{
-    draw_avg_eff(x, y, AP::stats()->get_boot_flying_air_traveled_m(), draw_eff_symbol);
 }
 
 void AP_OSD_Screen::draw_climbeff(uint8_t x, uint8_t y)
@@ -3360,34 +3268,6 @@ void AP_OSD_Screen::draw_bat2used(uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_bat2rem(uint8_t x, uint8_t y)
 {
     draw_batrem(x, y, 1);
-}
-
-void AP_OSD_Screen::draw_aspd1(uint8_t x, uint8_t y)
-{
-#if AP_AIRSPEED_ENABLED
-    AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
-    if (!airspeed) {
-        return;
-    }
-    float asp1 = airspeed->get_airspeed();
-    const bool blink = (is_positive(osd->warn_aspd_low) && asp1 < osd->warn_aspd_low) || (is_positive(osd->warn_aspd_high) && asp1 > osd->warn_aspd_high);
-    backend->write(x, y, blink, "%c", SYMBOL(SYM_ASPD));
-    draw_speed(x+2, y, true, asp1, blink);
-#endif
-}
-
-void AP_OSD_Screen::draw_aspd2(uint8_t x, uint8_t y)
-{
-#if AP_AIRSPEED_ENABLED
-    AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
-    if (!airspeed) {
-        return;
-    }
-    float asp2 = airspeed->get_airspeed();
-    const bool blink = (is_positive(osd->warn_aspd_low) && asp2 < osd->warn_aspd_low) || (is_positive(osd->warn_aspd_high) && asp2 > osd->warn_aspd_high);
-    backend->write(x, y, blink, "%c", SYMBOL(SYM_ASPD));
-    draw_speed(x+2, y, true, asp2, blink);
-#endif
 }
 
 void AP_OSD_Screen::draw_clk(uint8_t x, uint8_t y)
@@ -3532,7 +3412,84 @@ void AP_OSD_Screen::draw_rc_throttle(uint8_t x, uint8_t y) {
     draw_throttle_value(x, y, AP::vehicle()->get_throttle_input(true));
 }
 
+void AP_OSD_Screen::draw_rc_failsafe(uint8_t x, uint8_t y)
+{
+    if (AP::vehicle()->rc_failsafe()) {
+        backend->write(x, y, true, "!!! RC FS !!!");
+        return;
+    }
+
+    if (!AP_Notify::flags.armed) {
+        backend->write(x, y, false, "--- RC FS ---");
+    }
+}
+
+
+// Plane specific elements
+
+void AP_OSD_Screen::draw_aspeed(uint8_t x, uint8_t y)
+{
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    float aspd = 0.0f;
+    AP_AHRS &ahrs = AP::ahrs();
+    WITH_SEMAPHORE(ahrs.get_semaphore());
+    bool have_estimate = ahrs.airspeed_estimate(aspd);
+    if (have_estimate) {
+        const bool blink = (is_positive(osd->warn_aspd_low) && aspd < osd->warn_aspd_low) || (is_positive(osd->warn_aspd_high) && aspd > osd->warn_aspd_high);
+        backend->write(x, y, blink, "%c", SYMBOL(SYM_ASPD));
+        draw_speed(x+2, y, true, aspd, blink);
+    } else {
+        backend->write(x, y, false, "%c", SYMBOL(SYM_ASPD));
+        draw_speed(x+2, y, false);
+    }
+#endif
+}
+
+void AP_OSD_Screen::draw_aspd_dem(uint8_t x, uint8_t y)
+{
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    if (!AP_Notify::flags.armed) {
+        backend->write(x, y, false, "%c", SYMBOL(SYM_ASPD));
+        draw_speed(x+2, y, false);
+    } else if (AP::vehicle()->control_mode_does_auto_throttle()) {
+        const float aspd = AP::vehicle()->demanded_airspeed();
+        const bool blink = (is_positive(osd->warn_aspd_low) && aspd < osd->warn_aspd_low) || (is_positive(osd->warn_aspd_high) && aspd > osd->warn_aspd_high);
+        backend->write(x, y, blink, "%c", SYMBOL(SYM_ASPD));
+        draw_speed(x+2, y, true, aspd, blink);
+    }
+#endif
+}
+
+void AP_OSD_Screen::draw_aspd1(uint8_t x, uint8_t y)
+{
+#if AP_AIRSPEED_ENABLED && APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
+    if (!airspeed) {
+        return;
+    }
+    float asp1 = airspeed->get_airspeed();
+    const bool blink = (is_positive(osd->warn_aspd_low) && asp1 < osd->warn_aspd_low) || (is_positive(osd->warn_aspd_high) && asp1 > osd->warn_aspd_high);
+    backend->write(x, y, blink, "%c", SYMBOL(SYM_ASPD));
+    draw_speed(x+2, y, true, asp1, blink);
+#endif
+}
+
+void AP_OSD_Screen::draw_aspd2(uint8_t x, uint8_t y)
+{
+#if AP_AIRSPEED_ENABLED && APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
+    if (!airspeed) {
+        return;
+    }
+    float asp2 = airspeed->get_airspeed();
+    const bool blink = (is_positive(osd->warn_aspd_low) && asp2 < osd->warn_aspd_low) || (is_positive(osd->warn_aspd_high) && asp2 > osd->warn_aspd_high);
+    backend->write(x, y, blink, "%c", SYMBOL(SYM_ASPD));
+    draw_speed(x+2, y, true, asp2, blink);
+#endif
+}
+
 void AP_OSD_Screen::draw_peak_roll_rate(uint8_t x, uint8_t y) {
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     static float last_max_roll_rate;
     static uint32_t last_peak_tstamp;
     float rate_x_abs;
@@ -3550,9 +3507,11 @@ void AP_OSD_Screen::draw_peak_roll_rate(uint8_t x, uint8_t y) {
     }
 
     backend->write(x, y, false, "%c%3u%c", SYMBOL(SYM_ROLL), (uint)lrintf(ToDeg(last_max_roll_rate)), SYMBOL(SYM_DPS));
+#endif
 }
 
 void AP_OSD_Screen::draw_peak_pitch_rate(uint8_t x, uint8_t y) {
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     static float last_max_pitch_rate;
     static uint32_t last_peak_tstamp;
     float rate_y_abs;
@@ -3570,19 +3529,124 @@ void AP_OSD_Screen::draw_peak_pitch_rate(uint8_t x, uint8_t y) {
     }
 
     backend->write(x, y, false, "%c%3u%c", SYMBOL(SYM_PITCH), (uint)lrintf(ToDeg(last_max_pitch_rate)), SYMBOL(SYM_DPS));
+#endif
 }
 
-void AP_OSD_Screen::draw_rc_failsafe(uint8_t x, uint8_t y)
+bool AP_OSD_Screen::cruise_heading_changed(uint16_t &locked_heading)
 {
-    if (AP::vehicle()->rc_failsafe()) {
-        backend->write(x, y, true, "!!! RC FS !!!");
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    static uint32_t last_changed;
+    static uint16_t last_value;
+    const bool heading_locked = AP::vehicle()->get_cruise_locked_heading(locked_heading);
+
+    if (!heading_locked) {
+        last_changed = 0;
+        return false;
+    }
+
+    const uint32_t now = AP_HAL::millis();
+    if (locked_heading != last_value) {
+        if (last_changed) last_value = locked_heading;
+        last_changed = now;
+    }
+    if (!last_changed || now - last_changed > 2000) {
+        return false;
+    }
+
+    return true;
+#else
+    return false;
+#endif
+}
+
+void AP_OSD_Screen::draw_cruise_heading_adjustment(uint8_t x, uint8_t y)
+{
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    if (!AP_Notify::flags.armed) {
+        backend->write(x, y, false, "%c----%c", SYMBOL(SYM_HEADING), SYMBOL(SYM_DEGR));
         return;
     }
 
-    if (!AP_Notify::flags.armed) {
-        backend->write(x, y, false, "--- RC FS ---");
+    static int16_t last_fixed = -1;
+    uint16_t locked_heading;
+    if (cruise_heading_changed(locked_heading) && last_fixed != -1) {
+        int16_t heading_adj = locked_heading - last_fixed;
+        if (heading_adj > 180) heading_adj -= 360;
+        if (heading_adj < -180) heading_adj += 360;
+        backend->write(x, y, false, "%c%4d%c", SYMBOL(SYM_HEADING), heading_adj, SYMBOL(SYM_DEGR));
+    } else {
+        last_fixed = locked_heading;
     }
+#endif
 }
+
+void AP_OSD_Screen::draw_cruise_heading(uint8_t x, uint8_t y)
+{
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    if (!AP_Notify::flags.armed) {
+        backend->write(x, y, false, "%c---%c", SYMBOL(SYM_HEADING), SYMBOL(SYM_DEGR));
+        return;
+    }
+
+    uint16_t locked_heading;
+    if (cruise_heading_changed(locked_heading)) {
+        backend->write(x, y, false, "%c%3d%c", SYMBOL(SYM_HEADING), locked_heading, SYMBOL(SYM_DEGR));
+    }
+#endif
+}
+
+void AP_OSD_Screen::draw_auto_flaps(uint8_t x, uint8_t y)
+{
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    if (!AP_Notify::flags.armed) {
+        backend->write(x, y, false, "---%c", SYMBOL(SYM_PCNT));
+    } else if (AP::vehicle()->control_mode_does_auto_throttle()) {
+        uint8_t flaps_pcnt = AP::vehicle()->auto_flap_percent();
+        backend->write(x, y, false, "%3u%c", (uint)lrintf(flaps_pcnt), SYMBOL(SYM_PCNT));
+    }
+#endif
+}
+
+void AP_OSD_Screen::draw_aoa(uint8_t x, uint8_t y)
+{
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    AP_AHRS &ahrs = AP::ahrs();
+    WITH_SEMAPHORE(ahrs.get_semaphore());
+    float aoa_val = ahrs.getAOA();
+    draw_pitch(x, y, aoa_val);
+#endif
+}
+
+void AP_OSD_Screen::draw_eff_air(uint8_t x, uint8_t y)
+{
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    bool have_airspeed_estimate;
+    float airspeed_mps;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        have_airspeed_estimate = ahrs.airspeed_estimate(airspeed_mps);
+    }
+    float efficiency;
+    bool efficiency_available;
+    if (have_airspeed_estimate) {
+        efficiency_available = calculate_efficiency(airspeed_mps, efficiency);
+        if (efficiency_available) {
+            osd->filtered.eff_air += (efficiency - osd->filtered.eff_air) * 0.2f;
+        }
+    }
+    draw_eff(x, y, have_airspeed_estimate && efficiency_available, osd->filtered.eff_air);
+#endif
+}
+
+void AP_OSD_Screen::draw_avg_eff_air(uint8_t x, uint8_t y, bool draw_eff_symbol)
+{
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    draw_avg_eff(x, y, AP::stats()->get_boot_flying_air_traveled_m(), draw_eff_symbol);
+#endif
+}
+
+// End plane specific elements
 
 #define DRAW_SETTING(n) if (n.enabled) draw_ ## n(n.xpos, n.ypos)
 
@@ -3628,9 +3692,6 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(sats);
     DRAW_SETTING(fltmode);
     DRAW_SETTING(gspeed);
-    DRAW_SETTING(aspeed);
-    DRAW_SETTING(aspd1);
-    DRAW_SETTING(aspd2);
     DRAW_SETTING(vspeed);
     DRAW_SETTING(throttle_output);
     DRAW_SETTING(heading);
@@ -3672,15 +3733,10 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(stats);
     DRAW_SETTING(climbeff);
     DRAW_SETTING(eff_ground);
-    DRAW_SETTING(eff_air);
     DRAW_SETTING(avg_eff_ground);
-    DRAW_SETTING(avg_eff_air);
     DRAW_SETTING(callsign);
     DRAW_SETTING(current2);
     DRAW_SETTING(rc_throttle);
-    DRAW_SETTING(aspd_dem);
-    DRAW_SETTING(auto_flaps);
-    DRAW_SETTING(aoa);
     DRAW_SETTING(crsf_tx_power);
     DRAW_SETTING(crsf_rssi_dbm);
     DRAW_SETTING(crsf_snr);
@@ -3688,11 +3744,22 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(bat_pct);
     DRAW_SETTING(tuned_param_name);
     DRAW_SETTING(tuned_param_value);
+    DRAW_SETTING(rc_failsafe);
+
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    DRAW_SETTING(aspeed);
+    DRAW_SETTING(aspd1);
+    DRAW_SETTING(aspd2);
+    DRAW_SETTING(aspd_dem);
     DRAW_SETTING(peak_roll_rate);
     DRAW_SETTING(peak_pitch_rate);
     DRAW_SETTING(cruise_heading);
     DRAW_SETTING(cruise_heading_adjustment);
-    DRAW_SETTING(rc_failsafe);
+    DRAW_SETTING(auto_flaps);
+    DRAW_SETTING(aoa);
+    DRAW_SETTING(eff_air);
+    DRAW_SETTING(avg_eff_air);
+#endif
 }
 #endif
 #endif // OSD_ENABLED
