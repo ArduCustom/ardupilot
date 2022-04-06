@@ -889,6 +889,9 @@ private:
     void set_throttle_zero_flag(int16_t throttle_control);
     void radio_passthrough_to_motors();
     int16_t get_throttle_mid(void);
+    float get_throttle_input(bool no_deadzone=false) const override {
+        return (no_deadzone ? channel_throttle->get_control_in_zero_dz() : channel_throttle->get_control_in()) / 10.0f;
+    }
 
     // sensors.cpp
     void read_barometer(void);
