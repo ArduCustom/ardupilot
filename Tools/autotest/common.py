@@ -11535,7 +11535,7 @@ switch value'''
         frsky.data_downlink_handler = sport_to_mavlite.downlink_handler
 
         self.start_subtest("Get parameter via MAVlite")
-        param_name = "STAB_PITCH_DOWN"  # FIXME: want common across vehicles
+        param_name = "FBWA_PITCH_DOWN"  # FIXME: want common across vehicles
         set_value = 97.21
         self.set_parameter(param_name, set_value)  # DO NOT FLY
         got_value = self.get_parameter_via_mavlite(frsky,
@@ -11547,7 +11547,7 @@ switch value'''
         self.end_subtest("Get parameter via MAVlite")
 
         self.start_subtest("Set parameter via MAVlite")
-        param_name = "STAB_PITCH_DOWN"  # FIXME: want common across vehicles
+        param_name = "FBWA_PITCH_DOWN"  # FIXME: want common across vehicles
         set_value = 91.67
 #        frsky.verbose = True
         self.set_parameter_via_mavlite(frsky, sport_to_mavlite, param_name, set_value)  # DO NOT FLY
