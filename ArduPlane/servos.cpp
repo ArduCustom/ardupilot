@@ -588,14 +588,14 @@ void Plane::shift_elevator_output_pwm(int16_t elev_pwm_shift)
 void Plane::apply_throttle_to_elevator_mix(void)
 {
     const float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
-    const int16_t elev_mix_pwm = lrintf(linear_interpolate(0, g.kff_throttle_above_trim_to_elevator, throttle, aparm.throttle_cruise, 100));
+    const int16_t elev_mix_pwm = lrintf(square_curve_interpolate(0, g.mix_throttle_above_trim_to_elevator, g.kff_throttle_above_trim_to_pitch_curve, throttle, aparm.throttle_cruise, 100));
     shift_elevator_output_pwm(elev_mix_pwm);
 }
 
 void Plane::apply_flap_to_elevator_mix(void)
 {
     const float flap_position = SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_flap_auto);
-    const uint16_t elev_mix_pwm = lrintf(flap_position * g.kff_flap_to_elevator * 0.01f);
+    const uint16_t elev_mix_pwm = lrintf(square_expo_curve(flap_position * 0.01f, g.mix_flap_to_elevator_curve) * g.mix_flap_to_elevator);
     shift_elevator_output_pwm(elev_mix_pwm);
 }
 
