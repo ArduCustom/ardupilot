@@ -306,7 +306,17 @@ float linear_interpolate(float low_output, float high_output,
                          float var_value,
                          float var_low, float var_high);
 
+float square_curve_interpolate(float low_output, float high_output, float expo,
+                                float var_value, float var_low, float var_high);
+
+float cube_curve_interpolate(float low_output, float high_output, float expo,
+                                float var_value, float var_low, float var_high);
+
 float square_expo_curve(float v, float expo);
+float square_expo_curve_100(float v, float expo);
+float cube_expo_curve(float v, float expo);
+
+void swap_float(float &f1, float &f2);
 
 /* cubic "expo" curve generator
  * alpha range: [0,1] min to max expo
@@ -376,4 +386,3 @@ int32_t float_to_int32(const float v);
 uint32_t float_to_uint32(const float v);
 uint32_t double_to_uint32(const double v);
 int32_t double_to_int32(const double v);
-
