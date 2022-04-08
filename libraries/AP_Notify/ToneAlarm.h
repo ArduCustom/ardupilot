@@ -19,6 +19,7 @@
 
 #include "NotifyDevice.h"
 #include "MMLPlayer.h"
+#include "AP_Notify.h"
 
 // wait 2 seconds before assuming a tone is done and continuing the continuous tone
 #define AP_NOTIFY_TONEALARM_MAX_TONE_LENGTH_MS 2000
@@ -68,6 +69,8 @@ private:
         uint16_t temp_cal_running      : 1;    // 1 if temperature calibration is running
     } flags;
     bool _have_played_ready_tone : 1;
+
+    AP_Notify::takeoffStatus _takeoff_status;
 
     int8_t _cont_tone_playing;
     int8_t _tone_playing;
