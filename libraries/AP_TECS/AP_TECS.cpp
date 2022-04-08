@@ -817,7 +817,7 @@ float AP_TECS::_get_i_gain(void)
 /*
   calculate throttle, non-airspeed case
  */
-void AP_TECS::_update_throttle_without_airspeed(int16_t throttle_nudge)
+void AP_TECS::_update_throttle_without_airspeed(float throttle_nudge)
 {
     // Calculate throttle demand by interpolating between pitch and throttle limits
     float nomThr;
