@@ -206,6 +206,9 @@ private:
     AP_YawController yawController{aparm};
     AP_SteerController steerController{};
 
+    HAL_Semaphore _thr_sem;
+    float _throttle_output;
+
     // Training mode
     bool training_manual_roll;  // user has manual roll control
     bool training_manual_pitch; // user has manual pitch control
