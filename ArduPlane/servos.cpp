@@ -37,24 +37,42 @@ void Plane::throttle_slew_limit(SRV_Channel::Aux_servo_function_t func)
     }
 
     uint8_t slewrate = aparm.throttle_slewrate;
-    if (control_mode == &mode_auto) {
-        if (auto_state.takeoff_complete == false && g.takeoff_throttle_slewrate != 0) {
-            slewrate = g.takeoff_throttle_slewrate;
-        } else if (landing.get_throttle_slewrate() != 0 && flight_stage == AP_Vehicle::FixedWing::FLIGHT_LAND) {
-            slewrate = landing.get_throttle_slewrate();
+
+    if (suppress_throttle() && ((control_mode == &mode_auto && flight_stage == AP_Vehicle::FixedWing::FLIGHT_NORMAL &&
+                                mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF) || control_mode == &mode_takeoff)) {
+
+        // allow the throttle to go down quickly when 0 requested but set the slew rate to requested idle srate when raising
+        if (is_zero(get_throttle_input(false))) {
+            slewrate = 0;
+        } else {
+            slewrate = g2.takeoff_idle_thr_slewrate;
         }
+
+    } else {
+
+        if (control_mode == &mode_auto) {
+            if (auto_state.takeoff_complete == false && g.takeoff_throttle_slewrate != 0) {
+                slewrate = g.takeoff_throttle_slewrate;
+            } else if (landing.get_throttle_slewrate() != 0 && flight_stage == AP_Vehicle::FixedWing::FLIGHT_LAND) {
+                slewrate = landing.get_throttle_slewrate();
+            }
+        }
+
+        if (g.takeoff_throttle_slewrate != 0 &&
+            (flight_stage == AP_Vehicle::FixedWing::FLIGHT_TAKEOFF ||
+            flight_stage == AP_Vehicle::FixedWing::FLIGHT_VTOL)) {
+            // for VTOL we use takeoff slewrate, which helps with transition
+            slewrate = g.takeoff_throttle_slewrate;
+        }
+
+        #if HAL_QUADPLANE_ENABLED
+        if (g.takeoff_throttle_slewrate != 0 && quadplane.in_transition()) {
+            slewrate = g.takeoff_throttle_slewrate;
+        }
+        #endif
+
     }
-    if (g.takeoff_throttle_slewrate != 0 &&
-        (flight_stage == AP_Vehicle::FixedWing::FLIGHT_TAKEOFF ||
-         flight_stage == AP_Vehicle::FixedWing::FLIGHT_VTOL)) {
-        // for VTOL we use takeoff slewrate, which helps with transition
-        slewrate = g.takeoff_throttle_slewrate;
-    }
-#if HAL_QUADPLANE_ENABLED
-    if (g.takeoff_throttle_slewrate != 0 && quadplane.in_transition()) {
-        slewrate = g.takeoff_throttle_slewrate;
-    }
-#endif
+
     SRV_Channels::set_slew_rate(func, slewrate, 100, G_Dt);
 }
 
@@ -531,6 +549,11 @@ void Plane::apply_throttle_dz(void)
 
 void Plane::apply_throttle_expo(void)
 {
+    if (suppress_throttle() && ((control_mode == &mode_auto && mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF) || control_mode == &mode_takeoff)) {
+        // Don't apply throttle expo for takeoff idle throttle
+        return;
+    }
+
     const float expo_param = control_mode->does_auto_throttle() ? g2.throttle_expo_auto : g2.throttle_expo_manual;
     const float input_throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
     const float output_throttle = square_expo_curve_100(input_throttle, -expo_param);
@@ -613,9 +636,9 @@ void Plane::set_servos_controlled(void)
 #endif
     if (flight_stage_determines_max_throttle) {
         if (aparm.takeoff_throttle_max != 0) {
-            max_throttle = aparm.takeoff_throttle_max;
+            max_throttle = square_expo_curve_100(aparm.takeoff_throttle_max, g2.throttle_expo_auto);
         } else {
-            max_throttle = aparm.throttle_max;
+            max_throttle = square_expo_curve_100(aparm.throttle_max, g2.throttle_expo_auto);
         }
     } else if (landing.is_flaring()) {
         min_throttle = 0;
@@ -642,11 +665,16 @@ void Plane::set_servos_controlled(void)
         if (landing.is_flaring() && landing.use_thr_min_during_flare() ) {
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, aparm.throttle_min.get());
         }
-        if (g.throttle_suppress_manual && ((control_mode == &mode_auto && flight_stage == AP_Vehicle::FixedWing::FLIGHT_NORMAL &&
-            mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF) || control_mode == &mode_takeoff)) {
-            // manual pass through of throttle while throttle is suppressed
-            float throttle_input = get_throttle_input(true);
-            SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle_input);
+        if ((control_mode == &mode_auto && flight_stage == AP_Vehicle::FixedWing::FLIGHT_NORMAL &&
+            mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF) || control_mode == &mode_takeoff) {
+            float throttle_input = get_throttle_input(false);
+            if (g.throttle_suppress_manual) {
+                // manual pass through of throttle while throttle is suppressed
+                SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle_input);
+            } else if (!is_zero(g2.takeoff_idle_thr) && !is_zero(throttle_input)) {
+                SRV_Channels::set_slew_rate(SRV_Channel::k_throttle, g2.takeoff_idle_thr_slewrate, 100, G_Dt);
+                SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, g2.takeoff_idle_thr);
+            }
         }
 #if AP_SCRIPTING_ENABLED
     } else if (plane.nav_scripting.current_ms > 0 && nav_scripting.enabled) {
@@ -686,7 +714,7 @@ void Plane::set_servos_controlled(void)
     }
     
     if (suppress_throttle() || !control_mode->does_auto_throttle()) {
-        TECS_controller.set_throttle_demand(SRV_Channels::get_output_scaled(SRV_Channel::k_throttle));
+        TECS_controller.set_throttle_demand(SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle));
     }
 
     apply_throttle_dz();
