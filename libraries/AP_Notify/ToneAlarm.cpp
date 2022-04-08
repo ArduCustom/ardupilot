@@ -98,6 +98,13 @@ const AP_ToneAlarm::Tone AP_ToneAlarm::_tones[] {
     { "MNBGG", false },
 #define AP_NOTIFY_TONE_EKF_ALERT 31
     { "MBNT255>A#8A#8A#8A#8P8A#8A#8A#8A#8P8A#8A#8A#8A#8P8A#8A#8A#8A#8", true },
+#define AP_NOTIFY_TONE_WAITING_TO_RAISE_THROTTLE 32
+    // { "MBT32L64 O5aaP32aaP32aaP32aaP32aaP32aaP32aaP32aaP32aaP32", true },
+    { "MBT32L64 O5aaaP8aaaP8aaaP8aaaP8aaaP8aaaP8aaaP8aaaP8", true },
+#define AP_NOTIFY_TONE_WAITING_FOR_IDLE_THROTTLE 33
+    { "MBT32L64 O1cdefgab", true },
+#define AP_NOTIFY_TONE_WAITING_FOR_LAUNCH 34
+    { "MBT32L64 O5aP4aP4aP4aP4aP4aP4", true },
 };
 
 bool AP_ToneAlarm::init()
@@ -446,6 +453,24 @@ void AP_ToneAlarm::update()
             play_tone(AP_NOTIFY_TONE_EKF_ALERT);
         }
     }
+
+    if (_takeoff_status != AP_Notify::takeoff_status) {
+        _takeoff_status = AP_Notify::takeoff_status;
+        switch(_takeoff_status) {
+            case AP_Notify::TKOFS_WAITING_TO_RAISE_THROTTLE:
+                play_tone(AP_NOTIFY_TONE_WAITING_TO_RAISE_THROTTLE);
+                break;
+            case AP_Notify::TKOFS_WAITING_FOR_IDLE_THROTTLE:
+                play_tone(AP_NOTIFY_TONE_WAITING_FOR_IDLE_THROTTLE);
+                break;
+            case AP_Notify::TKOFS_WAITING_FOR_LAUNCH:
+                play_tone(AP_NOTIFY_TONE_WAITING_FOR_LAUNCH);
+                break;
+            default:
+                stop_cont_tone();
+        }
+    }
+
 }
 
 
