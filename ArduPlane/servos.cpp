@@ -533,7 +533,7 @@ void Plane::apply_throttle_expo(void)
 {
     const float expo_param = control_mode->does_auto_throttle() ? g2.throttle_expo_auto : g2.throttle_expo_manual;
     const float input_throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
-    const float output_throttle = square_expo_curve(input_throttle, -expo_param);
+    const float output_throttle = square_expo_curve_100(input_throttle, -expo_param);
     SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, output_throttle);
 }
 
@@ -587,8 +587,8 @@ void Plane::set_servos_controlled(void)
     }
 
     // convert 0 to 100% (or -100 to +100) into PWM
-    int8_t min_throttle = square_expo_curve(aparm.throttle_min.get(), g2.throttle_expo_auto);
-    int8_t max_throttle = square_expo_curve(aparm.throttle_max.get(), g2.throttle_expo_auto);
+    int8_t min_throttle = square_expo_curve_100(aparm.throttle_min.get(), g2.throttle_expo_auto);
+    int8_t max_throttle = square_expo_curve_100(aparm.throttle_max.get(), g2.throttle_expo_auto);
 
 #if AP_ICENGINE_ENABLED
     // apply idle governor

@@ -116,29 +116,29 @@ public:
         k_param_rangefinder,
         k_param_terrain,
         k_param_terrain_follow,
-        k_param_stab_pitch_down_curve,
+        k_param_fbwa_pitch_down_curve,
         k_param_glide_slope_min,
-        k_param_stab_pitch_down,
+        k_param_fbwa_max_pitch_down,
         k_param_terrain_lookahead,
-        k_param_fbwa_tdrag_chan, // unused - moved to RC option
+        k_param_fbwa_max_pitch_down_thr,
         k_param_rangefinder_landing,
-        k_param_land_flap_percent,  // unused - moved to AP_Landing
+        k_param_fbwa_max_pitch_up_thr,
         k_param_takeoff_flap_percent,
         k_param_flap_slewrate,
         k_param_rtl_autoland,
         k_param_override_channel,
         k_param_stall_prevention,
         k_param_optflow,
-        k_param_cli_enabled_old, // unused - CLI removed
-        k_param_trim_rc_at_start, // unused
-        k_param_hil_mode_unused,  // unused
-        k_param_land_disarm_delay,  // unused - moved to AP_Landing
+        k_param_fbwa_max_pitch_up,
+        k_param_fbwa_pitch_up_curve,
+        k_param_fbwa_min_pitch_up_thr,
+        k_param_fbwa_pitch_up_curve_reversal,
         k_param_glide_slope_threshold,
         k_param_rudder_only,
         k_param_gcs3,            // 93
         k_param_gcs_pid_mask,
         k_param_crash_detection_enable,
-        k_param_land_abort_throttle_enable, // unused - moved to AP_Landing
+        k_param_fbwa_pitch_down_curve_reversal,
         k_param_rssi = 97,
         k_param_rpm_sensor,
         k_param_parachute,
@@ -376,8 +376,15 @@ public:
     AP_Float kff_flap_to_elevator;
     AP_Float ground_steer_alt;
     AP_Int16 ground_steer_dps;
-    AP_Float stab_pitch_down;
-    AP_Float stab_pitch_down_curve;
+    AP_Float fbwa_max_pitch_down;
+    AP_Float fbwa_max_pitch_down_thr;
+    AP_Float fbwa_pitch_down_curve;
+    AP_Int8 fbwa_pitch_down_curve_reversal;
+    AP_Float fbwa_max_pitch_up;
+    AP_Float fbwa_max_pitch_up_thr;
+    AP_Float fbwa_min_pitch_up_thr;
+    AP_Float fbwa_pitch_up_curve;
+    AP_Int8 fbwa_pitch_up_curve_reversal;
 
     // speed used for speed scaling
     AP_Float scaling_speed;
