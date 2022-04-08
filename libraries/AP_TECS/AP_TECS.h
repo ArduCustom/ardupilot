@@ -160,19 +160,19 @@ public:
     }
 
     float throttle_cruise(void) {
-        return square_expo_curve(aparm.throttle_cruise, _throttle_expo);
+        return square_expo_curve_100(aparm.throttle_cruise.get(), _throttle_expo);
     }
 
     float throttle_min(void) {
-        return square_expo_curve(aparm.throttle_min, _throttle_expo);
+        return square_expo_curve_100(aparm.throttle_min.get(), _throttle_expo);
     }
 
     float throttle_max(void) {
-        return square_expo_curve(aparm.throttle_max, _throttle_expo);
+        return square_expo_curve_100(aparm.throttle_max.get(), _throttle_expo);
     }
 
     float takeoff_throttle_max(void) {
-        return square_expo_curve(aparm.takeoff_throttle_max, _throttle_expo);
+        return square_expo_curve_100(aparm.takeoff_throttle_max.get(), _throttle_expo);
     }
 
     AP_Float &thr_ff_damp(void) { return _thr_ff_damp; }
