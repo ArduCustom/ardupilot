@@ -92,23 +92,82 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Advanced
     GSCALAR(kff_flap_to_elevator,  "KFF_FLAP2ELEV",   0),
 
-    // @Param: STAB_PITCH_DOWN
-    // @DisplayName: Low throttle pitch down trim
-    // @Description: Degrees of down pitch added when throttle is below TRIM_THROTTLE in FBWA and AUTOTUNE modes. Scales linearly so full value is added when THR_MIN is reached. Helps to keep airspeed higher in glides or landing approaches and prevents accidental stalls. 2 degrees recommended for most planes.
+    // @Param: FBWA_PITCH_DOWN
+    // @DisplayName: Max pitch down in FBWA/AUTOTUNE applied when throttle is bellow FBWA_MPTCHDN_THR
+    // @Description: Part of the FBWA throttle to pitch compensation system. See the documentation for this system for more information. Max pitch down in FBWA/AUTOTUNE applied when throttle is bellow FBWA_MPTCHDN_THR
     // @Range: 0 15
     // @Increment: 0.1
     // @Units: deg
     // @User: Advanced
-    GSCALAR(stab_pitch_down, "STAB_PITCH_DOWN",   2.0f),
+    GSCALAR(fbwa_max_pitch_down, "FBWA_PITCH_DOWN",   2.0f),
 
-    // @Param: STAB_PITCH_DCRV
-    // @DisplayName: Low throttle pitch down curve
-    // @Description: -100=square pitch down curve, 0=linear pitch down curve, 100=square root pitch down curve
+    // @Param: FBWA_MXPTCHD_THR
+    // @DisplayName: Throttle bellow which the plane will pitch down at FBWA_PITCH_DOWN
+    // @Description: Part of the FBWA throttle to pitch compensation system. See the documentation for this system for more information. Throttle bellow which the plane will pitch down at FBWA_PITCH_DOWN
+    // @Range: 0 100
+    // @Increment: 1
+    // @Units: %
+    // @User: Advanced
+    GSCALAR(fbwa_max_pitch_down_thr, "FBWA_MXPTCHD_THR",   0),
+
+    // @Param: FBWA_PTCHDN_CRV
+    // @DisplayName: Determines the shape of the pitch down curve applied by the FBWA throttle to pitch compensation system
+    // @Description: -100=square pitch down curve, 0=linear pitch curve, 100=square root pitch curve
     // @Range: -100 100
     // @Increment: 1
     // @Units: %
     // @User: Advanced
-    GSCALAR(stab_pitch_down_curve, "STAB_PITCH_DCRV",   100),
+    GSCALAR(fbwa_pitch_down_curve, "FBWA_PTCHDN_CRV",   0),
+
+    // @Param: FBWA_PTCHDN_CRVR
+    // @DisplayName: Pitch down curve reversal
+    // @Description: Pitch down curve reversal
+    // @Range: 0 1
+    // @User: Advanced
+    GSCALAR(fbwa_pitch_down_curve_reversal, "FBWA_PTCHDN_CRVR",   0),
+
+    // @Param: FBWA_PITCH_UP
+    // @DisplayName: Max pitch up in FBWA/AUTOTUNE applied when throttle is at FBWA_MPTCHUP_THR
+    // @Description: Part of the FBWA throttle to pitch compensation system. See the documentation for this system for more information. Max pitch up in FBWA/AUTOTUNE applied when throttle is at FBWA_MPTCHUP_THR
+    // @Range: 0 15
+    // @Increment: 0.1
+    // @Units: deg
+    // @User: Advanced
+    GSCALAR(fbwa_max_pitch_up, "FBWA_PITCH_UP",   2.0f),
+
+    // @Param: FBWA_MXPTCHU_THR
+    // @DisplayName: Throttle at which the maximum pitch up FBWA_PITCH_UP will be applied
+    // @Description: Part of the FBWA throttle to pitch compensation system. See the documentation for this system for more information. 
+    // @Range: 0 100
+    // @Increment: 1
+    // @Units: %
+    // @User: Advanced
+    GSCALAR(fbwa_max_pitch_up_thr, "FBWA_MXPTCHU_THR",   0),
+
+    // @Param: FBWA_MNPTCHU_THR
+    // @DisplayName: Throttle at bellow which to start pitching up
+    // @Description: Part of the FBWA throttle to pitch compensation system. See the documentation for this system for more information. 
+    // @Range: 0 100
+    // @Increment: 1
+    // @Units: %
+    // @User: Advanced
+    GSCALAR(fbwa_min_pitch_up_thr, "FBWA_MNPTCHU_THR",   0),
+
+    // @Param: FBWA_PTCHUP_CRV
+    // @DisplayName: Determines the shape of the pitch up curve applied by the FBWA throttle to pitch compensation system
+    // @Description: -100=square pitch curve, 0=linear pitch curve, 100=square root pitch curve
+    // @Range: -100 100
+    // @Increment: 1
+    // @Units: %
+    // @User: Advanced
+    GSCALAR(fbwa_pitch_up_curve, "FBWA_PTCHUP_CRV",   0),
+
+    // @Param: FBWA_PTCHUP_CRVR
+    // @DisplayName: Pitch up curve reversal
+    // @Description: Pitch up curve reversal
+    // @Range: 0 1
+    // @User: Advanced
+    GSCALAR(fbwa_pitch_up_curve_reversal, "FBWA_PTCHUP_CRVR",   0),
 
     // @Param: GLIDE_SLOPE_MIN
     // @DisplayName: Glide slope minimum
@@ -1476,10 +1535,7 @@ static const AP_Param::ConversionInfo conversion_table[] = {
     { Parameters::k_param_land_pre_flare_alt, 0,      AP_PARAM_FLOAT, "LAND_PF_ALT" },
     { Parameters::k_param_land_pre_flare_airspeed, 0, AP_PARAM_FLOAT, "LAND_PF_ARSPD" },
     { Parameters::k_param_land_throttle_slewrate, 0,  AP_PARAM_INT8,  "LAND_THR_SLEW" },
-    { Parameters::k_param_land_disarm_delay,  0,      AP_PARAM_INT8,  "LAND_DISARMDELAY" },
     { Parameters::k_param_land_then_servos_neutral,0, AP_PARAM_INT8,  "LAND_THEN_NEUTRAL" },
-    { Parameters::k_param_land_abort_throttle_enable,0,AP_PARAM_INT8, "LAND_ABORT_THR" },
-    { Parameters::k_param_land_flap_percent,  0,      AP_PARAM_INT8,  "LAND_FLAP_PERCENT" },
 
     // battery failsafes
     { Parameters::k_param_fs_batt_mah,        0,      AP_PARAM_FLOAT, "BATT_LOW_MAH" },
@@ -1507,7 +1563,6 @@ static const RCConversionInfo rc_option_conversion[] = {
     { Parameters::k_param_fence_channel, 0, RC_Channel::AUX_FUNC::FENCE},
     { Parameters::k_param_reset_mission_chan, 0, RC_Channel::AUX_FUNC::MISSION_RESET},
     { Parameters::k_param_parachute_channel, 0, RC_Channel::AUX_FUNC::PARACHUTE_RELEASE},
-    { Parameters::k_param_fbwa_tdrag_chan, 0, RC_Channel::AUX_FUNC::FBWA_TAILDRAGGER},
     { Parameters::k_param_reset_switch_chan, 0, RC_Channel::AUX_FUNC::MODE_SWITCH_RESET},
 };
 

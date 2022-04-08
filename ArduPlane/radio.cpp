@@ -192,8 +192,8 @@ void Plane::read_radio()
         if (ahrs.airspeed_sensor_enabled()) {
             airspeed_nudge_cm = (aparm.airspeed_max * 100 - aparm.airspeed_cruise_cm) * nudge;
         } else {
-            const float throttle_cruise = square_expo_curve(aparm.throttle_cruise, g2.throttle_expo_auto);
-            const float throttle_max = square_expo_curve(aparm.throttle_max, g2.throttle_expo_auto);
+            const float throttle_cruise = square_expo_curve_100(aparm.throttle_cruise, g2.throttle_expo_auto);
+            const float throttle_max = square_expo_curve_100(aparm.throttle_max, g2.throttle_expo_auto);
             throttle_nudge = (throttle_max - throttle_cruise) * nudge;
         }
     }
