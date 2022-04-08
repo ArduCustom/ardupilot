@@ -1013,6 +1013,11 @@ void Plane::set_servos(void)
 #endif
     }
 
+    {
+        WITH_SEMAPHORE(_thr_sem);
+        _throttle_output = SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle);
+    }
+
     // run output mixer and send values to the hal for output
     servos_output();
 }
