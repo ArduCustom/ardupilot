@@ -85,7 +85,7 @@ template float safe_sqrt<double>(const double v);
 /*
   replacement for std::swap() needed for STM32
  */
-static void swap_float(float &f1, float &f2)
+void swap_float(float &f1, float &f2)
 {
     float tmp = f1;
     f1 = f2;
@@ -114,15 +114,73 @@ float linear_interpolate(float low_output, float high_output,
     return low_output + p * (high_output - low_output);
 }
 
-// v should be between -100 and 100, curve must be between -100 and 100, return will be between -100 and 100
+// v should be between -1 and 1, curve must be between -100 and 100, return will be between -1 and 1
 float square_expo_curve(float v, float expo)
 {
     expo = constrain_float(expo, -100, 100);
     const float expo_scaled_abs = abs(expo * 0.01f);
-    const float v_scaled_abs = abs(constrain_float(v, -100, 100) * 0.01f);
-    const float v_exposed_abs = v_scaled_abs * (1 - expo_scaled_abs) + expo_scaled_abs * (expo < 0 ? sq(v_scaled_abs) : sqrtf(v_scaled_abs));
+    const float v_abs = abs(constrain_float(v, -1, 1));
+    const float v_exposed_abs = v_abs * (1 - expo_scaled_abs) + expo_scaled_abs * (expo < 0 ? sq(v_abs) : sqrtf(v_abs));
     const int8_t sign_factor = signbit(v) ? -1 : 1;
-    return sign_factor * v_exposed_abs * 100;
+    return sign_factor * v_exposed_abs;
+}
+
+// v should be between -1 and 1, curve must be between -100 and 100, return will be between -1 and 1
+float cube_expo_curve(float v, float expo)
+{
+    expo = constrain_float(expo, -100, 100);
+    const float expo_scaled_abs = abs(expo * 0.01f);
+    return v * (1 - expo_scaled_abs) + expo_scaled_abs * (expo < 0 ? v*v*v : cbrtf(v));
+}
+
+// v should be between -100 and 100, curve must be between -100 and 100, return will be between -100 and 100
+float square_expo_curve_100(float v, float expo)
+{
+    return square_expo_curve(v * 0.01f, expo) * 100;
+}
+
+float square_curve_interpolate(float low_output, float high_output, float expo,
+                                float var_value, float var_low, float var_high)
+{   
+    float pos_low = var_low;
+    float pos_high = var_high;
+
+    float lim_low = low_output;
+    float lim_high = high_output;
+    if (var_low > var_high) { 
+        // support either polarity
+        swap_float(lim_low, lim_high);
+        swap_float(var_low, var_high);
+    }
+    if (var_value <= var_low) return lim_low;
+    if (var_value >= var_high) return lim_high; 
+
+    const float linpos = (var_value - pos_low) / (pos_high - pos_low);
+    const float exppos = square_expo_curve(linpos, expo);
+
+    return low_output + exppos * (high_output - low_output);
+}
+
+float cube_curve_interpolate(float low_output, float high_output, float expo,
+                                float var_value, float var_low, float var_high)
+{   
+    float pos_low = var_low;
+    float pos_high = var_high;
+
+    float lim_low = low_output;
+    float lim_high = high_output;
+    if (var_low > var_high) { 
+        // support either polarity
+        swap_float(lim_low, lim_high);
+        swap_float(var_low, var_high);
+    }
+    if (var_value <= var_low) return lim_low;
+    if (var_value >= var_high) return lim_high; 
+
+    const float linpos = (var_value - pos_low) / (pos_high - pos_low);
+    const float exppos = cube_expo_curve(linpos, expo);
+
+    return low_output + exppos * (high_output - low_output);
 }
 
 /* cubic "expo" curve generator
