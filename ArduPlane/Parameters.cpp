@@ -73,24 +73,51 @@ const AP_Param::Info Plane::var_info[] = {
     // @Description: Pitch up to add in proportion to throttle above trim throttle. TRIM_THROTTLE throttle and under will add 0° to the pitch target. 100% throttle will add this number of degrees to the pitch target.
     // @Range: -20 20
     // @Increment: 0.1
+    // @Units: deg
     // @User: Advanced
     GSCALAR(kff_throttle_above_trim_to_pitch,  "KFF_THRAT2PTCH",   -1.0f),
 
-    // @Param: KFF_THRAT2ELEV
+    // @Param: KFF_THRAT2PTCHCV
+    // @DisplayName: Throttle above trim throttle to pitch mix curve
+    // @Description: Throttle above trim throttle to pitch mix curve
+    // @Range: -100 100
+    // @Increment: 1
+    // @Units: %
+    // @User: Advanced
+    GSCALAR(kff_throttle_above_trim_to_pitch_curve,  "KFF_THRAT2PTCHCV",   100),
+
+    // @Param: MIX_THRAT2ELEV
     // @DisplayName: Throttle ratio above trim throttle to elevator PWM offset mix
     // @Description: The elevator and elevon servos will be offset by that much at 100% throttle
     // @Range: -500 500
-    // @Increment: PWM
+    // @Units: PWM
     // @User: Advanced
-    GSCALAR(kff_throttle_above_trim_to_elevator,  "KFF_THRAT2ELEV",   0),
+    GSCALAR(mix_throttle_above_trim_to_elevator,  "MIX_THRAT2ELEV",   0),
 
-    // @Param: KFF_FLAP2ELEV
+    // @Param: MIX_THRAT2ELEVCV
+    // @DisplayName: Throttle above trim throttle to elevon curve
+    // @Description: Throttle above trim throttle to elevon curve
+    // @Range: -100 100
+    // @Increment: 1
+    // @Units: %
+    // @User: Advanced
+    GSCALAR(mix_throttle_above_trim_to_elevator_curve,  "MIX_THRAT2ELEVCV",   0),
+
+    // @Param: MIX_FLAP2ELEV
     // @DisplayName: Flap position to elevator PWM offset mix
     // @Description: The elevator and elevon servos will be offset by that much at 100% flaps
     // @Range: -500 500
-    // @Increment: PWM
+    // @Units: PWM
     // @User: Advanced
-    GSCALAR(kff_flap_to_elevator,  "KFF_FLAP2ELEV",   0),
+    GSCALAR(mix_flap_to_elevator,  "MIX_FLAP2ELEV",   0),
+
+    // @Param: MIX_FLAP2ELEVCV
+    // @DisplayName: Flap position to elevator curve
+    // @Description: Flap position to elevator curve
+    // @Range: -100 100
+    // @Units: %
+    // @User: Advanced
+    GSCALAR(mix_flap_to_elevator_curve,  "MIX_FLAP2ELEVCV",   0),
 
     // @Param: FBWA_PITCH_DOWN
     // @DisplayName: Max pitch down in FBWA/AUTOTUNE applied when throttle is bellow FBWA_MPTCHDN_THR
@@ -1548,8 +1575,6 @@ static const AP_Param::ConversionInfo conversion_table[] = {
     { Parameters::k_param_land_slope_recalc_shallow_threshold,0,AP_PARAM_FLOAT, "LAND_SLOPE_RCALC" },
     { Parameters::k_param_land_slope_recalc_steep_threshold_to_abort,0,AP_PARAM_FLOAT, "LAND_ABORT_DEG" },
     { Parameters::k_param_land_pitch_cd,      0,      AP_PARAM_INT16, "LAND_PITCH_CD" },
-    { Parameters::k_param_land_flare_alt,     0,      AP_PARAM_FLOAT, "LAND_FLARE_ALT" },
-    { Parameters::k_param_land_flare_sec,     0,      AP_PARAM_FLOAT, "LAND_FLARE_SEC" },
     { Parameters::k_param_land_pre_flare_sec, 0,      AP_PARAM_FLOAT, "LAND_PF_SEC" },
     { Parameters::k_param_land_pre_flare_alt, 0,      AP_PARAM_FLOAT, "LAND_PF_ALT" },
     { Parameters::k_param_land_pre_flare_airspeed, 0, AP_PARAM_FLOAT, "LAND_PF_ARSPD" },
@@ -1580,7 +1605,6 @@ static const RCConversionInfo rc_option_conversion[] = {
     { Parameters::k_param_flapin_channel_old, 0, RC_Channel::AUX_FUNC::FLAP},
     { Parameters::k_param_g2, 968, RC_Channel::AUX_FUNC::SOARING},
     { Parameters::k_param_fence_channel, 0, RC_Channel::AUX_FUNC::FENCE},
-    { Parameters::k_param_reset_mission_chan, 0, RC_Channel::AUX_FUNC::MISSION_RESET},
     { Parameters::k_param_parachute_channel, 0, RC_Channel::AUX_FUNC::PARACHUTE_RELEASE},
     { Parameters::k_param_reset_switch_chan, 0, RC_Channel::AUX_FUNC::MODE_SWITCH_RESET},
 };
