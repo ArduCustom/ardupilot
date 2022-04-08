@@ -882,7 +882,7 @@ private:
     bool rc_failsafe(void) const override { return failsafe.rc_failsafe; }
 
     // Attitude.cpp
-    void adjust_nav_pitch_throttle(void);
+    void fbwa_throttle_to_pitch_compensation(bool do_pitch_up);
     void update_load_factor(void);
     void adjust_altitude_target();
     void setup_glide_slope(void);
