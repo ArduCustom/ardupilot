@@ -120,7 +120,9 @@ void ModeTakeoff::update()
     }
 
     if (plane.flight_stage == AP_Vehicle::FixedWing::FLIGHT_TAKEOFF) {
-        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 100.0);
+        if (!plane.suppress_throttle()) {
+            SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 100.0);
+        }
         plane.takeoff_calc_roll();
         plane.takeoff_calc_pitch();
     } else {
@@ -135,4 +137,3 @@ void ModeTakeoff::navigate()
     // Zero indicates to use WP_LOITER_RAD
     plane.update_loiter(0);
 }
-
