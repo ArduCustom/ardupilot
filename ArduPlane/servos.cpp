@@ -660,22 +660,35 @@ void Plane::set_servos_controlled(void)
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttleRight, 0.0);
         }
     } else if (suppress_throttle()) {
-        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0.0); // default
         // throttle is suppressed (above) to zero in final flare in auto mode, but we allow instead thr_min if user prefers, eg turbines:
         if (landing.is_flaring() && landing.use_thr_min_during_flare() ) {
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, aparm.throttle_min.get());
-        }
-        if ((control_mode == &mode_auto && flight_stage == AP_Vehicle::FixedWing::FLIGHT_NORMAL &&
+        } else if ((control_mode == &mode_auto && flight_stage == AP_Vehicle::FixedWing::FLIGHT_NORMAL &&
+            // mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF) || (control_mode == &mode_takeoff && !mode_takeoff.takeoff_has_started())) {
             mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF) || control_mode == &mode_takeoff) {
             float throttle_input = get_throttle_input(false);
             if (g.throttle_suppress_manual) {
                 // manual pass through of throttle while throttle is suppressed
                 SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle_input);
-            } else if (!is_zero(g2.takeoff_idle_thr) && !is_zero(throttle_input)) {
-                SRV_Channels::set_slew_rate(SRV_Channel::k_throttle, g2.takeoff_idle_thr_slewrate, 100, G_Dt);
-                SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, g2.takeoff_idle_thr);
+                AP_Notify::takeoff_status = AP_Notify::TKOFS_WAITING_FOR_LAUNCH;
+            } else if (!is_zero(g2.takeoff_idle_thr)) {
+                if (!is_zero(throttle_input)) {
+                    SRV_Channels::set_slew_rate(SRV_Channel::k_throttle, g2.takeoff_idle_thr_slewrate, 100, G_Dt);
+                    SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, g2.takeoff_idle_thr);
+                    const float current_throttle = SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle);
+                    AP_Notify::takeoff_status = current_throttle < g2.takeoff_idle_thr ? AP_Notify::TKOFS_WAITING_FOR_IDLE_THROTTLE : AP_Notify::TKOFS_WAITING_FOR_LAUNCH;
+                } else {
+                    SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0.0); // default
+                    AP_Notify::takeoff_status = AP_Notify::TKOFS_WAITING_TO_RAISE_THROTTLE;
+                }
+            } else {
+                SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0.0); // default
+                AP_Notify::takeoff_status = AP_Notify::TKOFS_WAITING_FOR_LAUNCH;
             }
+        } else {
+            SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0.0); // default
         }
+        TECS_controller.set_throttle_demand(square_expo_curve_100(SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle), g2.throttle_expo_auto));
 #if AP_SCRIPTING_ENABLED
     } else if (plane.nav_scripting.current_ms > 0 && nav_scripting.enabled) {
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, plane.nav_scripting.throttle_pct);
@@ -713,8 +726,12 @@ void Plane::set_servos_controlled(void)
 #endif  // HAL_QUADPLANE_ENABLED
     }
     
-    if (suppress_throttle() || !control_mode->does_auto_throttle()) {
+    if (!control_mode->does_auto_throttle()) {
         TECS_controller.set_throttle_demand(SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle));
+    }
+
+    if (!suppress_throttle()) {
+        AP_Notify::takeoff_status = AP_Notify::TKOFS_IDLE;
     }
 
     apply_throttle_dz();
@@ -993,6 +1010,7 @@ void Plane::set_servos(void)
 
     if (control_mode == &mode_manual) {
         set_servos_manual_passthrough();
+        AP_Notify::takeoff_status = AP_Notify::TKOFS_IDLE;
     } else {
         set_servos_controlled();
     }
