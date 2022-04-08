@@ -240,9 +240,6 @@ void Plane::calc_airspeed_errors()
     } else if (control_mode == &mode_qrtl && quadplane.in_vtol_land_approach()) {
         target_airspeed_cm = quadplane.get_land_airspeed() * 100;
 #endif
-    } else if (auto_thr_gliding_state == ATGS_GLIDING) {
-        // gliding requested set minimum speed
-        target_airspeed_cm = aparm.airspeed_min * 100;
     } else {
         // Normal airspeed target for all other cases
         target_airspeed_cm = aparm.airspeed_cruise_cm;
@@ -274,7 +271,10 @@ void Plane::calc_airspeed_errors()
 
     float airspeed_min_cm = aparm.airspeed_min * 100;
 
-    if (!(ahrs.airspeed_sensor_enabled() || TECS_controller.is_using_synthetic_airspeed())) {
+    if (auto_thr_gliding_state == ATGS_GLIDING) {
+        // gliding requested set minimum speed
+        target_airspeed_cm = airspeed_min_cm;
+    } else if (!(ahrs.airspeed_sensor_enabled() || TECS_controller.is_using_synthetic_airspeed())) {
         airspeed_min_cm = aparm.airspeed_cruise_cm;
     }
 
