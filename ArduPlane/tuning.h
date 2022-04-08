@@ -106,11 +106,13 @@ private:
         TUNING_FLAP_EXTED_SPD =               84,
         TUNING_FLAP_EXTED_PCT =               85,
 
-        TUNING_KFF_THRAT2ELEV =               86,
-        TUNING_KFF_FLAP2ELEV =                87,
+        TUNING_MIX_THRAT2ELEV =               86,
+        TUNING_MIX_THRAT2ELEVCV =             87,
+        TUNING_MIX_FLAP2ELEV =                88,
+        TUNING_MIX_FLAP2ELEVCV =              89,
 
-        TUNING_AILERONS_DIFF =                88,
-        TUNING_ELEVATOR_DIFF =                89,
+        TUNING_AILERONS_DIFF =                90,
+        TUNING_ELEVATOR_DIFF =                91,
     };
 
     /*
