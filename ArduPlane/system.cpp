@@ -440,9 +440,6 @@ float Plane::throttle_percentage(void)
         return quadplane.motors->get_throttle_out() * 100.0;
     }
 #endif
-    float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
-    if (!have_reverse_thrust()) {
-        return constrain_float(throttle, 0, 100);
-    }
-    return constrain_float(throttle, -100, 100);
+    WITH_SEMAPHORE(_thr_sem);
+    return _throttle_output;
 }
