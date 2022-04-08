@@ -257,11 +257,11 @@ AP_Float *AP_Tuning_Plane::get_param_pointer(uint8_t parm)
     case TUNING_KFF_THRAT2PTCH:
         return &plane.g.kff_throttle_above_trim_to_pitch;
 
-    case TUNING_STAB_PITCH_DOWN:
-        return &plane.g.stab_pitch_down;
+    // case TUNING_STAB_PITCH_DOWN:
+    //     return &plane.g.stab_pitch_down;
 
-    case TUNING_STAB_PITCH_DCRV:
-        return &plane.g.stab_pitch_down_curve;
+    // case TUNING_STAB_PITCH_DCRV:
+    //     return &plane.g.stab_pitch_down_curve;
 
     case TUNING_RLL2PTCH:
         return &plane.pitchController.rollFF();

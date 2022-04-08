@@ -190,10 +190,10 @@ float Plane::stabilize_pitch_get_pitch_out(float speed_scaler)
     const float throttle_value = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
 
     if (is_positive(throttle_value)) {
-        throttle_pitch_mix_ratio = sqrtf(linear_interpolate(0, 1, throttle_value, aparm.throttle_cruise, 100));
+        throttle_pitch_mix_ratio = square_curve_interpolate(0, 1, 100, throttle_value, aparm.throttle_cruise.get(), 100);
     }
 
-    int32_t demanded_pitch = nav_pitch_cd + (g.pitch_trim + throttle_pitch_mix_ratio * g.kff_throttle_above_trim_to_pitch) * 100;
+    int32_t demanded_pitch = nav_pitch_cd + (g.pitch_trim + throttle_pitch_mix_ratio * g.kff_throttle_above_trim_to_pitch.get()) * 100;
     bool disable_integrator = false;
     if (control_mode == &mode_stabilize && !is_zero(channel_pitch->get_control_in())) {
         disable_integrator = true;
@@ -732,11 +732,11 @@ void Plane::set_auto_thr_gliding(bool gliding_requested)
 void Plane::calc_nav_pitch()
 {
     if (auto_thr_gliding_state != ATGS_DISABLED && !(ahrs.airspeed_sensor_enabled() || TECS_controller.is_using_synthetic_airspeed())) {
-        if (auto_thr_gliding_state == ATGS_WAITING_FOR_CRUISE_THR && (TECS_controller.get_throttle_demand() >= aparm.throttle_cruise || channel_pitch->get_control_in() < 0)) {
+        if (auto_thr_gliding_state == ATGS_WAITING_FOR_CRUISE_THR && (TECS_controller.get_throttle_demand() >= aparm.throttle_cruise.get() || channel_pitch->get_control_in() < 0)) {
             auto_thr_gliding_state = ATGS_DISABLED;
         } else {
             nav_pitch_cd = 0;
-            adjust_nav_pitch_throttle();
+            fbwa_throttle_to_pitch_compensation(false);
             return;
         }
     }
@@ -804,26 +804,52 @@ void Plane::calc_nav_roll()
     update_load_factor();
 }
 
-/*
-  adjust nav_pitch_cd for STAB_PITCH_DOWN_CD. This is used to make
-  keeping up good airspeed in FBWA mode easier, as the plane will
-  automatically pitch down a little when at low throttle. It makes
-  FBWA landings without stalling much easier.
- */
-void Plane::adjust_nav_pitch_throttle(void)
+void Plane::fbwa_throttle_to_pitch_compensation(bool do_pitch_up)
 {
     if (flight_stage != AP_Vehicle::FixedWing::FLIGHT_VTOL) {
-        float throttle_pitch_mix = 100; // %
+        // necessary because we call this not only for FBWA but also in auto throttle modes when gliding is requested
         const float throttle_value = control_mode->does_auto_throttle() ? TECS_controller.get_throttle_demand() : get_throttle_input(true);
 
-        if (is_positive(throttle_value)) {
-            throttle_pitch_mix = square_expo_curve(linear_interpolate(100, 0, throttle_value, 0, aparm.throttle_cruise), g.stab_pitch_down_curve);
-        }
+        if (throttle_value < aparm.throttle_cruise) {
 
-        nav_pitch_cd -= throttle_pitch_mix * g.stab_pitch_down;
+            const float max_pitch_up = do_pitch_up && !is_zero(g.fbwa_max_pitch_up_thr.get()) ? g.fbwa_max_pitch_up.get() : 0;
+            const float min_pitch_up_thr = is_zero(g.fbwa_min_pitch_up_thr) ? aparm.throttle_cruise.get() : MIN(g.fbwa_min_pitch_up_thr.get(), aparm.throttle_cruise.get());
+            const float max_pitch_up_thr = is_zero(max_pitch_up) ? aparm.throttle_cruise.get() : MIN(g.fbwa_max_pitch_up_thr.get(), aparm.throttle_cruise.get());
+            const float max_pitch_down_thr = MIN(g.fbwa_max_pitch_down_thr.get(), max_pitch_up_thr);
+
+            float ia, ib, oa, ob;
+
+            ia = min_pitch_up_thr;
+            ib = max_pitch_up_thr;
+            oa = 0;
+            ob = max_pitch_up;
+
+            if (g.fbwa_pitch_up_curve_reversal) {
+                swap_float(ia, ib);
+                swap_float(oa, ob);
+            }
+
+            // pitch up compensation
+            // const float pitch_up_compensation = cube_curve_interpolate(max_pitch_up, 0, g.fbwa_pitch_up_curve.get(), throttle_value, max_pitch_up_thr, aparm.throttle_cruise.get());
+            const float pitch_up_compensation = cube_curve_interpolate(oa, ob, g.fbwa_pitch_up_curve.get(), throttle_value, ia, ib);
+
+            ia = max_pitch_up_thr;
+            ib = max_pitch_down_thr;
+            oa = 0;
+            ob = max_pitch_up + g.fbwa_max_pitch_down.get();
+
+            if (g.fbwa_pitch_down_curve_reversal) {
+                swap_float(ia, ib);
+                swap_float(oa, ob);
+            }
+
+            // pitch down compensation
+            const float pitch_down_compensation = cube_curve_interpolate(oa, ob, g.fbwa_pitch_down_curve.get(), throttle_value, ia, ib);
+
+            nav_pitch_cd += (pitch_up_compensation - pitch_down_compensation) * 100;
+        }
     }
 }
-
 
 /*
   calculate a new aerodynamic_load_factor and limit nav_roll_cd to
