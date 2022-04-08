@@ -68,9 +68,9 @@ public:
         k_param_land_pitch_cd,  // unused - moved to AP_Landing
         k_param_ins_old,            // *** Deprecated, remove with next eeprom number change
         k_param_stick_mixing,
-        k_param_reset_mission_chan, // unused - moved to RC option
-        k_param_land_flare_alt, // unused - moved to AP_Landing
-        k_param_land_flare_sec, // unused - moved to AP_Landing
+        k_param_kff_throttle_above_trim_to_pitch_curve,
+        k_param_mix_throttle_above_trim_to_elevator_curve,
+        k_param_mix_flap_to_elevator_curve,
         k_param_crosstrack_min_distance, // unused
         k_param_rudder_steer, // unused
         k_param_throttle_nudge,
@@ -278,9 +278,9 @@ public:
         //
         // 200: Feed-forward gains
         //
-        k_param_kff_flap_to_elevator = 200, // unused
+        k_param_mix_flap_to_elevator = 200,
         k_param_kff_rudder_mix,
-        k_param_kff_throttle_above_trim_to_elevator,
+        k_param_mix_throttle_above_trim_to_elevator,
         k_param_kff_throttle_above_trim_to_pitch,
         k_param_scaling_speed,
         k_param_quadplane,
@@ -372,8 +372,11 @@ public:
     //
     AP_Float kff_rudder_mix;
     AP_Float kff_throttle_above_trim_to_pitch;
-    AP_Float kff_throttle_above_trim_to_elevator;
-    AP_Float kff_flap_to_elevator;
+    AP_Float kff_throttle_above_trim_to_pitch_curve;
+    AP_Float mix_throttle_above_trim_to_elevator;
+    AP_Float mix_throttle_above_trim_to_elevator_curve;
+    AP_Float mix_flap_to_elevator;
+    AP_Float mix_flap_to_elevator_curve;
     AP_Float ground_steer_alt;
     AP_Int16 ground_steer_dps;
     AP_Float fbwa_max_pitch_down;
