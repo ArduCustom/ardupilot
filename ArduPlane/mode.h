@@ -681,6 +681,8 @@ public:
 
     bool does_auto_throttle() const override { return true; }
 
+    bool takeoff_has_started() const { return takeoff_started; }
+
     // var_info for holding parameter information
     static const struct AP_Param::GroupInfo var_info[];
 
