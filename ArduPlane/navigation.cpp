@@ -272,8 +272,14 @@ void Plane::calc_airspeed_errors()
         target_airspeed_cm += airspeed_nudge_cm;
     }
 
+    float airspeed_min_cm = aparm.airspeed_min * 100;
+
+    if (!(ahrs.airspeed_sensor_enabled() || TECS_controller.is_using_synthetic_airspeed())) {
+        airspeed_min_cm = aparm.airspeed_cruise_cm;
+    }
+
     // Apply airspeed limit
-    target_airspeed_cm = constrain_int32(target_airspeed_cm, aparm.airspeed_min*100, aparm.airspeed_max*100);
+    target_airspeed_cm = constrain_int32(target_airspeed_cm, airspeed_min_cm, aparm.airspeed_max*100);
 
     // use the TECS view of the target airspeed for reporting, to take
     // account of the landing speed
