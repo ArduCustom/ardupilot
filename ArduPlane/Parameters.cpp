@@ -1340,6 +1340,13 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_SUBGROUPINFO(follow, "FOLL", 33, ParametersG2, AP_Follow),
 #endif
 
+    // @Param: ARMING_MODE_SW
+    // @DisplayName: Selects what mode to switch to after arming
+    // @Description: Selects what mode to switch to after arming
+    // @Values: 0:Disabled,1:Takeoff,2:Auto
+    // @User: Advanced
+    AP_GROUPINFO("ARMING_MODE_SW", 45, ParametersG2, arming_mode_sw, ARMING_MODE_SWITCH_DISABLED),
+
     // @Param: TKOFF_IDL_SRATE
     // @DisplayName: Takeoff idle throttle slew rate
     // @Description: This parameter sets the slew rate for the takeoff idle throttle. When this is zero the TKOFF_THR_SLEWRATE parameter is used
@@ -1483,13 +1490,6 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Values: 0:Manual,1:CIRCLE,2:STABILIZE,3:TRAINING,4:ACRO,5:FBWA,6:FBWB,7:CRUISE,8:AUTOTUNE,10:Auto,11:RTL,12:Loiter,13:TAKEOFF,14:AVOID_ADSB,15:Guided,17:QSTABILIZE,18:QHOVER,19:QLOITER,20:QLAND,21:QRTL,22:QAUTOTUNE,23:QACRO,24:THERMAL
     // @User: Advanced
     AP_GROUPINFO("FLTMODE12", 63, ParametersG2, flight_mode12, FLIGHT_MODE_12),
-
-    // @Param: ARMING_MODE_SW
-    // @DisplayName: Selects what mode to switch to after arming
-    // @Description: Selects what mode to switch to after arming
-    // @Values: 0:Disabled,1:Takeoff,2:Auto
-    // @User: Advanced
-    AP_GROUPINFO("ARMING_MODE_SW", 40, ParametersG2, arming_mode_sw, ARMING_MODE_SWITCH_DISABLED),
 
     AP_GROUPEND
 };
