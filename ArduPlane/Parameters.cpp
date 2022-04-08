@@ -255,7 +255,7 @@ const AP_Param::Info Plane::var_info[] = {
     // @Range: -1 127
     // @Increment: 1
     // @User: Standard
-    GSCALAR(takeoff_throttle_slewrate, "TKOFF_THR_SLEW",  0),
+    GSCALAR(takeoff_throttle_slewrate, "TKOFF_THR_SRATE",  0),
 
     // @Param: TKOFF_PLIM_SEC
     // @DisplayName: Takeoff pitch limit reduction
@@ -447,7 +447,7 @@ const AP_Param::Info Plane::var_info[] = {
     // @Range: 0 127
     // @Increment: 1
     // @User: Standard
-    ASCALAR(throttle_slewrate,      "THR_SLEWRATE",   100),
+    ASCALAR(throttle_slewrate,      "THR_AUTO_SRATE",   100),
 
     // @Param: FLAP_SLEWRATE
     // @DisplayName: Flap slew rate
@@ -1342,6 +1342,24 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Path: ../libraries/AP_Follow/AP_Follow.cpp
     AP_SUBGROUPINFO(follow, "FOLL", 33, ParametersG2, AP_Follow),
 #endif
+
+    // @Param: TKOFF_IDL_SRATE
+    // @DisplayName: Takeoff idle throttle slew rate
+    // @Description: This parameter sets the slew rate for the takeoff idle throttle. When this is zero the TKOFF_THR_SLEWRATE parameter is used
+    // @Units: %/s
+    // @Range: -1 127
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("TKOFF_IDL_SRATE", 46, ParametersG2, takeoff_idle_thr_slewrate, 0),
+
+    // @Param: TKOFF_THR_IDLE
+    // @DisplayName: Idle throttle for takeoff
+    // @Description: The throttle to use before launch when the throttle stick is raised
+    // @Units: %
+    // @Range: 0 100
+    // @Increment: 1
+    // @User: Advanced
+    AP_GROUPINFO("TKOFF_THR_IDLE", 47, ParametersG2, takeoff_idle_thr, 0),
 
     // @Param: RTL_SINK_MAX
     // @DisplayName: Max sink rate in RTL mode
