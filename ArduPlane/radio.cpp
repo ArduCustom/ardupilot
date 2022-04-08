@@ -194,7 +194,7 @@ void Plane::read_radio()
         } else {
             const float throttle_cruise = square_expo_curve_100(aparm.throttle_cruise, g2.throttle_expo_auto);
             const float throttle_max = square_expo_curve_100(aparm.throttle_max, g2.throttle_expo_auto);
-            throttle_nudge = (throttle_max - throttle_cruise) * nudge;
+            throttle_nudge = (throttle_max - throttle_cruise) * square_expo_curve(nudge, g2.throttle_expo_auto);
         }
     }
 

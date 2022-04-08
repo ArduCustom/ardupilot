@@ -473,7 +473,7 @@ private:
     void _update_throttle_with_airspeed(void);
 
     // Update Demanded Throttle Non-Airspeed
-    void _update_throttle_without_airspeed(int16_t throttle_nudge);
+    void _update_throttle_without_airspeed(float throttle_nudge);
 
     // get integral gain which is flight_stage dependent
     float _get_i_gain(void);

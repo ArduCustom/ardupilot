@@ -378,7 +378,7 @@ private:
 
     // Similar to airspeed_nudge, but used when no airspeed sensor.
     // 0-(throttle_max - throttle_cruise) : throttle nudge in Auto mode using top 1/2 of throttle stick travel
-    int16_t throttle_nudge;
+    float throttle_nudge;
 
     // Ground speed
     // The amount current ground speed is below min ground speed.  Centimeters per second
