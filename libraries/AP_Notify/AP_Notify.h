@@ -115,7 +115,19 @@ public:
         bool video_recording;     // true when the vehicle is recording video
         bool temp_cal_running;    // true if a temperature calibration is running
         bool throttle_cut;        // true if the throttle has been cut by an attempt to disarm with aux channel while flying
+        bool waiting_for_launch;
+        bool waiting_to_raise_throttle;
+        bool waiting_for_idle_throttle;
     };
+
+    typedef enum {
+        TKOFS_IDLE,
+        TKOFS_WAITING_TO_RAISE_THROTTLE,
+        TKOFS_WAITING_FOR_IDLE_THROTTLE,
+        TKOFS_WAITING_FOR_LAUNCH,
+    } takeoffStatus;
+
+    static takeoffStatus takeoff_status;
 
     /// notify_events_type - bitmask of active events.
     //      Notify library is responsible for setting back to zero after notification has been completed
