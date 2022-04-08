@@ -187,8 +187,7 @@ void Plane::calc_airspeed_errors()
                 target_airspeed_cm = aparm.airspeed_cruise_cm;
             }
         } else {
-            target_airspeed_cm = ((int32_t)(aparm.airspeed_max - aparm.airspeed_min) *
-                                  get_throttle_input()) + ((int32_t)aparm.airspeed_min * 100);
+            target_airspeed_cm = (aparm.airspeed_max - aparm.airspeed_min) * get_throttle_input() + aparm.airspeed_min * 100;
         }
 #if OFFBOARD_GUIDED == ENABLED
     } else if (control_mode == &mode_guided && guided_state.target_airspeed_cm >  0.0) { // if offbd guided speed change cmd not set, then this section is skipped
