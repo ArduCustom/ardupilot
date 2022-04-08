@@ -603,6 +603,9 @@ public:
     AP_Float auto_sink_max;
     AP_Float rtl_climb_max;
     AP_Float rtl_sink_max;
+
+    AP_Int8 takeoff_idle_thr_slewrate;
+    AP_Float takeoff_idle_thr;
 };
 
 extern const AP_Param::Info var_info[];
