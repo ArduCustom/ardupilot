@@ -477,6 +477,8 @@ private:
 
     uint32_t _last_internal_errors;  // backup of AP_InternalError::internal_errors bitmask
 
+    AP_Int32 vuid;
+
     AP_CustomRotations custom_rotations;
 };
 
