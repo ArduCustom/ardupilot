@@ -79,6 +79,13 @@ const AP_Param::GroupInfo AP_Vehicle::var_info[] = {
     // @Path: ../AP_CustomRotations/AP_CustomRotations.cpp
     AP_SUBGROUPINFO(custom_rotations, "CUST_ROT", 11, AP_Vehicle, AP_CustomRotations),
 
+    // @Param: VEHICLE_UID
+    // @DisplayName: Vehicle unique ID
+    // @Description: Vehicle unique ID
+    // @Range: -1073741824 1073741824
+    // @User: Advanced
+    AP_GROUPINFO("VEHICLE_UID",     12, AP_Vehicle, vuid,   0),
+
     AP_GROUPEND
 };
 
