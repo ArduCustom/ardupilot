@@ -99,6 +99,13 @@ const AP_Param::GroupInfo AP_Vehicle::var_info[] = {
     AP_SUBGROUPINFO(fence, "FENCE_", 14, AP_Vehicle, AC_Fence),
 #endif
 
+    // @Param: VEHICLE_UID
+    // @DisplayName: Vehicle unique ID
+    // @Description: Vehicle unique ID
+    // @Range: -1073741824 1073741824
+    // @User: Advanced
+    AP_GROUPINFO("VEHICLE_UID",     63, AP_Vehicle, vuid,   0),
+
     AP_GROUPEND
 };
 
@@ -671,4 +678,3 @@ AP_Vehicle *vehicle()
 }
 
 };
-
