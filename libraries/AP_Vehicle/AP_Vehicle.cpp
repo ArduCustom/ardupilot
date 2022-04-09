@@ -105,6 +105,14 @@ const AP_Param::GroupInfo AP_Vehicle::var_info[] = {
     // @Path: ../AP_OpenDroneID/AP_OpenDroneID.cpp
     AP_SUBGROUPINFO(opendroneid, "DID_", 15, AP_Vehicle, AP_OpenDroneID),
 #endif
+
+    // @Param: VEHICLE_UID
+    // @DisplayName: Vehicle unique ID
+    // @Description: Vehicle unique ID
+    // @Range: -1073741824 1073741824
+    // @User: Advanced
+    AP_GROUPINFO("VEHICLE_UID",     63, AP_Vehicle, vuid,   0),
+
     AP_GROUPEND
 };
 
@@ -693,4 +701,3 @@ AP_Vehicle *vehicle()
 }
 
 };
-
