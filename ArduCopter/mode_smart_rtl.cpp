@@ -159,7 +159,7 @@ void ModeSmartRTL::pre_land_position_run()
             land_start();
             smart_rtl_state = SubMode::LAND;
         } else {
-            set_descent_target_alt(copter.g.rtl_alt_final);
+            set_descent_target_alt(copter.g.rtl_alt_final * 100);
             descent_start();
             smart_rtl_state = SubMode::DESCEND;
         }
