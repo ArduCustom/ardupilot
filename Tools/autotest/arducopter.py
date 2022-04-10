@@ -7219,7 +7219,7 @@ class AutoTestCopter(AutoTest):
 
     def fly_rangefinder_drivers(self):
         self.set_parameters({
-            "RTL_ALT": 500,
+            "RTL_ALT": 5,
             "RTL_ALT_TYPE": 1,
         })
         drivers = [
