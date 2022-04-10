@@ -31,7 +31,6 @@ public:
     float get_rate_out(float desired_rate, float scaler);
     float get_servo_out_using_angle_error(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode);
     float get_servo_out_using_angle_target(int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode);
-    float get_servo_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode);
 
     void reset_I();
 
@@ -89,6 +88,13 @@ private:
     AP_PIDInfo _pid_info;
     AP_PIDInfo _angle_pid_info;
 
-    float _get_rate_out(float desired_rate, float scaler, bool disable_integrator, float aspeed, bool ground_mode);
-    float _get_coordination_rate_offset(float &aspeed, bool &inverted) const;
+    typedef struct {
+        float eas2tas, rate_y, aspeed, roll, pitch;
+        int32_t pitch_sensor, roll_sensor;
+    } GSO_AHRS_Data;
+
+    float _get_rate_out(float desired_rate, float scaler, bool disable_integrator, float aspeed, bool ground_mode, float eas2tas, float rate_y);
+    float _get_coordination_rate_offset(const GSO_AHRS_Data &ahrs_data, bool &inverted) const;
+    float _get_servo_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode, const GSO_AHRS_Data &ahrs_data);
+    void _get_gso_ahrs_data(GSO_AHRS_Data &ahrs_data);
 };
