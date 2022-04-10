@@ -256,7 +256,7 @@ public:
         //
         // 160: Navigation parameters
         //
-        k_param_rtl_altitude = 160,
+        k_param_rtl_altitude_m = 160,
         k_param_crosstrack_gain,    // deprecated - remove with next eeprom number change
         k_param_rtl_loiter_time,
         k_param_rtl_alt_final,
@@ -367,7 +367,7 @@ public:
         k_param_autotune_aggressiveness, // remove
         k_param_pi_vel_xy,              // remove
         k_param_fs_ekf_action,
-        k_param_rtl_climb_min,
+        k_param_rtl_climb_min_m,
         k_param_rpm_sensor,
         k_param_autotune_min_d, // remove
         k_param_arming, // 252  - AP_Arming
@@ -394,11 +394,11 @@ public:
     AP_Float        pilot_takeoff_alt;
 
 #if MODE_RTL_ENABLED == ENABLED
-    AP_Int32        rtl_altitude;
+    AP_Int32        rtl_altitude_m;
     AP_Int16        rtl_speed_cms;
     AP_Float        rtl_cone_slope;
     AP_Int16        rtl_alt_final;
-    AP_Int16        rtl_climb_min;              // rtl minimum climb in cm
+    AP_Int16        rtl_climb_min_m;            // rtl minimum climb in meter
     AP_Int32        rtl_loiter_time;
     AP_Int8         rtl_alt_type;
 #endif

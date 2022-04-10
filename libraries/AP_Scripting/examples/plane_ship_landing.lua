@@ -40,7 +40,7 @@ SHIP_AUTO_OFS   = bind_add_param('AUTO_OFS', 3, 0)
 
 -- other parameters
 RCMAP_THROTTLE  = bind_param("RCMAP_THROTTLE")
-ALT_HOLD_RTL    = bind_param("ALT_HOLD_RTL")
+RTL_ALT_MIN     = bind_param("RTL_ALT_MIN")
 Q_RTL_ALT       = bind_param("Q_RTL_ALT")
 TRIM_ARSPD_CM   = bind_param("TRIM_ARSPD_CM")
 TECS_LAND_ARSPD = bind_param("TECS_LAND_ARSPD")
@@ -321,7 +321,7 @@ end
 function get_target_alt()
    local base_alt = target_pos:alt() * 0.01
    if landing_stage == STAGE_HOLDOFF then
-      return base_alt + ALT_HOLD_RTL:get() * 0.01
+      return base_alt + RTL_ALT_MIN:get()
    end
    return base_alt + Q_RTL_ALT:get()
 end
@@ -451,4 +451,3 @@ end
 
 -- start running update loop
 return protected_wrapper()
-
