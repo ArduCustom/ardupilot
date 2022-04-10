@@ -228,10 +228,9 @@
  # define LOITER_RADIUS_DEFAULT 60
 #endif
 
-#ifndef ALT_HOLD_HOME
- # define ALT_HOLD_HOME 100
+#ifndef RTL_ALT_MIN
+ # define RTL_ALT_MIN 100
 #endif
-#define ALT_HOLD_HOME_CM ALT_HOLD_HOME*100
 
 //////////////////////////////////////////////////////////////////////////////
 // Developer Items

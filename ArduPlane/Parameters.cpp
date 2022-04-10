@@ -695,12 +695,12 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Advanced
     GSCALAR(pitch_trim,        "TRIM_PITCH",  1.0f),
 
-    // @Param: ALT_HOLD_RTL
-    // @DisplayName: RTL altitude
+    // @Param: RTL_ALT_MIN
+    // @DisplayName: Minimum RTL altitude
     // @Description: Target altitude above home for RTL mode. Maintains current altitude if set to -1. Rally point altitudes are used if plane does not return to home.
-    // @Units: cm
+    // @Units: m
     // @User: Standard
-    GSCALAR(RTL_altitude_cm,        "ALT_HOLD_RTL",   ALT_HOLD_HOME_CM),
+    GSCALAR(RTL_altitude,        "RTL_ALT_MIN",   RTL_ALT_MIN),
 
     // @Param: ALT_HOLD_FBWCM
     // @DisplayName: Minimum altitude for FBWB mode
@@ -1120,7 +1120,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Param: FLIGHT_OPTIONS
     // @DisplayName: Flight mode options
     // @Description: Flight mode specific options
-    // @Bitmask: 0:Rudder mixing in direct flight modes only (Manual / Stabilize / Acro),1:Use centered throttle in Cruise or FBWB to indicate trim airspeed, 2:Disable attitude check for takeoff arming, 3:Force target airspeed to trim airspeed in Cruise or FBWB, 4: Climb to ALT_HOLD_RTL before turning for RTL, 5: Enable yaw damper in acro mode, 6: Surpress speed scaling during auto takeoffs to be 1 or less to prevent oscillations without airpseed sensor., 7:EnableDefaultAirspeed for takeoff, 8: Remove the TRIM_PITCH_CD on the GCS horizon, 9: Remove the TRIM_PITCH_CD on the OSD horizon, 10: Adjust mid-throttle to be TRIM_THROTTLE in non-auto throttle modes except MANUAL, 11:Disable suppression of fixed wing rate gains in ground mode, 12: Enable FBWB style loiter altitude control, 20: Enable manual altitude control in RTL mode, 21: Climb first in RTL only during RC failsafe, 22:If RTL in failsafe land with 0 throttle spiraling down 2 minutes after reaching home, 23: Glide in auto throttle modes if throttle bellow THR_DZ
+    // @Bitmask: 0:Rudder mixing in direct flight modes only (Manual / Stabilize / Acro),1:Use centered throttle in Cruise or FBWB to indicate trim airspeed, 2:Disable attitude check for takeoff arming, 3:Force target airspeed to trim airspeed in Cruise or FBWB, 4: Climb to RTL_ALT_MIN before turning for RTL, 5: Enable yaw damper in acro mode, 6: Surpress speed scaling during auto takeoffs to be 1 or less to prevent oscillations without airpseed sensor., 7:EnableDefaultAirspeed for takeoff, 8: Remove the TRIM_PITCH_CD on the GCS horizon, 9: Remove the TRIM_PITCH_CD on the OSD horizon, 10: Adjust mid-throttle to be TRIM_THROTTLE in non-auto throttle modes except MANUAL, 11:Disable suppression of fixed wing rate gains in ground mode, 12: Enable FBWB style loiter altitude control, 20: Enable manual altitude control in RTL mode, 21: Climb first in RTL only during RC failsafe, 22:If RTL in failsafe land with 0 throttle spiraling down 2 minutes after reaching home, 23: Glide in auto throttle modes if throttle bellow THR_DZ
     // @User: Advanced
     AP_GROUPINFO("FLIGHT_OPTIONS", 13, ParametersG2, flight_options, 0),
 
@@ -1512,6 +1512,26 @@ void Plane::load_parameters(void)
                 chan->option.set_and_save((int16_t)rc_option_conversion[i].fun); // save the new param
             }
         }
+    }
+
+    enum ap_var_type ptype_RTL_alt;
+    AP_Int32 *RTL_alt_new = (AP_Int32*)AP_Param::find("RTL_ALT_MIN", &ptype_RTL_alt);
+    if (RTL_alt_new && !RTL_alt_new->configured()) {
+        // If we find the new parameter and it hasn't been configured
+        // attempt to upgrade RTL altitude.
+        int32_t RTL_alt_new_val = RTL_ALT_MIN;
+        AP_Int32 RTL_alt_old;
+        AP_Param::ConversionInfo RTL_alt_info_old = {
+            Parameters::k_param_RTL_altitude_cm,
+            0,
+            AP_PARAM_INT32,
+            nullptr
+        };
+        if (AP_Param::find_old_parameter(&RTL_alt_info_old, &RTL_alt_old)) {
+            RTL_alt_new_val = RTL_alt_old / 100;
+        }
+
+        RTL_alt_new->set_and_save(RTL_alt_new_val);
     }
 
 #if AP_FENCE_ENABLED

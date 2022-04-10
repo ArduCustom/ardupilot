@@ -209,13 +209,13 @@ public:
         //
         // 150: Navigation parameters
         //
-        k_param_crosstrack_gain = 150, // unused
+        k_param_RTL_altitude = 150,
         k_param_crosstrack_entry_angle, // unused
         k_param_roll_limit_cd,
         k_param_pitch_limit_max_cd,
         k_param_pitch_limit_min_cd,
         k_param_airspeed_cruise_cm,
-        k_param_RTL_altitude_cm,
+        k_param_RTL_altitude_cm, // unused
         k_param_inverted_flight_ch_unused, // unused
         k_param_min_gndspeed_cm,
         k_param_crosstrack_use_wind, // unused
@@ -437,7 +437,7 @@ public:
     AP_Int16 dspoiler_rud_rate;
     AP_Int16 num_resets;
     AP_Int32 log_bitmask;
-    AP_Int32 RTL_altitude_cm;
+    AP_Int32 RTL_altitude;
     AP_Float pitch_trim;
     AP_Int16 FBWB_min_altitude_cm;
 
