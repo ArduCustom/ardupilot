@@ -1797,9 +1797,11 @@ void AP_OSD_Screen::draw_altitude(uint8_t x, uint8_t y, bool blink, float alt, b
 void AP_OSD_Screen::draw_altitude(uint8_t x, uint8_t y)
 {
     float alt;
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    ahrs.get_relative_position_D_home(alt);
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        ahrs.get_relative_position_D_home(alt);
+    }
     alt = -alt;
     draw_altitude(x, y, false, alt);
 }
@@ -2156,15 +2158,20 @@ void AP_OSD_Screen::draw_speed_with_arrow(uint8_t x, uint8_t y, float angle_rad,
 
 void AP_OSD_Screen::draw_gspeed(uint8_t x, uint8_t y)
 {
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    Vector2f v = ahrs.groundspeed_vector();
+    Vector2f v;
+    float yaw;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        v = ahrs.groundspeed_vector();
+        yaw = ahrs.yaw;
+    }
     backend->write(x, y, false, "%c", SYMBOL(SYM_GSPD));
 
     float angle = 0;
     const float length = v.length();
     if (length > 1.0f) {
-        angle = wrap_2PI(atan2f(v.y, v.x) - ahrs.yaw);
+        angle = wrap_2PI(atan2f(v.y, v.x) - yaw);
     }
 
     draw_speed_with_arrow(x + 1, y, angle, length);
@@ -2173,11 +2180,13 @@ void AP_OSD_Screen::draw_gspeed(uint8_t x, uint8_t y)
 //Thanks to betaflight/inav for simple and clean artificial horizon visual design
 void AP_OSD_Screen::draw_horizon(uint8_t x, uint8_t y)
 {
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
     float roll;
     float pitch;
-    AP::vehicle()->get_osd_roll_pitch_rad(roll,pitch);
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        AP::vehicle()->get_osd_roll_pitch_rad(roll, pitch);
+    }
     pitch *= -1;
 
     //inverted roll AH
@@ -2285,13 +2294,23 @@ void AP_OSD_Screen::draw_distance(uint8_t x, uint8_t y, float distance, bool can
 
 void AP_OSD_Screen::draw_home(uint8_t x, uint8_t y)
 {
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
     Location loc;
-    if (ahrs.get_location(loc) && ahrs.home_is_set()) {
-        const Location &home_loc = ahrs.get_home();
+    Location home_loc;
+    int32_t yaw_sensor;
+    bool home_is_set;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        home_is_set = ahrs.get_location(loc) && ahrs.home_is_set();
+        if (home_is_set) {
+            home_loc = ahrs.get_home();
+            yaw_sensor = ahrs.yaw_sensor;
+        }
+    }
+    if (home_is_set) {
+        // const Location &home_loc = ahrs.get_home();
         float distance = home_loc.get_distance(loc);
-        int32_t angle = wrap_360_cd(loc.get_bearing_to(home_loc) - ahrs.yaw_sensor);
+        int32_t angle = wrap_360_cd(loc.get_bearing_to(home_loc) - yaw_sensor);
         int32_t interval = 36000 / SYMBOL(SYM_ARROW_COUNT);
         if (distance < 2.0f) {
             //avoid fast rotating arrow at small distances
@@ -2307,8 +2326,13 @@ void AP_OSD_Screen::draw_home(uint8_t x, uint8_t y)
 
 void AP_OSD_Screen::draw_heading(uint8_t x, uint8_t y)
 {
-    AP_AHRS &ahrs = AP::ahrs();
-    uint16_t yaw = ahrs.yaw_sensor / 100;
+    float yaw_sensor;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        yaw_sensor = ahrs.yaw_sensor;
+    }
+    uint16_t yaw = yaw_sensor / 100;
     backend->write(x, y, false, "%c%3d%c", SYMBOL(SYM_HEADING), yaw, SYMBOL(SYM_DEGR));
 }
 
@@ -2378,13 +2402,16 @@ void AP_OSD_Screen::draw_sidebars(uint8_t x, uint8_t y)
     };
 
     // Get altitude and airspeed, scaled to appropriate units
-    float aspd = 0.0f;
+    float aspd;
     float alt = 0.0f;
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    bool have_speed_estimate = ahrs.airspeed_estimate(aspd);
-    if (!have_speed_estimate) { aspd = 0.0f; }
-    ahrs.get_relative_position_D_home(alt);
+    bool have_airspeed_estimate;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        have_airspeed_estimate = ahrs.airspeed_estimate(aspd);
+        ahrs.get_relative_position_D_home(alt);
+    }
+    if (!have_airspeed_estimate) { aspd = 0.0f; }
     float scaled_aspd = u_scale(SPEED, aspd);
     float scaled_alt = u_scale(ALTITUDE, -alt);
     static const int aspd_interval = 10; //units between large tick marks
@@ -2440,10 +2467,14 @@ void AP_OSD_Screen::draw_compass(uint8_t x, uint8_t y)
         SYM_HEADING_DIVIDED_LINE,
         SYM_HEADING_LINE,
     };
-    AP_AHRS &ahrs = AP::ahrs();
-    int32_t yaw = ahrs.yaw_sensor;
+    int32_t yaw_sensor;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        yaw_sensor = ahrs.yaw_sensor;
+    }
     int32_t interval = 36000 / total_sectors;
-    int8_t center_sector = ((yaw + interval / 2) / interval) % total_sectors;
+    int8_t center_sector = ((yaw_sensor + interval / 2) / interval) % total_sectors;
     for (int8_t i = -4; i <= 4; i++) {
         int8_t sector = center_sector + i;
         sector = (sector + total_sectors) % total_sectors;
@@ -2454,16 +2485,21 @@ void AP_OSD_Screen::draw_compass(uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_wind(uint8_t x, uint8_t y)
 {
 #if !APM_BUILD_TYPE(APM_BUILD_Rover)
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    Vector3f v = ahrs.wind_estimate();
+    float yaw;
+    Vector3f v;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        v = ahrs.wind_estimate();
+        yaw = ahrs.yaw;
+    }
     float angle = 0;
     const float length = v.length();
     if (length > 1.0f) {
         if (check_option(AP_OSD::OPTION_INVERTED_WIND)) {
             angle = M_PI;
         }
-        angle = wrap_2PI(angle + atan2f(v.y, v.x) - ahrs.yaw);
+        angle = wrap_2PI(angle + atan2f(v.y, v.x) - yaw);
     }
     draw_speed_with_arrow(x + 1, y, angle, length);
 
@@ -2481,14 +2517,16 @@ void AP_OSD_Screen::draw_vspeed(uint8_t x, uint8_t y)
 {
     Vector3f v;
     float vspd_mps;
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    if (ahrs.get_velocity_NED(v)) {
-        vspd_mps = -v.z;
-    } else {
-        auto &baro = AP::baro();
-        WITH_SEMAPHORE(baro.get_semaphore());
-        vspd_mps = baro.get_climb_rate();
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        if (ahrs.get_velocity_NED(v)) {
+            vspd_mps = -v.z;
+        } else {
+            auto &baro = AP::baro();
+            WITH_SEMAPHORE(baro.get_semaphore());
+            vspd_mps = baro.get_climb_rate();
+        }
     }
 
     vspd_mps = osd->filtered.vspd_mps += (vspd_mps - osd->filtered.vspd_mps) * 0.33f;
@@ -2724,10 +2762,14 @@ void AP_OSD_Screen::draw_acc_vert_lat(uint8_t x, uint8_t y, float acc, uint8_t n
 }
 
 void AP_OSD_Screen::draw_acc_long(uint8_t x, uint8_t y) {
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
-    const float acc = _acc_long_filter.apply(rotMat.c.x * GRAVITY_MSS + AP::ins().get_accel().x) / GRAVITY_MSS;
+    float rotMat_c_x;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
+        rotMat_c_x = rotMat.c.x;
+    }
+    const float acc = _acc_long_filter.apply(rotMat_c_x * GRAVITY_MSS + AP::ins().get_accel().x) / GRAVITY_MSS;
     draw_acc_value(x, y, acc, false, true);
 }
 
@@ -2789,18 +2831,26 @@ void AP_OSD_Screen::draw_crsf_active_antenna(uint8_t x, uint8_t y)
 }
 
 void AP_OSD_Screen::draw_acc_lat(uint8_t x, uint8_t y) {
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
-    const float acc = _acc_lat_filter.apply(rotMat.c.y * GRAVITY_MSS + AP::ins().get_accel().y) / GRAVITY_MSS;
+    float rotMat_c_y;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
+        rotMat_c_y = rotMat.c.y;
+    }
+    const float acc = _acc_lat_filter.apply(rotMat_c_y * GRAVITY_MSS + AP::ins().get_accel().y) / GRAVITY_MSS;
     draw_acc_vert_lat(x, y, acc, SYM_ARROW_LEFT, SYM_ROLL0, SYM_ARROW_RIGHT, 0);
 }
 
 void AP_OSD_Screen::draw_acc_vert(uint8_t x, uint8_t y) {
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
-    const float acc = _acc_vert_filter.apply(rotMat.c.z * GRAVITY_MSS + AP::ins().get_accel().z) / GRAVITY_MSS;
+    float rotMat_c_z;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
+        rotMat_c_z = rotMat.c.z;
+    }
+    const float acc = _acc_vert_filter.apply(rotMat_c_z * GRAVITY_MSS + AP::ins().get_accel().z) / GRAVITY_MSS;
     draw_acc_vert_lat(x, y, acc, SYM_PTCHUP, SYM_PTCH0, SYM_PTCHDWN, osd->warn_vert_acc);
 }
 
@@ -2820,8 +2870,13 @@ void AP_OSD_Screen::draw_hdop(uint8_t x, uint8_t y)
 
 void AP_OSD_Screen::draw_waypoint(uint8_t x, uint8_t y)
 {
-    AP_AHRS &ahrs = AP::ahrs();
-    int32_t angle = wrap_360_cd(osd->nav_info.wp_bearing - ahrs.yaw_sensor);
+    int32_t yaw_sensor;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        yaw_sensor = ahrs.yaw_sensor;
+    }
+    int32_t angle = wrap_360_cd(osd->nav_info.wp_bearing - yaw_sensor);
     int32_t interval = 36000 / SYMBOL(SYM_ARROW_COUNT);
     if (osd->nav_info.wp_distance < 2.0f) {
         //avoid fast rotating arrow at small distances
@@ -3430,10 +3485,13 @@ void AP_OSD_Screen::draw_rc_failsafe(uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_aspeed(uint8_t x, uint8_t y)
 {
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
-    float aspd = 0.0f;
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    bool have_estimate = ahrs.airspeed_estimate(aspd);
+    float aspd;
+    bool have_estimate;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        have_estimate = ahrs.airspeed_estimate(aspd);
+    }
     if (have_estimate) {
         const bool blink = (is_positive(osd->warn_aspd_low) && aspd < osd->warn_aspd_low) || (is_positive(osd->warn_aspd_high) && aspd > osd->warn_aspd_high);
         backend->write(x, y, blink, "%c", SYMBOL(SYM_ASPD));
@@ -3610,9 +3668,12 @@ void AP_OSD_Screen::draw_auto_flaps(uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_aoa(uint8_t x, uint8_t y)
 {
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
-    AP_AHRS &ahrs = AP::ahrs();
-    WITH_SEMAPHORE(ahrs.get_semaphore());
-    float aoa_val = ahrs.getAOA();
+    float aoa_val;
+    {
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        aoa_val = ahrs.getAOA();
+    }
     draw_pitch(x, y, aoa_val);
 #endif
 }
