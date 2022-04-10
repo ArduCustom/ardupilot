@@ -190,22 +190,15 @@ AP_RollController::AP_RollController(const AP_Vehicle::FixedWing &parms)
 /*
   AC_PID based rate controller
 */
-float AP_RollController::_get_rate_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode)
+float AP_RollController::_get_rate_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode, float aspeed, float eas2tas, float rate_x)
 {
-    const AP_AHRS &_ahrs = AP::ahrs();
-
     const float dt = AP::scheduler().get_loop_period_s();
-    const float eas2tas = _ahrs.get_EAS2TAS();
+
     bool limit_I = fabsf(_last_out) >= 45;
-    float rate_x = _ahrs.get_gyro().x;
-    float aspeed;
     float old_I = rate_pid.get_i();
 
     rate_pid.set_dt(dt);
 
-    if (!_ahrs.airspeed_estimate(aspeed)) {
-        aspeed = 0;
-    }
     bool underspeed = aspeed <= float(aparm.airspeed_min);
     if (underspeed) {
         limit_I = true;
@@ -274,7 +267,29 @@ float AP_RollController::_get_rate_out(float desired_rate, float scaler, bool di
 */
 float AP_RollController::get_rate_out(float desired_rate, float scaler)
 {
-    return _get_rate_out(desired_rate, scaler, false, false);
+    GSO_AHRS_Data ahrs_data;
+    _get_gso_ahrs_data(ahrs_data);
+
+    return _get_rate_out(desired_rate, scaler, false, false, ahrs_data.aspeed, ahrs_data.eas2tas, ahrs_data.rate_x);
+}
+
+void AP_RollController::_get_gso_ahrs_data(GSO_AHRS_Data &ahrs_data)
+{
+
+    bool have_aspeed;
+    {
+        AP_AHRS &_ahrs = AP::ahrs();
+        WITH_SEMAPHORE(_ahrs.get_semaphore());
+        ahrs_data.eas2tas = _ahrs.get_EAS2TAS();
+        ahrs_data.rate_x = _ahrs.get_gyro().x;
+        have_aspeed = AP::ahrs().airspeed_estimate(ahrs_data.aspeed);
+        ahrs_data.roll_sensor = _ahrs.roll_sensor;
+    }
+
+    if (!have_aspeed) {
+        ahrs_data.aspeed = 0;
+    }
+
 }
 
 /*
@@ -291,10 +306,11 @@ float AP_RollController::get_servo_out_using_angle_target(int32_t target_angle, 
     const float dt = AP::scheduler().get_loop_period_s();
     angle_pid.set_dt(dt);
 
-    const AP_AHRS &_ahrs = AP::ahrs();
+    GSO_AHRS_Data ahrs_data;
+    _get_gso_ahrs_data(ahrs_data);
 
     const float target_angle_deg = target_angle * 0.01f;
-    const float measured_angle_deg = _ahrs.roll_sensor * 0.01f;
+    const float measured_angle_deg = ahrs_data.roll_sensor * 0.01f;
     angle_err_deg = target_angle_deg - measured_angle_deg;
 
     if (angle_err_deg > 2.0f) {
@@ -312,7 +328,7 @@ float AP_RollController::get_servo_out_using_angle_target(int32_t target_angle, 
 
     float desired_rate = pinfo.P + pinfo.I + pinfo.D;
 
-    return get_servo_out(desired_rate, scaler, disable_integrator, ground_mode);
+    return _get_servo_out(desired_rate, scaler, disable_integrator, ground_mode, ahrs_data);
 }
 
 float AP_RollController::get_servo_out_using_angle_error(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode)
@@ -335,23 +351,24 @@ float AP_RollController::get_servo_out_using_angle_error(int32_t angle_err, int3
     _angle_pid_info = angle_pid.get_pid_info();
     auto &pinfo = _angle_pid_info;
 
-    const AP_AHRS &_ahrs = AP::ahrs();
+    GSO_AHRS_Data ahrs_data;
+    _get_gso_ahrs_data(ahrs_data);
 
     if (target_angle == 0) {
         pinfo.target = 0;
         pinfo.actual = 0;
     } else {
-        const float actual_angle = _ahrs.pitch_sensor;
+        const float actual_angle = ahrs_data.roll_sensor;
         pinfo.target = target_angle * 0.01f;
         pinfo.actual = actual_angle * 0.01f;
     }
 
     float desired_rate = pinfo.P + pinfo.I + pinfo.D;
 
-    return get_servo_out(desired_rate, scaler, disable_integrator, ground_mode);
+    return _get_servo_out(desired_rate, scaler, disable_integrator, ground_mode, ahrs_data);
 }
 
-float AP_RollController::get_servo_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode)
+float AP_RollController::_get_servo_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode, const GSO_AHRS_Data &ahrs_data)
 {
     // Limit the demanded roll rate
     if (gains.rmax_pos && desired_rate < -gains.rmax_pos) {
@@ -360,7 +377,7 @@ float AP_RollController::get_servo_out(float desired_rate, float scaler, bool di
         desired_rate = gains.rmax_pos;
     }
 
-    return _get_rate_out(desired_rate, scaler, disable_integrator, ground_mode);
+    return _get_rate_out(desired_rate, scaler, disable_integrator, ground_mode, ahrs_data.aspeed, ahrs_data.eas2tas, ahrs_data.rate_x);
 }
 
 void AP_RollController::reset_I()

@@ -205,15 +205,11 @@ AP_PitchController::AP_PitchController(const AP_Vehicle::FixedWing &parms)
 /*
   AC_PID based rate controller
 */
-float AP_PitchController::_get_rate_out(float desired_rate, float scaler, bool disable_integrator, float aspeed, bool ground_mode)
+float AP_PitchController::_get_rate_out(float desired_rate, float scaler, bool disable_integrator, float aspeed, bool ground_mode, float eas2tas, float rate_y)
 {
     const float dt = AP::scheduler().get_loop_period_s();
 
-    const AP_AHRS &_ahrs = AP::ahrs();
-
-    const float eas2tas = _ahrs.get_EAS2TAS();
     bool limit_I = fabsf(_last_out) >= 45;
-    float rate_y = _ahrs.get_gyro().y;
     float old_I = rate_pid.get_i();
 
     rate_pid.set_dt(dt);
@@ -289,12 +285,23 @@ float AP_PitchController::_get_rate_out(float desired_rate, float scaler, bool d
 */
 float AP_PitchController::get_rate_out(float desired_rate, float scaler)
 {
-    float aspeed;
-    if (!AP::ahrs().airspeed_estimate(aspeed)) {
+
+    float eas2tas, rate_y, aspeed;
+    bool have_aspeed;
+    {
+        AP_AHRS &_ahrs = AP::ahrs();
+        WITH_SEMAPHORE(_ahrs.get_semaphore());
+        eas2tas = _ahrs.get_EAS2TAS();
+        rate_y = _ahrs.get_gyro().y;
+        have_aspeed = AP::ahrs().airspeed_estimate(aspeed);
+    }
+
+    if (!have_aspeed) {
         // If no airspeed available use average of min and max
         aspeed = 0.5f*(float(aparm.airspeed_min) + float(aparm.airspeed_max));
     }
-    return _get_rate_out(desired_rate, scaler, false, aspeed, false);
+
+    return _get_rate_out(desired_rate, scaler, false, aspeed, false, eas2tas, rate_y);
 }
 
 /*
@@ -304,37 +311,35 @@ float AP_PitchController::get_rate_out(float desired_rate, float scaler)
   Also returns the inverted flag and the estimated airspeed in m/s for
   use by the rest of the pitch controller
  */
-float AP_PitchController::_get_coordination_rate_offset(float &aspeed, bool &inverted) const
+float AP_PitchController::_get_coordination_rate_offset(const GSO_AHRS_Data &ahrs_data, bool &inverted) const
 {
-    float rate_offset;
-    float bank_angle = AP::ahrs().roll;
-
     // limit bank angle between +- 80 deg if right way up
-    if (fabsf(bank_angle) < radians(90))	{
-        bank_angle = constrain_float(bank_angle,-radians(80),radians(80));
+    float roll = ahrs_data.roll;
+    if (fabsf(roll) < radians(90))	{
+        roll = constrain_float(roll, -radians(80), radians(80));
         inverted = false;
     } else {
         inverted = true;
-        if (bank_angle > 0.0f) {
-            bank_angle = constrain_float(bank_angle,radians(100),radians(180));
+        if (roll > 0.0f) {
+            roll = constrain_float(roll, radians(100), radians(180));
         } else {
-            bank_angle = constrain_float(bank_angle,-radians(180),-radians(100));
+            roll = constrain_float(roll, -radians(180), -radians(100));
         }
     }
-    const AP_AHRS &_ahrs = AP::ahrs();
-    if (!_ahrs.airspeed_estimate(aspeed)) {
-        // If no airspeed available use average of min and max
-        aspeed = 0.5f*(float(aparm.airspeed_min) + float(aparm.airspeed_max));
-    }
-    if (abs(_ahrs.pitch_sensor) > 7000) {
+
+    float rate_offset;
+
+    if (abs(ahrs_data.pitch_sensor) > 7000) {
         // don't do turn coordination handling when at very high pitch angles
         rate_offset = 0;
     } else {
-        rate_offset = cosf(_ahrs.pitch)*fabsf(ToDeg((GRAVITY_MSS / MAX((aspeed * _ahrs.get_EAS2TAS()), MAX(aparm.airspeed_min, 1))) * tanf(bank_angle) * sinf(bank_angle))) * _roll_ff;
+        rate_offset = cosf(ahrs_data.pitch)*fabsf(ToDeg((GRAVITY_MSS / MAX((ahrs_data.aspeed * ahrs_data.eas2tas), MAX(aparm.airspeed_min, 1))) * tanf(roll) * sinf(roll))) * _roll_ff;
     }
+
     if (inverted) {
         rate_offset = -rate_offset;
     }
+
     return rate_offset;
 }
 
@@ -352,10 +357,11 @@ float AP_PitchController::get_servo_out_using_angle_target(int32_t target_angle,
     const float dt = AP::scheduler().get_loop_period_s();
     angle_pid.set_dt(dt);
 
-    const AP_AHRS &_ahrs = AP::ahrs();
+    GSO_AHRS_Data ahrs_data;
+    _get_gso_ahrs_data(ahrs_data);
 
     const float target_angle_deg = target_angle * 0.01f;
-    const float measured_angle_deg = _ahrs.pitch_sensor * 0.01f;
+    const float measured_angle_deg = ahrs_data.pitch_sensor * 0.01f;
     angle_err_deg = target_angle_deg - measured_angle_deg;
 
     if (angle_err_deg > 2.0f) {
@@ -373,7 +379,30 @@ float AP_PitchController::get_servo_out_using_angle_target(int32_t target_angle,
 
     float desired_rate = pinfo.P + pinfo.I + pinfo.D;
 
-    return get_servo_out(desired_rate, scaler, disable_integrator, ground_mode);
+    return _get_servo_out(desired_rate, scaler, disable_integrator, ground_mode, ahrs_data);
+}
+
+void AP_PitchController::_get_gso_ahrs_data(GSO_AHRS_Data &ahrs_data)
+{
+
+    bool have_aspeed;
+    {
+        AP_AHRS &_ahrs = AP::ahrs();
+        WITH_SEMAPHORE(_ahrs.get_semaphore());
+        ahrs_data.eas2tas = _ahrs.get_EAS2TAS();
+        ahrs_data.rate_y = _ahrs.get_gyro().y;
+        have_aspeed = AP::ahrs().airspeed_estimate(ahrs_data.aspeed);
+        ahrs_data.roll_sensor = _ahrs.roll_sensor;
+        ahrs_data.pitch_sensor = _ahrs.pitch_sensor;
+        ahrs_data.roll = _ahrs.roll;
+        ahrs_data.pitch = _ahrs.pitch;
+    }
+
+    if (!have_aspeed) {
+        // If no airspeed available use average of min and max
+        ahrs_data.aspeed = 0.5f*(float(aparm.airspeed_min) + float(aparm.airspeed_max));
+    }
+
 }
 
 float AP_PitchController::get_servo_out_using_angle_error(int32_t angle_err, int32_t target_angle, float scaler, bool disable_integrator, bool ground_mode)
@@ -396,31 +425,31 @@ float AP_PitchController::get_servo_out_using_angle_error(int32_t angle_err, int
     _angle_pid_info = angle_pid.get_pid_info();
     auto &pinfo = _angle_pid_info;
 
-    const AP_AHRS &_ahrs = AP::ahrs();
+    GSO_AHRS_Data ahrs_data;
+    _get_gso_ahrs_data(ahrs_data);
 
     if (target_angle == 0) {
         pinfo.target = 0;
         pinfo.actual = 0;
     } else {
-        const float actual_angle = _ahrs.pitch_sensor;
+        const float actual_angle = ahrs_data.pitch_sensor;
         pinfo.target = target_angle * 0.01f;
         pinfo.actual = actual_angle * 0.01f;
     }
 
     float desired_rate = pinfo.P + pinfo.I + pinfo.D;
 
-    return get_servo_out(desired_rate, scaler, disable_integrator, ground_mode);
+    return _get_servo_out(desired_rate, scaler, disable_integrator, ground_mode, ahrs_data);
 }
 
-float AP_PitchController::get_servo_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode)
+float AP_PitchController::_get_servo_out(float desired_rate, float scaler, bool disable_integrator, bool ground_mode, const AP_PitchController::GSO_AHRS_Data &ahrs_data)
 {
     // Calculate offset to pitch rate demand required to maintain pitch angle whilst banking
     // Calculate ideal turn rate from bank angle and airspeed assuming a level coordinated turn
     // Pitch rate offset is the component of turn rate about the pitch axis
-    float aspeed;
-    bool inverted;
 
-    const float rate_offset = _get_coordination_rate_offset(aspeed, inverted);
+    bool inverted;
+    const float rate_offset = _get_coordination_rate_offset(ahrs_data, inverted);
 
     // limit the maximum pitch rate demand. Don't apply when inverted
     // as the rates will be tuned when upright, and it is common that
@@ -446,18 +475,19 @@ float AP_PitchController::get_servo_out(float desired_rate, float scaler, bool d
       linearly reduce pitch demanded rate when beyond the configured
       roll limit, reducing to zero at 90 degrees
     */
-    const AP_AHRS &_ahrs = AP::ahrs();
-    float roll_wrapped = labs(_ahrs.roll_sensor);
+    float roll_wrapped = labs(ahrs_data.roll_sensor);
+
     if (roll_wrapped > 9000) {
         roll_wrapped = 18000 - roll_wrapped;
     }
+
     const float roll_limit_margin = MIN(aparm.roll_limit_cd + 500.0, 8500.0);
-    if (roll_wrapped > roll_limit_margin && labs(_ahrs.pitch_sensor) < 7000) {
+    if (roll_wrapped > roll_limit_margin && labs(ahrs_data.pitch_sensor) < 7000) {
         float roll_prop = (roll_wrapped - roll_limit_margin) / (float)(9000 - roll_limit_margin);
         desired_rate *= (1 - roll_prop);
     }
 
-    return _get_rate_out(desired_rate, scaler, disable_integrator, aspeed, ground_mode);
+    return _get_rate_out(desired_rate, scaler, disable_integrator, ahrs_data.aspeed, ground_mode, ahrs_data.eas2tas, ahrs_data.rate_y);
 }
 
 void AP_PitchController::reset_I()
