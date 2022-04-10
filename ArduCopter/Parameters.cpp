@@ -108,11 +108,11 @@ const AP_Param::Info Copter::var_info[] = {
     // @Param: RTL_ALT
     // @DisplayName: RTL Altitude
     // @Description: The minimum alt above home the vehicle will climb to before returning.  If the vehicle is flying higher than this value it will return at its current altitude.
-    // @Units: cm
+    // @Units: m
     // @Range: 200 300000
     // @Increment: 1
     // @User: Standard
-    GSCALAR(rtl_altitude,   "RTL_ALT",     RTL_ALT),
+    GSCALAR(rtl_altitude_m,   "RTL_ALT",     RTL_ALT),
 
     // @Param: RTL_CONE_SLOPE
     // @DisplayName: RTL cone slope
@@ -135,7 +135,7 @@ const AP_Param::Info Copter::var_info[] = {
     // @Param: RTL_ALT_FINAL
     // @DisplayName: RTL Final Altitude
     // @Description: This is the altitude the vehicle will move to as the final stage of Returning to Launch or after completing a mission.  Set to zero to land.
-    // @Units: cm
+    // @Units: m
     // @Range: 0 1000
     // @Increment: 1
     // @User: Standard
@@ -144,11 +144,11 @@ const AP_Param::Info Copter::var_info[] = {
     // @Param: RTL_CLIMB_MIN
     // @DisplayName: RTL minimum climb
     // @Description: The vehicle will climb this many cm during the initial climb portion of the RTL
-    // @Units: cm
+    // @Units: m
     // @Range: 0 3000
     // @Increment: 10
     // @User: Standard
-    GSCALAR(rtl_climb_min,  "RTL_CLIMB_MIN",    RTL_CLIMB_MIN_DEFAULT),
+    GSCALAR(rtl_climb_min_m,  "RTL_CLIMB_MIN",    RTL_CLIMB_MIN_DEFAULT),
 
     // @Param: RTL_LOIT_TIME
     // @DisplayName: RTL loiter time
@@ -1276,11 +1276,6 @@ void Copter::load_parameters(void)
     // convert fs_options parameters
     // PARAMETER_CONVERSION - Added: Nov-2019
     convert_fs_options_params();
-
-#if MODE_RTL_ENABLED == ENABLED
-    // PARAMETER_CONVERSION - Added: Sep-2021
-    g.rtl_altitude.convert_parameter_width(AP_PARAM_INT16);
-#endif
 
     // PARAMETER_CONVERSION - Added: Mar-2022
 #if AP_FENCE_ENABLED

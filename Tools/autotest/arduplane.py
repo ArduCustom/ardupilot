@@ -1826,7 +1826,7 @@ class AutoTestPlane(AutoTest):
         rtl_alt = 100 # m
         self.set_parameters({
             "FLIGHT_OPTIONS": (1<<19),
-            "ALT_HOLD_RTL": rtl_alt * 100,
+            "RTL_ALT_MIN": rtl_alt,
             "THR_FS_VALUE": 960
         })
         takeoff_alt = 10
@@ -1862,7 +1862,7 @@ class AutoTestPlane(AutoTest):
         self.wait_ready_to_arm()
         self.set_parameters({
             "FLIGHT_OPTIONS": 0,
-            "ALT_HOLD_RTL": 8000,
+            "RTL_ALT_MIN": 80,
             "RTL_AUTOLAND": 1,
         })
         takeoff_alt = 10
@@ -1870,7 +1870,7 @@ class AutoTestPlane(AutoTest):
         self.change_mode("CRUISE")
         self.wait_distance_to_home(500, 1000, timeout=60)
         self.change_mode("RTL")
-        expected_alt = self.get_parameter("ALT_HOLD_RTL") / 100.0
+        expected_alt = self.get_parameter("RTL_ALT_MIN")
 
         home = self.home_position_as_mav_location()
         distance = self.get_distance(home, self.mav.location())
@@ -1894,7 +1894,7 @@ class AutoTestPlane(AutoTest):
         self.wait_ready_to_arm()
         self.set_parameters({
             "FLIGHT_OPTIONS": 16,
-            "ALT_HOLD_RTL": 10000,
+            "RTL_ALT_MIN": 100,
         })
         self.takeoff(alt=takeoff_alt)
         self.change_mode("CRUISE")
@@ -1926,7 +1926,7 @@ class AutoTestPlane(AutoTest):
         self.wait_distance_to_home(1000, 1500, timeout=60)
         post_cruise_alt = self.get_altitude(relative=True)
         self.change_mode('RTL')
-        expected_alt = self.get_parameter("ALT_HOLD_RTL")/100.0
+        expected_alt = self.get_parameter("RTL_ALT_MIN")
         if expected_alt == -1:
             expected_alt = self.get_altitude(relative=True)
 
@@ -2370,7 +2370,7 @@ function'''
         self.progress("Unfailsafe and check the plane climbs back to RTL altitude")
         self.set_parameter("SIM_RC_FAIL", 0) # unfailsafe
         self.wait_servo_channel_value(3, 1200, timeout=4, comparator=operator.ge)
-        expected_alt = self.get_parameter("ALT_HOLD_RTL") / 100.0
+        expected_alt = self.get_parameter("RTL_ALT_MIN")
         self.wait_altitude(expected_alt-5, expected_alt+5, timeout=100, relative=True)
         self.progress("Failsafe again and wait for landing complete and auto disarm")
         self.set_parameter("SIM_RC_FAIL", 2) # throttle-to-950
