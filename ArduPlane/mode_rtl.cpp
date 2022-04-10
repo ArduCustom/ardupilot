@@ -67,7 +67,7 @@ void ModeRTL::update()
 
     bool alt_threshold_reached = false;
     if (plane.g2.flight_options & FlightOptions::CLIMB_BEFORE_TURN) {
-        // Climb to ALT_HOLD_RTL before turning. This overrides RTL_CLIMB_MIN.
+        // Climb to RTL_ALT_MIN before turning. This overrides RTL_CLIMB_MIN.
         alt_threshold_reached = plane.current_loc.alt > plane.next_WP_loc.alt;
     } else if (plane.g2.rtl_climb_min > 0) {
         /*
