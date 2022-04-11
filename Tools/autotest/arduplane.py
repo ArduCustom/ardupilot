@@ -397,32 +397,6 @@ class AutoTestPlane(AutoTest):
         self.set_rc(3, 1700)
         self.wait_level_flight()
 
-    def test_stabilize(self, count=1):
-        """Fly stabilize mode."""
-        # full throttle!
-        self.set_rc(3, 2000)
-        self.set_rc(2, 1300)
-        self.change_altitude(self.homeloc.alt+300)
-        self.set_rc(2, 1500)
-
-        self.change_mode('STABILIZE')
-
-        while count > 0:
-            self.progress("Starting roll")
-            self.set_rc(1, 2000)
-            self.wait_roll(-150, accuracy=90)
-            self.wait_roll(150, accuracy=90)
-            self.wait_roll(0, accuracy=90)
-            count -= 1
-
-        self.set_rc(1, 1500)
-        self.wait_roll(0, accuracy=5)
-
-        # back to FBWA
-        self.change_mode('FBWA')
-        self.set_rc(3, 1700)
-        return self.wait_level_flight()
-
     def test_acro(self, count=1):
         """Fly ACRO mode."""
         # full throttle!
@@ -1136,16 +1110,10 @@ class AutoTestPlane(AutoTest):
                                            (name, want, got))
 
     def cruise_rudder_control(self):
-        self.progress("Rudder control")
         self.takeoff(alt=50)
         self.change_mode('CRUISE')
         self.set_rc(3, 1500)
-        self.wait_servo_channel_value(4, 1500)
-        self.set_rc(4, 2000)
-        rudder_max = self.get_parameter("SERVO4_MAX")
-        self.wait_servo_channel_value(4, rudder_max - 5, timeout=4, comparator=operator.ge)
         self.set_rc(4, 1500)
-        self.progress("Heading control")
         self.set_parameters({
             "FLIGHT_OPTIONS": 1<<18,
             "CRUISE_YAW_RATE": 9
@@ -1649,8 +1617,6 @@ class AutoTestPlane(AutoTest):
         self.run_subtest("Left roll", lambda: self.axial_left_roll(1))
 
         self.run_subtest("Inside loop", self.inside_loop)
-
-        self.run_subtest("Stablize test", self.test_stabilize)
 
         self.run_subtest("ACRO test", self.test_acro)
 
@@ -2178,8 +2144,6 @@ function'''
         self.fly_home_land_and_disarm()
 
     def LOITER(self):
-        # first test old loiter behavour
-        self.set_parameter("FLIGHT_OPTIONS", 1 << 23)
         self.takeoff(alt=200)
         self.set_rc(3, 1500)
         self.change_mode("LOITER")
@@ -2198,35 +2162,8 @@ function'''
             pitch = math.degrees(m.pitch)
             self.progress("Pitch:%f throttle:%u alt:%f" % (pitch, new_throttle, alt))
         m = self.assert_receive_message('VFR_HUD', timeout=5)
-        initial_throttle = m.throttle
         initial_alt = m.alt
-        self.progress("Initial throttle: %u" % initial_throttle)
-        # pitch down, ensure throttle increases:
         rc2_max = self.get_parameter("RC2_MAX")
-        self.set_rc(2, int(rc2_max))
-        tstart = self.get_sim_time()
-        while True:
-            now = self.get_sim_time_cached()
-            '''stick-mixing is pushing the aircraft down.  It doesn't want to go
-            down (the target loiter altitude hasn't changed), so it
-            tries to add energy by increasing the throttle.
-            '''
-            if now - tstart > 60:
-                raise NotAchievedException("Did not see increase in throttle")
-            m = self.assert_receive_message('VFR_HUD', timeout=5)
-            new_throttle = m.throttle
-            alt = m.alt
-            m = self.assert_receive_message('ATTITUDE', timeout=5)
-            pitch = math.degrees(m.pitch)
-            self.progress("Pitch:%f throttle:%u alt:%f" % (pitch, new_throttle, alt))
-            if new_throttle - initial_throttle > 20:
-                self.progress("Throttle delta achieved")
-                break
-        self.progress("Centering elevator and ensuring we get back to loiter altitude")
-        self.set_rc(2, 1500)
-        self.wait_altitude(initial_alt-1, initial_alt+1)
-        # Test new loiter behavour
-        self.set_parameter("FLIGHT_OPTIONS", 0)
         # should decend at max stick
         self.set_rc(2, int(rc2_max))
         self.wait_altitude(initial_alt - 110, initial_alt - 90, timeout=90)
@@ -2875,7 +2812,7 @@ function'''
 
         # get flying
         self.takeoff(alt=50)
-        self.change_mode('CIRCLE')
+        self.change_mode('LOITER')
 
         try:
             ###################################################################
@@ -3030,6 +2967,7 @@ function'''
         self.context_pop()
 
         # some parameters need reboot to take effect
+        self.wait_disarmed(timeout=120)
         self.reboot_sitl()
 
         if ex is not None:

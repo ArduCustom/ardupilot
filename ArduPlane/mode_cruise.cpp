@@ -65,10 +65,11 @@ void ModeCruise::navigate()
     }
     if (locked_heading) {
         if (plane.g2.flight_options & FlightOptions::CRUISE_HEADING_CONTROL_WITH_YAW_STICK) {
-            if (plane.rudder_input() != 0 && heading_update_tstamp) {
+            float rudder_input = plane.channel_rudder->get_control_in() * (1.0f/45);
+            if (!is_zero(rudder_input) && heading_update_tstamp) {
                 plane.prev_WP_loc = plane.current_loc;
                 const float dt = (now - heading_update_tstamp) * 0.001f;
-                locked_heading_cd += plane.rudder_input() * (1.0f/45) * plane.g2.cruise_yaw_rate * dt;
+                locked_heading_cd += rudder_input * plane.g2.cruise_yaw_rate * dt;
                 locked_heading_cd = wrap_360_cd(locked_heading_cd);
             }
             heading_update_tstamp = now;
