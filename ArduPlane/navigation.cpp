@@ -272,7 +272,8 @@ void Plane::calc_airspeed_errors()
 
     if (auto_thr_gliding_state == ATGS_GLIDING) {
         // gliding requested set minimum speed
-        target_airspeed_cm = airspeed_min_cm;
+        target_airspeed_cm = is_zero(aparm.airspeed_gliding) ? airspeed_min_cm : aparm.airspeed_gliding * 100;
+        airspeed_min_cm = target_airspeed_cm;
     } else if (!(ahrs.airspeed_sensor_enabled() || TECS_controller.is_using_synthetic_airspeed())) {
         airspeed_min_cm = aparm.airspeed_cruise_cm;
     }
