@@ -662,14 +662,14 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Advanced
     ASCALAR(min_gndspeed_cm,      "MIN_GNDSPD_CM",  MIN_GNDSPEED_CM),
 
-    // @Param: TRIM_PITCH_CD
+    // @Param: TRIM_PITCH
     // @DisplayName: Pitch angle offset
     // @Description: Offset applied to AHRS pitch used for in-flight pitch trimming. Correct ground leveling is better than changing this parameter.
-    // @Units: cdeg
-    // @Range: -4500 4500
-    // @Increment: 10
+    // @Units: deg
+    // @Range: -45 45
+    // @Increment: 0.1
     // @User: Advanced
-    GSCALAR(pitch_trim_cd,        "TRIM_PITCH_CD",  0),
+    GSCALAR(pitch_trim,        "TRIM_PITCH",  1.0f),
 
     // @Param: ALT_HOLD_RTL
     // @DisplayName: RTL altitude

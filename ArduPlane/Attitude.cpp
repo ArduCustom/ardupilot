@@ -193,7 +193,7 @@ float Plane::stabilize_pitch_get_pitch_out(float speed_scaler)
         throttle_pitch_mix_ratio = sqrtf(linear_interpolate(0, 1, throttle_value, aparm.throttle_cruise, 100));
     }
 
-    int32_t demanded_pitch = nav_pitch_cd + g.pitch_trim_cd + throttle_pitch_mix_ratio * g.kff_throttle_above_trim_to_pitch * 100;
+    int32_t demanded_pitch = nav_pitch_cd + (g.pitch_trim + throttle_pitch_mix_ratio * g.kff_throttle_above_trim_to_pitch) * 100;
     bool disable_integrator = false;
     if (control_mode == &mode_stabilize && !is_zero(channel_pitch->get_control_in())) {
         disable_integrator = true;
