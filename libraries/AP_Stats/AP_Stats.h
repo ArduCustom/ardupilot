@@ -131,72 +131,72 @@ private:
 
     void copy_variables_from_parameters();
 
-    uint32_t _flush_tstamp_ms;
+    uint32_t _flush_tstamp_ms = 0;
     static constexpr uint16_t flush_interval_ms = 30000;
 
-    uint32_t _boot_tstamp_ms;
-    uint32_t _flying_start_tstamp_ms;
-    uint32_t _last_update_tstamp_ms;
-    uint32_t _last_update_flying_tstamp_ms;
+    uint32_t _boot_tstamp_ms = 0;
+    uint32_t _flying_start_tstamp_ms = 0;
+    uint32_t _last_update_tstamp_ms = 0;
+    uint32_t _last_update_flying_tstamp_ms = 0;
 
-    uint32_t _flying_sample_count;
-    uint32_t _flying_for_some_time_sample_count;
+    uint32_t _flying_sample_count = 0;
+    uint32_t _flying_for_some_time_sample_count = 0;
 
-    float    _prev_update_energy_wh;
-    float    _prev_update_mah;
+    float    _prev_update_energy_wh = 0;
+    float    _prev_update_mah = 0;
 
-    bool     _energy_is_available;
-    bool     _mah_is_available;
-    bool     _current_is_available;
-    bool     _power_is_available;
-    bool     _cell_voltage_is_available;
-    bool     _wind_speeds_are_available;
-    bool     _air_speeds_are_available;
-    bool     _esc_temperatures_are_available;
+    bool     _energy_is_available = false;
+    bool     _mah_is_available = false;
+    bool     _current_is_available = false;
+    bool     _power_is_available = false;
+    bool     _cell_voltage_is_available = false;
+    bool     _wind_speeds_are_available = false;
+    bool     _air_speeds_are_available = false;
+    bool     _esc_temperatures_are_available = false;
 
-    uint32_t _boot_flying_time_ms;
-    float    _boot_flying_ground_traveled_m;
-    float    _boot_flying_air_traveled_m;
-    float    _boot_flying_energy_wh;
-    float    _boot_flying_mah;
-    float    _boot_max_ground_speed_mps;
-    float    _boot_max_air_speed_mps;
-    float    _boot_avg_wind_speed_mps;
-    float    _boot_max_wind_speed_mps;
-    uint32_t _boot_max_home_distance_m;
-    uint32_t _boot_max_relative_altitude_m;
+    uint32_t _boot_flying_time_ms = 0;
+    float    _boot_flying_ground_traveled_m = 0;
+    float    _boot_flying_air_traveled_m = 0;
+    float    _boot_flying_energy_wh = 0;
+    float    _boot_flying_mah = 0;
+    float    _boot_max_ground_speed_mps = 0;
+    float    _boot_max_air_speed_mps = 0;
+    float    _boot_avg_wind_speed_mps = 0;
+    float    _boot_max_wind_speed_mps = 0;
+    uint32_t _boot_max_home_distance_m = 0;
+    uint32_t _boot_max_relative_altitude_m = 0;
     float    _boot_min_rc_rssi = FLT_MAX;
     int8_t   _boot_min_rc_rssi_dbm = -1;
-    int16_t  _boot_max_rc_tx_power_mw;
-    float    _boot_max_flying_current_a;
-    float    _boot_avg_flying_current_a;
-    float    _boot_max_flying_power_w;
-    float    _boot_avg_flying_power_w;
+    int16_t  _boot_max_rc_tx_power_mw = 0;
+    float    _boot_max_flying_current_a = 0;
+    float    _boot_avg_flying_current_a = 0;
+    float    _boot_max_flying_power_w = 0;
+    float    _boot_avg_flying_power_w = 0;
     float    _boot_min_voltage_v = FLT_MAX;
     float    _boot_min_cell_voltage_v = FLT_MAX;
-    int16_t  _boot_avg_esc_temperature_degc;
-    int16_t  _boot_max_esc_temperature_degc;
+    int16_t  _boot_avg_esc_temperature_degc = 0;
+    int16_t  _boot_max_esc_temperature_degc = INT16_MIN;
 
-    uint32_t _total_boot_flying_time_s;             // seconds spent flying
-    uint32_t _total_boot_flying_ground_traveled_m;  // ground distance in meter traveled while flying
-    uint32_t _total_boot_flying_air_traveled_m;     // air distance in meter traveled while flying
-    float    _total_boot_flying_energy_wh;          // consumed energy in Wh while flying
-    float    _total_boot_avg_ground_speed_mps;
-    float    _total_boot_max_ground_speed_mps;
-    float    _total_boot_avg_air_speed_mps;
-    float    _total_boot_max_air_speed_mps;
-    float    _total_boot_avg_wind_speed_mps;
-    float    _total_boot_max_wind_speed_mps;
-    uint32_t _total_boot_max_home_distance_m;
-    uint32_t _total_boot_max_relative_altitude_m;
-    float    _total_boot_avg_flying_current_a;
-    float    _total_boot_max_flying_current_a;
-    float    _total_boot_avg_flying_power_w;
-    float    _total_boot_max_flying_power_w;
-    uint32_t _total_boot_run_time_s;                // total stored wallclock time spent running ArduPilot (seconds) when booted up
-    uint32_t _reset_tstamp_s;                       // last time AP_Stats parameters were reset (in seconds since AP_Stats Jan 1st 2016)
+    uint32_t _total_boot_flying_time_s = 0;             // seconds spent flying
+    uint32_t _total_boot_flying_ground_traveled_m = 0;  // ground distance in meter traveled while flying
+    uint32_t _total_boot_flying_air_traveled_m = 0;     // air distance in meter traveled while flying
+    float    _total_boot_flying_energy_wh = 0;          // consumed energy in Wh while flying
+    float    _total_boot_avg_ground_speed_mps = 0;
+    float    _total_boot_max_ground_speed_mps = 0;
+    float    _total_boot_avg_air_speed_mps = 0;
+    float    _total_boot_max_air_speed_mps = 0;
+    float    _total_boot_avg_wind_speed_mps = 0;
+    float    _total_boot_max_wind_speed_mps = 0;
+    uint32_t _total_boot_max_home_distance_m = 0;
+    uint32_t _total_boot_max_relative_altitude_m = 0;
+    float    _total_boot_avg_flying_current_a = 0;
+    float    _total_boot_max_flying_current_a = 0;
+    float    _total_boot_avg_flying_power_w = 0;
+    float    _total_boot_max_flying_power_w = 0;
+    uint32_t _total_boot_run_time_s = 0;                // total stored wallclock time spent running ArduPilot (seconds) when booted up
+    uint32_t _reset_tstamp_s = 0;                       // last time AP_Stats parameters were reset (in seconds since AP_Stats Jan 1st 2016)
 
-    bool     _prev_load;
+    bool     _prev_load = false;
 
     bool is_flying(void) const {
         return _flying_start_tstamp_ms != 0;

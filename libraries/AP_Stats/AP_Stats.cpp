@@ -484,10 +484,10 @@ void AP_Stats::update()
 
     update_battery();
 
-    if (now_ms - _flush_tstamp_ms > flush_interval_ms) {
+    if (_flush_tstamp_ms && now_ms - _flush_tstamp_ms > flush_interval_ms) {
         flush();
-        _flush_tstamp_ms = now_ms;
     }
+    _flush_tstamp_ms = now_ms;
 
     reset_params_if_requested();
 
