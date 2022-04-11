@@ -173,7 +173,7 @@ public:
         k_param_airspeed_max,
         k_param_FBWB_min_altitude_cm,  // 0=disabled, minimum value for altitude in cm (for first time try 30 meters = 3000 cm)
         k_param_flybywire_elev_reverse,
-        k_param_alt_control_algorithm, // unused
+        k_param_airspeed_gliding,
         k_param_flybywire_climb_rate,
         k_param_acro_roll_rate,
         k_param_acro_pitch_rate,

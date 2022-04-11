@@ -124,6 +124,7 @@ public:
         AP_Int8 takeoff_throttle_max;
         AP_Float airspeed_min;
         AP_Float airspeed_max;
+        AP_Float airspeed_gliding;
         AP_Int32 airspeed_cruise_cm;
         AP_Int32 min_gndspeed_cm;
         AP_Int8  crash_detection_enable;

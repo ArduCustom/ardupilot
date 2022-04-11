@@ -398,6 +398,15 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Standard
     ASCALAR(airspeed_max, "ARSPD_FBW_MAX",  AIRSPEED_FBW_MAX),
 
+    // @Param: ARSPD_GLIDING
+    // @DisplayName: Airspeed target when gliding in auto throttle modes
+    // @Description: Airspeed target when gliding in auto throttle modes. If set to 0 use ARSPD_FBW_MIN instead (default)
+    // @Units: m/s
+    // @Range: 5 100
+    // @Increment: 1
+    // @User: Standard
+    ASCALAR(airspeed_gliding, "ARSPD_GLIDING",  0),
+
     // @Param: FBWB_ELEV_REV
     // @DisplayName: Fly By Wire elevator reverse
     // @Description: Reverse sense of elevator in FBWB and CRUISE modes. When set to 0 up elevator (pulling back on the stick) means to lower altitude. When set to 1, up elevator means to raise altitude.
