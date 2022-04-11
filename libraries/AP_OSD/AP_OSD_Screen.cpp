@@ -2304,7 +2304,8 @@ void AP_OSD_Screen::draw_home(uint8_t x, uint8_t y)
         backend->write(x, y, false, "%c%c", SYMBOL(SYM_HOME), arrow);
         draw_distance(x+2, y, distance, true);
     } else {
-        backend->write(x, y, true, "%c", SYMBOL(SYM_HOME));
+        backend->write(x, y, true, "%c-", SYMBOL(SYM_HOME));
+        draw_distance(x+2, y, 0, true, false);
     }
 }
 
