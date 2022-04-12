@@ -46,6 +46,10 @@
 #define HAL_OSD_SIDEBAR_ENABLE !HAL_MINIMIZE_FEATURES
 #endif
 
+#ifndef OSD_DEBUG_ELEMENT
+#define OSD_DEBUG_ELEMENT 0
+#endif
+
 class AP_OSD_Backend;
 class AP_MSP;
 
@@ -232,6 +236,9 @@ private:
     AP_OSD_Setting cruise_heading{false, 0, 0};
     AP_OSD_Setting cruise_heading_adjustment{false, 0, 0};
     AP_OSD_Setting rc_failsafe{false, 0, 0};
+#if OSD_DEBUG_ELEMENT
+    AP_OSD_Setting debug{false, 0, 0};
+#endif
 
     // MSP OSD only
     AP_OSD_Setting crosshair{false, 0, 0};
@@ -359,6 +366,9 @@ private:
     void draw_cruise_heading(uint8_t x, uint8_t y);
     void draw_cruise_heading_adjustment(uint8_t x, uint8_t y);
     void draw_rc_failsafe(uint8_t x, uint8_t y);
+#if OSD_DEBUG_ELEMENT
+    void draw_debug(uint8_t x, uint8_t y);
+#endif
 
     bool has_tuned_param_changed();
     bool cruise_heading_changed(uint16_t &locked_heading);
@@ -638,6 +648,13 @@ public:
         _disable = false;
     }
 
+#if OSD_DEBUG_ELEMENT
+    void set_debug(float value) {
+        WITH_SEMAPHORE(_sem);
+        _debug = value;
+    }
+#endif
+
     AP_OSD_AbstractScreen& get_screen(uint8_t idx) {
 #if OSD_PARAM_ENABLED
         if (idx >= AP_OSD_NUM_DISPLAY_SCREENS) {
@@ -691,6 +708,9 @@ private:
     bool was_armed;
     bool was_failsafe;
     bool _disable;
+#if OSD_DEBUG_ELEMENT
+    float _debug = 0;
+#endif
 
     struct {
         float current_a;
