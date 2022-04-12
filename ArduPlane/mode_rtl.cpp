@@ -142,7 +142,7 @@ void ModeRTL::navigate()
             if (plane.auto_state.emergency_landing && plane.relative_altitude < 10) {
                 plane.auto_state.reached_emergency_landing_no_return_altitude = true;
             }
-        } else if (!plane.auto_state.reached_emergency_landing_no_return_altitude) {
+        } else if (plane.emergency_landing && !plane.auto_state.reached_emergency_landing_no_return_altitude) {
             plane.set_auto_thr_gliding(false);
             plane.auto_state.emergency_landing = false;
             plane.auto_state.reached_home_in_fs_ms = 0;
