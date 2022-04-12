@@ -698,6 +698,9 @@ private:
         int32_t start_lap_alt_cm;
         int32_t next_sum_lap_cd;
 
+        float radius;
+        uint32_t navigate_last_ms;
+
         // The amount of time we should stay in a loiter for the Loiter Time command.  Milliseconds.
         uint32_t time_max_ms;
     } loiter;
@@ -1091,6 +1094,7 @@ private:
     void update_loiter(uint16_t radius);
     void update_loiter_update_nav(uint16_t radius);
     void update_cruise();
+    void update_loiter_radius_and_direction(void);
     void update_fbwb_speed_height(void);
     void setup_turn_angle(void);
     bool reached_loiter_target(void);

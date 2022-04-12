@@ -378,6 +378,24 @@ void Plane::update_loiter(uint16_t radius)
     }
 }
 
+void Plane::update_loiter_radius_and_direction(void)
+{
+    if (!plane.failsafe.rc_failsafe) {
+        const float rudder_input = plane.channel_rudder->get_control_in() * (1.0f/45);
+        if (rudder_input < -50) plane.loiter.direction = -1;
+        if (rudder_input > 50) plane.loiter.direction = 1;
+
+        const uint32_t now = AP_HAL::millis();
+        if (plane.loiter.navigate_last_ms) {
+            const float roll_input = plane.channel_roll->get_control_in() * (1.0f/4500);
+            const float dt = (now - plane.loiter.navigate_last_ms) * 0.001f;
+            plane.loiter.radius += roll_input * (plane.loiter.direction > 0 ? -1 : 1) * 20 * dt;
+            plane.loiter.radius = constrain_float(plane.loiter.radius, 20, 1000);
+        }
+        plane.loiter.navigate_last_ms = now;
+    }
+}
+
 /*
   handle speed and height control in FBWB, CRUISE, and optionally, LOITER mode.
   In this mode the elevator is used to change target altitude. The
