@@ -459,7 +459,15 @@ void Plane::update_control_mode(void)
     }
 
     if ((g2.flight_options & FlightOptions::ALLOW_GLIDING_IN_AUTO_THR_MODES) && control_mode->does_auto_throttle() && control_mode != &mode_takeoff && control_mode != &mode_auto) {
-        set_auto_thr_gliding(!failsafe.rc_failsafe && get_throttle_input() < g.throttle_dz);
+
+        if (failsafe.rc_failsafe) {
+            if (!prev_rc_failsafe_state) {
+                // if just entered failsafe state disable gliding
+                set_auto_thr_gliding(false);
+            } // else if was already in failsafe do nothing so that RTL can use it for emergency landing
+        } else {
+            set_auto_thr_gliding(get_throttle_input() < g.throttle_dz);
+        }
 
         if (auto_thr_gliding_state == ATGS_GLIDING) {
             set_target_altitude_current();
@@ -467,6 +475,7 @@ void Plane::update_control_mode(void)
     } else {
         auto_thr_gliding_state = ATGS_DISABLED;
     }
+    prev_rc_failsafe_state = failsafe.rc_failsafe;
 
     update_fly_forward();
 
