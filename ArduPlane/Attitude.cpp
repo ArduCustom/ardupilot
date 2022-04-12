@@ -57,52 +57,6 @@ float Plane::calc_speed_scaler(void)
 }
 
 /*
-  return true if the current settings and mode should allow for stick mixing
- */
-bool Plane::stick_mixing_enabled(void)
-{
-    if (!rc().has_valid_input()) {
-        // never stick mix without valid RC
-        return false;
-    }
-#if AC_FENCE == ENABLED
-    const bool stickmixing = fence_stickmixing();
-#else
-    const bool stickmixing = true;
-#endif
-#if HAL_QUADPLANE_ENABLED
-    if (control_mode == &mode_qrtl &&
-        quadplane.poscontrol.get_state() >= QuadPlane::QPOS_POSITION1) {
-        // user may be repositioning
-        return false;
-    }
-    if (quadplane.in_vtol_land_poscontrol()) {
-        // user may be repositioning
-        return false;
-    }
-#endif
-    if (control_mode->does_auto_throttle() && plane.control_mode->does_auto_navigation()) {
-        // we're in an auto mode. Check the stick mixing flag
-        if (g.stick_mixing != StickMixing::NONE &&
-            g.stick_mixing != StickMixing::VTOL_YAW &&
-            stickmixing) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    if (failsafe.rc_failsafe && g.fs_action_short == FS_ACTION_SHORT_FBWA) {
-        // don't do stick mixing in FBWA glide mode
-        return false;
-    }
-
-    // non-auto mode. Always do stick mixing
-    return true;
-}
-
-
-/*
   this is the main roll stabilization function. It takes the
   previously set nav_roll calculates roll servo_out to try to
   stabilize the plane at the given roll
@@ -214,118 +168,6 @@ float Plane::stabilize_pitch_get_pitch_out(float speed_scaler)
     return pitchController.get_servo_out_using_angle_target(demanded_pitch, speed_scaler, disable_integrator,
                                          ground_mode && !(plane.g2.flight_options & FlightOptions::DISABLE_GROUND_PID_SUPPRESSION));
 }
-
-/*
-  this gives the user control of the aircraft in stabilization modes
- */
-void Plane::stabilize_stick_mixing_direct()
-{
-    if (!stick_mixing_enabled() ||
-        control_mode == &mode_acro ||
-        control_mode == &mode_fbwa ||
-        control_mode == &mode_autotune ||
-        control_mode == &mode_fbwb ||
-        control_mode == &mode_cruise ||
-#if HAL_QUADPLANE_ENABLED
-        control_mode == &mode_qstabilize ||
-        control_mode == &mode_qhover ||
-        control_mode == &mode_qloiter ||
-        control_mode == &mode_qland ||
-        control_mode == &mode_qrtl ||
-        control_mode == &mode_qacro ||
-#if QAUTOTUNE_ENABLED
-        control_mode == &mode_qautotune ||
-#endif
-#endif
-        control_mode == &mode_training) {
-        return;
-    }
-    float aileron = SRV_Channels::get_output_scaled(SRV_Channel::k_aileron);
-    aileron = channel_roll->stick_mixing(aileron);
-    SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, aileron);
-
-    if ((control_mode == &mode_loiter) && ((plane.g2.flight_options & FlightOptions::DISABLE_LOITER_ALT_CONTROL) == 0)) {
-        // loiter is using altitude control based on the pitch stick, don't use it again here
-        return;
-    }
-
-    if ((control_mode == &mode_rtl) && plane.g2.flight_options & FlightOptions::RTL_MANUAL_ALT_CONTROL) {
-        // RTL is using altitude control based on the pitch stick, don't use it again here
-        return;
-    }
-
-    float elevator = SRV_Channels::get_output_scaled(SRV_Channel::k_elevator);
-    elevator = channel_pitch->stick_mixing(elevator);
-    SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, elevator);
-}
-
-/*
-  this gives the user control of the aircraft in stabilization modes
-  using FBW style controls
- */
-void Plane::stabilize_stick_mixing_fbw()
-{
-    if (!stick_mixing_enabled() ||
-        control_mode == &mode_acro ||
-        control_mode == &mode_fbwa ||
-        control_mode == &mode_autotune ||
-        control_mode == &mode_fbwb ||
-        control_mode == &mode_cruise ||
-#if HAL_QUADPLANE_ENABLED
-        control_mode == &mode_qstabilize ||
-        control_mode == &mode_qhover ||
-        control_mode == &mode_qloiter ||
-        control_mode == &mode_qland ||
-        control_mode == &mode_qacro ||
-#if QAUTOTUNE_ENABLED
-        control_mode == &mode_qautotune ||
-#endif
-#endif  // HAL_QUADPLANE_ENABLED
-        control_mode == &mode_training) {
-        return;
-    }
-    // do FBW style stick mixing. We don't treat it linearly
-    // however. For inputs up to half the maximum, we use linear
-    // addition to the nav_roll and nav_pitch. Above that it goes
-    // non-linear and ends up as 2x the maximum, to ensure that
-    // the user can direct the plane in any direction with stick
-    // mixing.
-    float roll_input = channel_roll->norm_input();
-    if (roll_input > 0.5f) {
-        roll_input = (3*roll_input - 1);
-    } else if (roll_input < -0.5f) {
-        roll_input = (3*roll_input + 1);
-    }
-    nav_roll_cd += roll_input * roll_limit_cd;
-    nav_roll_cd = constrain_int32(nav_roll_cd, -roll_limit_cd, roll_limit_cd);
-
-    if ((control_mode == &mode_loiter) && ((plane.g2.flight_options & FlightOptions::DISABLE_LOITER_ALT_CONTROL) == 0)) {
-        // loiter is using altitude control based on the pitch stick, don't use it again here
-        return;
-    }
-
-    if ((control_mode == &mode_rtl) && plane.g2.flight_options & FlightOptions::RTL_MANUAL_ALT_CONTROL) {
-        // RTL is using altitude control based on the pitch stick, don't use it again here
-        return;
-    }
-
-    float pitch_input = channel_pitch->norm_input();
-    if (pitch_input > 0.5f) {
-        pitch_input = (3*pitch_input - 1);
-    } else if (pitch_input < -0.5f) {
-        pitch_input = (3*pitch_input + 1);
-    }
-    if (fly_inverted()) {
-        pitch_input = -pitch_input;
-    }
-    if (pitch_input > 0) {
-        nav_pitch_cd += pitch_input * aparm.pitch_limit_max_cd;
-    } else {
-        nav_pitch_cd += -(pitch_input * pitch_limit_min_cd);
-    }
-    nav_pitch_cd = constrain_int32(nav_pitch_cd, pitch_limit_min_cd, aparm.pitch_limit_max_cd.get());
-}
-
 
 /*
   stabilize the yaw axis. There are 3 modes of operation:
@@ -497,10 +339,9 @@ void Plane::stabilize()
     float speed_scaler = get_speed_scaler();
 
     uint32_t now = AP_HAL::millis();
-    bool allow_stick_mixing = true;
 #if HAL_QUADPLANE_ENABLED
     if (quadplane.available()) {
-        quadplane.transition->set_FW_roll_pitch(nav_pitch_cd, nav_roll_cd, allow_stick_mixing);
+        quadplane.transition->set_FW_roll_pitch(nav_pitch_cd, nav_roll_cd);
     }
 #endif
 
@@ -551,14 +392,8 @@ void Plane::stabilize()
         }
 #endif
     } else {
-        if (allow_stick_mixing && g.stick_mixing == StickMixing::FBW && control_mode != &mode_stabilize) {
-            stabilize_stick_mixing_fbw();
-        }
         stabilize_roll(speed_scaler);
         stabilize_pitch(speed_scaler);
-        if (allow_stick_mixing && (g.stick_mixing == StickMixing::DIRECT || control_mode == &mode_stabilize)) {
-            stabilize_stick_mixing_direct();
-        }
         stabilize_yaw(speed_scaler);
     }
 
@@ -658,9 +493,7 @@ void Plane::calc_nav_yaw_course(void)
     // auto-takeoff and landing
     int32_t bearing_error_cd = nav_controller->bearing_error_cd();
     steering_control.steering = steerController.get_steering_out_angle_error(bearing_error_cd);
-    if (stick_mixing_enabled()) {
-        steering_control.steering = channel_rudder->stick_mixing(steering_control.steering);
-    }
+    steering_control.steering = channel_rudder->stick_mixing(steering_control.steering);
     steering_control.steering = constrain_int16(steering_control.steering, -4500, 4500);
 }
 
