@@ -223,10 +223,6 @@ int16_t Plane::rudder_input(void)
         return 0;
     }
 
-    if (stick_mixing_enabled()) {
-        return channel_rudder->get_control_in();
-    }
-
     return 0;
     
 }
