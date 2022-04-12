@@ -3,6 +3,10 @@
 
 bool ModeRTL::_enter()
 {
+    int16_t radius = plane.g.rtl_radius != 0 ? plane.g.rtl_radius : plane.aparm.loiter_radius;
+    plane.loiter.radius = abs(radius);
+    plane.loiter.direction = radius < 0 ? -1 : 1;
+    plane.loiter.navigate_last_ms = 0;
     plane.nav_controller->reset_reached_loiter_target();
     plane.prev_WP_loc = plane.current_loc;
     plane.do_RTL(plane.get_RTL_altitude_cm());
@@ -201,12 +205,12 @@ void ModeRTL::navigate()
         // on every loop
         plane.auto_state.checked_for_autoland = true;
     }
-    uint16_t radius = abs(plane.g.rtl_radius);
-    if (radius > 0) {
-        plane.loiter.direction = (plane.g.rtl_radius < 0) ? -1 : 1;
-    }
 
-    plane.update_loiter(radius);
+    // manual loiter radius and direction control
+    plane.update_loiter_radius_and_direction();
+
+    // Zero indicates to use WP_LOITER_RAD
+    plane.update_loiter(lrintf(plane.loiter.radius));
 }
 
 #if HAL_QUADPLANE_ENABLED
