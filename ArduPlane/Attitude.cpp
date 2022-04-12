@@ -140,11 +140,15 @@ float Plane::stabilize_pitch_get_pitch_out(float speed_scaler)
     const bool quadplane_in_transition = false;
 #endif
 
-    float throttle_pitch_mix_ratio = 0;
-    const float throttle_value = control_mode->does_auto_throttle() ? TECS_controller.get_throttle_demand() : get_throttle_input(true);
+    float throttle_value, throttle_pitch_mix_ratio = 0;
+
+    {
+        WITH_SEMAPHORE(_throttle_output_before_battery_compensation_sem);
+        throttle_value = _throttle_output_before_battery_compensation;
+    }
 
     if (is_positive(throttle_value)) {
-        throttle_pitch_mix_ratio = square_curve_interpolate(0, 1, 100, throttle_value, aparm.throttle_cruise.get(), 100);
+        throttle_pitch_mix_ratio = square_curve_interpolate(0, 1, 100, throttle_value, aparm.throttle_cruise.get(), g.kff_throttle_above_trim_to_pitch_curve);
     }
 
     int32_t demanded_pitch = nav_pitch_cd + (g.pitch_trim.get() + throttle_pitch_mix_ratio * g.kff_throttle_above_trim_to_pitch.get()) * 100;
@@ -691,8 +695,11 @@ void Plane::calc_nav_roll()
 void Plane::fbwa_throttle_to_pitch_compensation(bool do_pitch_up)
 {
     if (flight_stage != AP_Vehicle::FixedWing::FLIGHT_VTOL) {
-        // necessary because we call this not only for FBWA but also in auto throttle modes when gliding is requested
-        const float throttle_value = control_mode->does_auto_throttle() ? TECS_controller.get_throttle_demand() : get_throttle_input(true);
+        float throttle_value;
+        {
+            WITH_SEMAPHORE(_throttle_output_before_battery_compensation_sem);
+            throttle_value = _throttle_output_before_battery_compensation;
+        }
 
         if (throttle_value < aparm.throttle_cruise) {
 
@@ -714,7 +721,6 @@ void Plane::fbwa_throttle_to_pitch_compensation(bool do_pitch_up)
             }
 
             // pitch up compensation
-            // const float pitch_up_compensation = cube_curve_interpolate(max_pitch_up, 0, g.fbwa_pitch_up_curve.get(), throttle_value, max_pitch_up_thr, aparm.throttle_cruise.get());
             const float pitch_up_compensation = cube_curve_interpolate(oa, ob, g.fbwa_pitch_up_curve.get(), throttle_value, ia, ib);
 
             ia = max_pitch_up_thr;

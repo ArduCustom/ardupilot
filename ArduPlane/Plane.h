@@ -206,8 +206,11 @@ private:
     AP_YawController yawController{aparm};
     AP_SteerController steerController{};
 
-    HAL_Semaphore _thr_sem;
+    HAL_Semaphore _throttle_output_sem;
     float _throttle_output;
+
+    HAL_Semaphore _throttle_output_before_battery_compensation_sem;
+    float _throttle_output_before_battery_compensation;
 
     // Training mode
     bool training_manual_roll;  // user has manual roll control

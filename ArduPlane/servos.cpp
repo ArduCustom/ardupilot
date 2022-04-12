@@ -443,7 +443,16 @@ void Plane::set_servos_manual_passthrough(void)
 
     apply_throttle_dz();
 
-    TECS_controller.set_throttle_demand(SRV_Channels::get_output_scaled(SRV_Channel::k_throttle));
+    TECS_controller.set_throttle_demand(square_expo_curve_100(SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle), g2.throttle_expo_auto));
+
+    if (!g2.rc_channels.throttle_expo_is_disabled_in_manual_mode()) {
+        apply_throttle_expo();
+    }
+
+    {
+        WITH_SEMAPHORE(_throttle_output_before_battery_compensation_sem);
+        _throttle_output_before_battery_compensation = SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle);
+    }
 
     if (!g2.rc_channels.throttle_battery_compensation_is_disabled_in_manual_mode()) {
         // conpensate for battery voltage drop
@@ -452,9 +461,6 @@ void Plane::set_servos_manual_passthrough(void)
         throttle_voltage_comp(min_throttle, max_throttle);
     }
 
-    if (!g2.rc_channels.throttle_expo_is_disabled_in_manual_mode()) {
-        apply_throttle_expo();
-    }
 }
 
 /*
@@ -587,8 +593,8 @@ void Plane::shift_elevator_output_pwm(int16_t elev_pwm_shift)
 
 void Plane::apply_throttle_to_elevator_mix(void)
 {
-    const float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
-    const int16_t elev_mix_pwm = lrintf(square_curve_interpolate(0, g.mix_throttle_above_trim_to_elevator, g.kff_throttle_above_trim_to_pitch_curve, throttle, aparm.throttle_cruise, 100));
+    const float throttle = _throttle_output_before_battery_compensation;
+    const int16_t elev_mix_pwm = lrintf(square_curve_interpolate(0, g.mix_throttle_above_trim_to_elevator, g.mix_throttle_above_trim_to_elevator_curve, throttle, aparm.throttle_cruise, 100));
     shift_elevator_output_pwm(elev_mix_pwm);
 }
 
@@ -664,7 +670,6 @@ void Plane::set_servos_controlled(void)
         if (landing.is_flaring() && landing.use_thr_min_during_flare() ) {
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, aparm.throttle_min.get());
         } else if ((control_mode == &mode_auto && flight_stage == AP_Vehicle::FixedWing::FLIGHT_NORMAL &&
-            // mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF) || (control_mode == &mode_takeoff && !mode_takeoff.takeoff_has_started())) {
             mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF) || control_mode == &mode_takeoff) {
             float throttle_input = get_throttle_input(false);
             if (g.throttle_suppress_manual) {
@@ -727,7 +732,7 @@ void Plane::set_servos_controlled(void)
     }
     
     if (!control_mode->does_auto_throttle()) {
-        TECS_controller.set_throttle_demand(SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle));
+        TECS_controller.set_throttle_demand(square_expo_curve_100(SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle), g2.throttle_expo_auto));
     }
 
     if (!suppress_throttle()) {
@@ -751,10 +756,15 @@ void Plane::set_servos_controlled(void)
         }
     }
 
+    apply_throttle_expo();
+
+    {
+        WITH_SEMAPHORE(_throttle_output_before_battery_compensation_sem);
+        _throttle_output_before_battery_compensation = SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle);
+    }
+
     // conpensate for battery voltage drop
     throttle_voltage_comp(min_throttle, max_throttle);
-
-    apply_throttle_expo();
 }
 
 /*
@@ -1070,7 +1080,7 @@ void Plane::set_servos(void)
 #endif  // AP_ICENGINE_ENABLED
 
     {
-        WITH_SEMAPHORE(_thr_sem);
+        WITH_SEMAPHORE(_throttle_output_sem);
         _throttle_output = SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle);
     }
 
