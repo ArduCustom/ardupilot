@@ -442,6 +442,6 @@ float Plane::throttle_percentage(void)
         return quadplane.motors->get_throttle_out() * 100.0;
     }
 #endif
-    WITH_SEMAPHORE(_thr_sem);
+    WITH_SEMAPHORE(_throttle_output_sem);
     return _throttle_output;
 }
