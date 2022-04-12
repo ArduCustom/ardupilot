@@ -723,6 +723,8 @@ private:
 
     AutoThrGlidingState auto_thr_gliding_state;
 
+    bool prev_rc_failsafe_state;
+
     // 3D Location vectors
     // Location structure defined in AP_Common
     const struct Location &home = ahrs.get_home();
