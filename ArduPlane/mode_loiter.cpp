@@ -18,12 +18,7 @@ bool ModeLoiter::_enter()
 void ModeLoiter::update()
 {
     plane.calc_nav_roll();
-    if (plane.stick_mixing_enabled() && ((plane.g2.flight_options & FlightOptions::DISABLE_LOITER_ALT_CONTROL) == 0)) {
-        plane.update_fbwb_speed_height();
-    } else {
-        plane.calc_nav_pitch();
-        plane.calc_throttle();
-    }
+    plane.update_fbwb_speed_height();
 }
 
 bool ModeLoiter::isHeadingLinedUp(const Location loiterCenterLoc, const Location targetLoc)
@@ -91,4 +86,3 @@ void ModeLoiter::navigate()
     // Zero indicates to use WP_LOITER_RAD
     plane.update_loiter(0);
 }
-

@@ -698,26 +698,13 @@ class AutoTestQuadPlane(AutoTest):
             "ConfigErrorLoop": "failing because RC values not settable",
         }
 
-    def test_pilot_yaw(self):
-        self.takeoff(10, mode="QLOITER")
-        self.set_parameter("STICK_MIXING", 0)
-        self.set_rc(4, 1700)
-        for mode in "QLOITER", "QHOVER":
-            self.wait_heading(45)
-            self.wait_heading(90)
-            self.wait_heading(180)
-            self.wait_heading(275)
-        self.set_rc(4, 1500)
-        self.do_RTL()
-
     def weathervane_test(self):
         # We test nose into wind code paths and yaw direction in copter autotest,
         # so we shall test the side into wind yaw direction and plane code paths here.
         self.set_parameters({"SIM_WIND_SPD": 10,
                              "SIM_WIND_DIR": 240,
                              "Q_WVANE_ENABLE": 3, # WVANE_ENABLE = 3 gives direction of side into wind
-                             "Q_WVANE_GAIN": 3,
-                             "STICK_MIXING": 0})
+                             "Q_WVANE_GAIN": 3})
 
         self.takeoff(10, mode="QLOITER")
 
@@ -818,10 +805,6 @@ class AutoTestQuadPlane(AutoTest):
             ("TestAirMode", "Test airmode", self.test_airmode),
 
             ("TestMotorMask", "Test output_motor_mask", self.test_motor_mask),
-
-            ("PilotYaw",
-             "Test pilot yaw in various modes",
-             self.test_pilot_yaw),
 
             ("ParameterChecks",
              "Test Arming Parameter Checks",
