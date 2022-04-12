@@ -3,6 +3,9 @@
 
 bool ModeLoiter::_enter()
 {
+    plane.loiter.radius = abs(plane.aparm.loiter_radius);
+    plane.loiter.direction = plane.aparm.loiter_radius < 0 ? -1 : 1;
+    plane.loiter.navigate_last_ms = 0;
     plane.do_loiter_at_location();
     plane.setup_terrain_target_alt(plane.next_WP_loc);
 
@@ -81,6 +84,9 @@ void ModeLoiter::navigate()
     // update the WP alt from the global target adjusted by update_fbwb_speed_height
     plane.next_WP_loc.set_alt_cm(plane.target_altitude.amsl_cm, Location::AltFrame::ABSOLUTE);
 
+    // manual loiter radius and direction control
+    plane.update_loiter_radius_and_direction();
+
     // Zero indicates to use WP_LOITER_RAD
-    plane.update_loiter(0);
+    plane.update_loiter(lrintf(plane.loiter.radius));
 }
