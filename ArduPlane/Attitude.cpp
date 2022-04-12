@@ -142,7 +142,7 @@ float Plane::stabilize_pitch_get_pitch_out(float speed_scaler)
 #endif
 
     float throttle_pitch_mix_ratio = 0;
-    const float throttle_value = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
+    const float throttle_value = control_mode->does_auto_throttle() ? TECS_controller.get_throttle_demand() : get_throttle_input(true);
 
     if (is_positive(throttle_value)) {
         throttle_pitch_mix_ratio = square_curve_interpolate(0, 1, 100, throttle_value, aparm.throttle_cruise.get(), 100);
