@@ -1532,6 +1532,24 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(rc_failsafe, "RC_FS", 37, AP_OSD_Screen, AP_OSD_Setting),
 
+#if OSD_DEBUG_ELEMENT
+    // @Param: DEBUG_EN
+    // @DisplayName: DEBUG_EN
+    // @Description: Displays debug value
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: DEBUG_X
+    // @DisplayName: DEBUG_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: DEBUG_Y
+    // @DisplayName: DEBUG_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(debug, "DEBUG", 36, AP_OSD_Screen, AP_OSD_Setting),
+#endif
+
     AP_GROUPEND
 };
 
@@ -3480,6 +3498,13 @@ void AP_OSD_Screen::draw_rc_failsafe(uint8_t x, uint8_t y)
     }
 }
 
+#if OSD_DEBUG_ELEMENT
+void AP_OSD_Screen::draw_debug(uint8_t x, uint8_t y)
+{
+    WITH_SEMAPHORE(osd->get_semaphore());
+    backend->write(x, y, false, "%.1f", osd->_debug);
+}
+#endif
 
 // Plane specific elements
 
@@ -3807,6 +3832,9 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(tuned_param_name);
     DRAW_SETTING(tuned_param_value);
     DRAW_SETTING(rc_failsafe);
+#if OSD_DEBUG_ELEMENT
+    DRAW_SETTING(debug);
+#endif
 
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     DRAW_SETTING(aspeed);
