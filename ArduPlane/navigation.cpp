@@ -156,7 +156,7 @@ void Plane::calc_airspeed_errors()
 
 
     // FBW_B/cruise airspeed target
-    if (!failsafe.rc_failsafe && (control_mode == &mode_fbwb || control_mode == &mode_cruise || control_mode == &mode_loiter)) {
+    if (!failsafe.rc_failsafe && (control_mode == &mode_fbwb || control_mode == &mode_cruise || control_mode == &mode_loiter || control_mode == &mode_rtl)) {
         if (g2.flight_options & FlightOptions::CRUISE_TRIM_AIRSPEED) {
             target_airspeed_cm = aparm.airspeed_cruise_cm;
         } else if (g2.flight_options & FlightOptions::CRUISE_TRIM_THROTTLE) {
