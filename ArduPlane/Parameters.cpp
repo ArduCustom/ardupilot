@@ -1383,7 +1383,16 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Description: Selects what mode to switch to after arming
     // @Values: 0:Disabled,1:Takeoff,2:Auto
     // @User: Advanced
-    AP_GROUPINFO("ARMING_MODE_SW", 45, ParametersG2, arming_mode_sw, ARMING_MODE_SWITCH_DISABLED),
+    AP_GROUPINFO("ARMING_MODE_SW", 44, ParametersG2, arming_mode_sw, ARMING_MODE_SWITCH_DISABLED),
+
+    // @Param: TKOFF_IDL_DELAY
+    // @DisplayName: Takeoff idle throttle delay
+    // @Description: This parameter sets the delay between raising the throttle and the throttle actually starting to increase towards the set idle throttle value
+    // @Units: s
+    // @Range: 0 120
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("TKOFF_IDL_DELAY", 45, ParametersG2, takeoff_idle_thr_delay, 0),
 
     // @Param: TKOFF_IDL_SRATE
     // @DisplayName: Takeoff idle throttle slew rate
