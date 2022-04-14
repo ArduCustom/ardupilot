@@ -263,7 +263,7 @@ public:
         k_param_fs_action_long,
         k_param_gcs_heartbeat_fs_enabled,
         k_param_throttle_slewrate,
-        k_param_throttle_suppress_manual,
+        k_param_tkoff_manual_idle_thr,
         k_param_throttle_passthru_stabilize,
         k_param_rc_12_old,
         k_param_throttle_dz,
@@ -404,7 +404,7 @@ public:
 
     // Throttle
     //
-    AP_Int8 throttle_suppress_manual;
+    AP_Int8 tkoff_manual_idle_thr;
     AP_Int8 throttle_passthru_stabilize;
     AP_Int8 throttle_fs_enabled;
     AP_Int16 throttle_fs_value;
