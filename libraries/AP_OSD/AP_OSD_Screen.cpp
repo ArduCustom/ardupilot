@@ -3001,8 +3001,10 @@ void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
 #endif // APM_BUILD_TYPE(APM_BUILD_ArduPlane)
 
     y += 1;
-    backend->write(x, y, false, "MAX %cDIST", SYMBOL(SYM_HOME));
-    draw_distance(x+col_offset, y, ap_stats->get_boot_max_home_distance_m(), true, have_stats);
+    backend->write(x, y, false, "DST AG/MX");
+    draw_distance(x+col_offset, y, ap_stats->get_boot_avg_home_distance_m(), true, have_stats);
+    backend->write(x+col_offset+5, y, false, "/");
+    draw_distance(x+col_offset+5+1, y, ap_stats->get_boot_max_home_distance_m(), true, have_stats);
 
     y += 1;
     backend->write(x, y, false, "MAX ALT");
