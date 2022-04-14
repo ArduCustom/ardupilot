@@ -390,6 +390,7 @@ const AP_Scheduler::Task AP_Vehicle::scheduler_tasks[] = {
     SCHED_TASK(one_Hz_update,                                                         1, 100, 252),
 #endif
     SCHED_TASK(update_arming,          1,     50, 253),
+    SCHED_TASK(lost_vehicle_alarm_update, 1,  10, 254),
 };
 
 void AP_Vehicle::get_common_scheduler_tasks(const AP_Scheduler::Task*& tasks, uint8_t& num_tasks)
@@ -632,6 +633,21 @@ void AP_Vehicle::reboot(bool hold_in_bootloader)
     hal.scheduler->delay(200);
 
     hal.scheduler->reboot(hold_in_bootloader);
+}
+
+void AP_Vehicle::lost_vehicle_alarm_update(void)
+{
+    static bool once_armed = false;
+    static bool prev_rc_failsafe = false;
+
+    if (notify.flags.armed) {
+        once_armed = true;
+    }
+
+    if (rc_failsafe() != prev_rc_failsafe) {
+        notify.flags.vehicle_lost = once_armed && rc_failsafe();
+    }
+    prev_rc_failsafe = rc_failsafe();
 }
 
 #if OSD_ENABLED
