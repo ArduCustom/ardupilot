@@ -100,7 +100,11 @@ MSPCommandResult AP_MSP_Telem_DJI::msp_process_out_esc_sensor_data(sbuf_t *dst)
         if (osd == nullptr) {
             return MSP_RESULT_ERROR;
         }
-        highest_temperature = AP::stats()->get_boot_max_esc_temperature_degc();
+        {
+            const auto ap_stats = AP::stats();
+            WITH_SEMAPHORE(ap_stats->get_semaphore());
+            highest_temperature = ap_stats->get_boot_max_esc_temperature_degc();
+        }
 #endif
     }
 
@@ -132,14 +136,19 @@ void AP_MSP_Telem_DJI::update_home_pos(home_state_t &home_state)
     if (osd == nullptr) {
         return;
     }
-    // override telemetry with max distance and altitude info
-    // alternate max distance with traveled distance every 2 seconds
-    if (msp->_msp_status.slow_flashing_on) {
-        home_state.home_distance_m = AP::stats()->get_boot_max_home_distance_m();
-    } else {
-        home_state.home_distance_m = AP::stats()->get_boot_flying_ground_traveled_m();
+
+    {
+        const auto ap_stats = AP::stats();
+        WITH_SEMAPHORE(ap_stats->get_semaphore());
+        // override telemetry with max distance and altitude info
+        // alternate max distance with traveled distance every 2 seconds
+        if (msp->_msp_status.slow_flashing_on) {
+            home_state.home_distance_m = ap_stats->get_boot_max_home_distance_m();
+        } else {
+            home_state.home_distance_m = ap_stats->get_boot_flying_ground_traveled_m();
+        }
+        home_state.rel_altitude_cm = ap_stats->get_boot_max_relative_altitude_m() * 100;
     }
-    home_state.rel_altitude_cm = AP::stats()->get_boot_max_relative_altitude_m() * 100;
 #endif
 }
 
@@ -154,9 +163,14 @@ void AP_MSP_Telem_DJI::update_battery_state(battery_state_t &_battery_state)
     if (osd == nullptr) {
         return;
     }
-    // override telemetry with max current and voltage info
-    _battery_state.batt_current_a = AP::stats()->get_boot_max_flying_current_a();
-    _battery_state.batt_voltage_v = AP::stats()->get_boot_min_voltage_v();
+
+    {
+        const auto ap_stats = AP::stats();
+        WITH_SEMAPHORE(ap_stats->get_semaphore());
+        // override telemetry with max current and voltage info
+        _battery_state.batt_current_a = ap_stats->get_boot_max_flying_current_a();
+        _battery_state.batt_voltage_v = ap_stats->get_boot_min_voltage_v();
+    }
 #endif
 }
 
@@ -172,7 +186,11 @@ void AP_MSP_Telem_DJI::update_gps_state(gps_state_t &gps_state)
         return;
     }
     // override telemetry with max speed info
-    gps_state.speed_cms = AP::stats()->get_boot_max_ground_speed_mps() * 100;
+    {
+        const auto ap_stats = AP::stats();
+        WITH_SEMAPHORE(ap_stats->get_semaphore());
+        gps_state.speed_cms = ap_stats->get_boot_max_ground_speed_mps() * 100;
+    }
 #endif
 }
 
@@ -187,8 +205,13 @@ void AP_MSP_Telem_DJI::update_airspeed(airspeed_state_t &airspeed_state)
     if (osd == nullptr) {
         return;
     }
-    // override telemetry with max speed info
-    airspeed_state.airspeed_estimate_ms = AP::stats()->get_boot_max_air_speed_mps();
+
+    {
+        const auto ap_stats = AP::stats();
+        WITH_SEMAPHORE(ap_stats->get_semaphore());
+        // override telemetry with max speed info
+        airspeed_state.airspeed_estimate_ms = ap_stats->get_boot_max_air_speed_mps();
+    }
 #endif
 }
 
@@ -199,15 +222,14 @@ void AP_MSP_Telem_DJI::update_flight_mode_str(char *flight_mode_str, uint8_t siz
     if (!displaying_stats_screen()) {
         return;
     }
-    AP_Stats *stats = AP::stats();
-    if (stats != nullptr) {
-        uint32_t t = stats->get_boot_flying_time_s();
+    {
+        const auto ap_stats = AP::stats();
+        WITH_SEMAPHORE(ap_stats->get_semaphore());
+        uint32_t t = ap_stats->get_boot_flying_time_s();
         // need to check snprintf return value to prevent format-truncation warning in GCC because of -Werror=format-truncation
         if (snprintf(flight_mode_str, size, "%s %3u:%02u", "STATS", unsigned(t/60), unsigned(t%60)) < 0) {
             snprintf(flight_mode_str, size, "%s", "STATS --:--");
         }
-    } else {
-        snprintf(flight_mode_str, size, "%s", "STATS");
     }
 #endif
 }
@@ -234,7 +256,12 @@ bool AP_MSP_Telem_DJI::get_rssi(float &rssi) const
     }
     // override telemetry with min rssi info
     // Note: return false when min_rssi has not been updated yet by AP_OSD::update_stats()
-    const float min_rssi = AP::stats()->get_boot_min_rc_rssi();
+    float min_rssi;
+    {
+        const auto ap_stats = AP::stats();
+        WITH_SEMAPHORE(ap_stats->get_semaphore());
+        min_rssi = ap_stats->get_boot_min_rc_rssi();
+    }
     if (is_equal(min_rssi, FLT_MAX)) {
         return false;
     }

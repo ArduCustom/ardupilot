@@ -23,54 +23,54 @@ public:
 
     void set_flying(bool b);
 
+    HAL_Semaphore &get_semaphore(void) { return _sem; }
+
     uint32_t get_boot_flying_time_s(void);
     uint32_t get_total_flying_time_s(void);
     uint32_t get_boot_run_time_s(void);
     uint32_t get_total_run_time_s(void);
-    float    get_boot_flying_ground_traveled_m(void);
     float    get_total_flying_ground_traveled_m(void);
-    float    get_boot_flying_air_traveled_m(void);
     float    get_total_flying_air_traveled_m(void);
-    float    get_boot_flying_energy_wh(void);
     float    get_total_flying_energy_wh(void);
-    uint32_t get_boot_flying_mah(void);
     float    get_boot_avg_ground_speed_mps(void);
     float    get_total_avg_ground_speed_mps(void);
-    float    get_boot_max_ground_speed_mps(void);
     float    get_total_max_ground_speed_mps(void);
     float    get_boot_avg_air_speed_mps(void);
     float    get_total_avg_air_speed_mps(void);
-    float    get_boot_max_air_speed_mps(void);
     float    get_total_max_air_speed_mps(void);
-    float    get_boot_avg_wind_speed_mps(void);
     float    get_total_avg_wind_speed_mps(void);
-    float    get_boot_max_wind_speed_mps(void);
     float    get_total_max_wind_speed_mps(void);
-    uint32_t get_boot_max_home_distance_m(void);
     uint32_t get_total_max_home_distance_m(void);
-    uint32_t get_boot_max_relative_altitude_m(void);
     uint32_t get_total_max_relative_altitude_m(void);
-    float    get_boot_min_rc_rssi(void);
-    uint8_t  get_boot_min_rc_rssi_dbm(void);
-    uint16_t get_boot_max_rc_tx_power_mw(void);
-    float    get_boot_avg_flying_current_a(void);
     float    get_total_avg_flying_current_a(void);
-    float    get_boot_max_flying_current_a(void);
     float    get_total_max_flying_current_a(void);
-    float    get_boot_avg_flying_power_w(void);
     float    get_total_avg_flying_power_w(void);
-    float    get_boot_max_flying_power_w(void);
     float    get_total_max_flying_power_w(void);
-    float    get_boot_min_voltage_v(void);
-    float    get_boot_min_cell_voltage_v(void);
-    int16_t  get_boot_avg_esc_temperature_degc(void);
-    int16_t  get_boot_max_esc_temperature_degc(void);
 
-    bool available(void) {
-        WITH_SEMAPHORE(sem);
-        return _flying_sample_count > 0;
-    }
+    float get_boot_flying_ground_traveled_m(void) { return _boot_flying_ground_traveled_m; }
+    float get_boot_flying_air_traveled_m(void) { return _boot_flying_air_traveled_m; }
+    float get_boot_flying_energy_wh(void) { return _boot_flying_energy_wh; }
+    uint32_t get_boot_flying_mah(void) { return lrintf(_boot_flying_mah); }
+    float get_boot_max_ground_speed_mps(void) { return _boot_max_ground_speed_mps; }
+    float get_boot_max_air_speed_mps(void) { return _boot_max_air_speed_mps; }
+    float get_boot_avg_wind_speed_mps(void) { return _boot_avg_wind_speed_mps; }
+    float get_boot_max_wind_speed_mps(void) { return _boot_max_wind_speed_mps; }
+    uint32_t get_boot_max_home_distance_m(void) { return _boot_max_home_distance_m; }
+    uint32_t get_boot_max_relative_altitude_m(void) { return _boot_max_relative_altitude_m; }
+    float get_boot_min_rc_rssi(void) { return _boot_min_rc_rssi; }
+    uint8_t get_boot_min_rc_rssi_dbm(void) { return _boot_min_rc_rssi_dbm; }
+    uint16_t get_boot_max_rc_tx_power_mw(void) { return _boot_max_rc_tx_power_mw; }
+    float get_boot_avg_flying_current_a(void) { return _boot_avg_flying_current_a; }
+    float get_boot_max_flying_current_a(void) { return _boot_max_flying_current_a; }
+    float get_boot_avg_flying_power_w(void) { return _boot_avg_flying_power_w; }
+    float get_boot_max_flying_power_w(void) { return _boot_max_flying_power_w; }
+    float get_boot_min_voltage_v(void) { return _boot_min_voltage_v; }
+    float get_boot_min_cell_voltage_v(void) { return _boot_min_cell_voltage_v; }
+    int16_t get_boot_avg_esc_temperature_degc(void) { return _boot_avg_esc_temperature_degc; }
+    int16_t get_boot_max_esc_temperature_degc(void) { return _boot_max_esc_temperature_degc; }
 
+
+    bool available(void) { return _flying_sample_count > 0; }
     bool energy_is_available(void) const { return _energy_is_available; }
     bool mah_is_available(void) const { return _mah_is_available; }
     bool cell_voltage_is_available(void) const  { return _cell_voltage_is_available; }
@@ -79,20 +79,9 @@ public:
     bool flying_time_s_is_available(void) { return get_boot_flying_time_s() > 0; }
     bool avg_ground_speed_is_available(void) { return flying_time_s_is_available(); }
     bool avg_air_speed_is_available(void) { return flying_time_s_is_available(); }
-
-    bool wind_speeds_are_available(void) {
-        WITH_SEMAPHORE(sem);
-        return _flying_for_some_time_sample_count > 0;
-    }
-
-    bool min_rc_rssi_dbm_is_available(void) {
-        WITH_SEMAPHORE(sem);
-        return _boot_min_rc_rssi_dbm >= 0;
-    }
-    bool max_rc_tx_power_is_available(void) {
-        WITH_SEMAPHORE(sem);
-        return _boot_max_rc_tx_power_mw > 0;
-    }
+    bool wind_speeds_are_available(void) { return _flying_for_some_time_sample_count > 0; }
+    bool min_rc_rssi_dbm_is_available(void) { return _boot_min_rc_rssi_dbm >= 0; }
+    bool max_rc_tx_power_is_available(void) { return _boot_max_rc_tx_power_mw > 0; }
 
     // get singleton
     static AP_Stats *get_singleton(void) {
@@ -198,9 +187,9 @@ private:
 
     bool     _prev_load = false;
 
-    bool is_flying(void) const {
-        return _flying_start_tstamp_ms != 0;
-    }
+    HAL_Semaphore _sem;
+
+    bool is_flying(void) const { return _flying_start_tstamp_ms != 0; }
 
     void reset_params_if_requested(void);
     void update_flying_time(uint32_t flying_update_delta);
@@ -211,7 +200,6 @@ private:
     void update_flying_esc(uint32_t old_flying_sample_count, uint32_t new_flying_sample_count);
     bool has_been_flying_for_at_least_s(uint32_t time_s);
     float calc_total_avg(float total_boot_value, float boot_value);
-    HAL_Semaphore sem;
 };
 
 namespace AP {
