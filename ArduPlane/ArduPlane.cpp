@@ -460,24 +460,22 @@ void Plane::update_control_mode(void)
         steer_state.hold_course_cd = -1;
     }
 
-    if ((g2.flight_options & FlightOptions::ALLOW_GLIDING_IN_AUTO_THR_MODES) && control_mode->does_auto_throttle() && control_mode != &mode_takeoff && control_mode != &mode_auto) {
+    if ((g2.flight_options & FlightOptions::ALLOW_GLIDING_IN_AUTO_THR_MODES) && !rc_failsafe() && control_mode->does_auto_throttle() && control_mode != &mode_takeoff && control_mode != &mode_auto) {
 
-        if (failsafe.rc_failsafe) {
-            if (!prev_rc_failsafe_state) {
-                // if just entered failsafe state disable gliding
-                set_auto_thr_gliding(false);
-            } // else if was already in failsafe do nothing so that RTL can use it for emergency landing
-        } else {
-            set_auto_thr_gliding(get_throttle_input() < g.throttle_dz);
-        }
+        set_auto_thr_gliding(get_throttle_input() < g.throttle_dz);
 
         if (auto_thr_gliding_state == ATGS_GLIDING) {
             set_target_altitude_current();
         }
-    } else {
-        auto_thr_gliding_state = ATGS_DISABLED;
+
+    } else if (!rc_failsafe() || !plane.auto_state.emergency_landing) {
+        if (control_mode->does_auto_throttle()) {
+            set_auto_thr_gliding(false);
+        } else {
+            auto_thr_gliding_state = ATGS_DISABLED;
+            TECS_controller.set_auto_thr_gliding(false);
+        }
     }
-    prev_rc_failsafe_state = failsafe.rc_failsafe;
 
     update_fly_forward();
 

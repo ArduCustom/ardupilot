@@ -125,9 +125,9 @@ void ModeRTL::navigate()
 
         if (plane.failsafe.rc_failsafe &&
             !(plane.mission.contains_item(MAV_CMD_DO_LAND_START) && (plane.g.rtl_autoland == RtlAutoland::RTL_THEN_DO_LAND_START || plane.g.rtl_autoland == RtlAutoland::RTL_IMMEDIATE_DO_LAND_START)) &&
-            plane.g2.flight_options & FlightOptions::RTL_FAILSAFE_LAND_AFTER_2MIN && plane.reached_loiter_target()) {
+            plane.g.fs_emergency_landing_delay > -1 && plane.reached_loiter_target()) {
             if (plane.auto_state.reached_home_in_fs_ms) {
-                if (now - plane.auto_state.reached_home_in_fs_ms > 120000) {
+                if (now - plane.auto_state.reached_home_in_fs_ms > uint32_t(MAX(0, plane.g.fs_emergency_landing_delay)) * 1000) {
                     plane.set_auto_thr_gliding(true);
                     if (!plane.auto_state.emergency_landing) {
                         plane.auto_state.emergency_landing = true;
@@ -142,8 +142,7 @@ void ModeRTL::navigate()
             if (plane.auto_state.emergency_landing && plane.relative_altitude < 10) {
                 plane.auto_state.reached_emergency_landing_no_return_altitude = true;
             }
-        } else if (plane.emergency_landing && !plane.auto_state.reached_emergency_landing_no_return_altitude) {
-            plane.set_auto_thr_gliding(false);
+        } else if (!plane.auto_state.reached_emergency_landing_no_return_altitude) {
             plane.auto_state.emergency_landing = false;
             plane.auto_state.reached_home_in_fs_ms = 0;
         }
