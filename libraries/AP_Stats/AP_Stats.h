@@ -131,10 +131,12 @@ private:
 
     uint32_t _boot_tstamp_ms = 0;
     uint32_t _flying_start_tstamp_ms = 0;
-    uint32_t _last_update_tstamp_ms = 0;
+    uint32_t _last_slow_update_tstamp_ms = 0;
     uint32_t _last_update_flying_tstamp_ms = 0;
+    uint32_t _last_slow_update_flying_tstamp_ms = 0;
 
     uint32_t _flying_sample_count = 0;
+    uint32_t _flying_slow_update_sample_count = 0;
     uint32_t _flying_for_some_time_sample_count = 0;
 
     float    _prev_update_energy_wh = 0;
@@ -203,6 +205,7 @@ private:
 
     void reset_params_if_requested(void);
     void update_flying_time(uint32_t flying_update_delta);
+    void update_flying_travel(uint32_t flying_update_delta, uint32_t old_flying_sample_count, uint32_t new_flying_sample_count);
     void update_flying_distances_and_speeds(uint32_t flying_update_delta, uint32_t old_flying_sample_count, uint32_t new_flying_sample_count);
     void update_flying_current_and_power(uint32_t old_flying_sample_count, uint32_t new_flying_sample_count);
     void update_battery(void);
