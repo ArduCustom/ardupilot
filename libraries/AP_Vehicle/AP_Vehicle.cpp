@@ -317,6 +317,7 @@ const AP_Scheduler::Task AP_Vehicle::scheduler_tasks[] = {
 #if HAL_EFI_ENABLED
     SCHED_TASK_CLASS(AP_EFI,       &vehicle.efi,            update,                   10, 200, 250),
 #endif
+    SCHED_TASK(lost_vehicle_alarm_update, 1, 10, 250),
 };
 
 void AP_Vehicle::get_common_scheduler_tasks(const AP_Scheduler::Task*& tasks, uint8_t& num_tasks)
@@ -456,6 +457,17 @@ void AP_Vehicle::reboot(bool hold_in_bootloader)
     hal.scheduler->delay(200);
 
     hal.scheduler->reboot(hold_in_bootloader);
+}
+
+void AP_Vehicle::lost_vehicle_alarm_update(void)
+{
+    static bool once_armed = false;
+
+    if (notify.flags.armed) {
+        once_armed = true;
+    }
+
+    notify.flags.vehicle_lost = once_armed && rc_failsafe();
 }
 
 #if OSD_ENABLED
