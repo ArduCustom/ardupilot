@@ -1880,7 +1880,7 @@ class AutoTest(ABC):
         """Reboot SITL instance using mavlink and wait for it to reconnect."""
         # we must make sure that stats have been reset - otherwise
         # when we reboot we'll reset statistics again and lose our
-        # STAT_BOOTCNT increment:
+        # STAT_BOOT_CNT increment:
         tstart = time.time()
         while True:
             if time.time() - tstart > 30:
@@ -1888,7 +1888,7 @@ class AutoTest(ABC):
             if self.get_parameter('STAT_RESET', timeout_in_wallclock=True) != 0:
                 break
 
-        old_bootcount = self.get_parameter('STAT_BOOTCNT')
+        old_bootcount = self.get_parameter('STAT_BOOT_CNT')
         # ardupilot SITL may actually NAK the reboot; replace with
         # run_cmd when we don't do that.
         if self.valgrind or self.callgrind:
@@ -1931,7 +1931,7 @@ class AutoTest(ABC):
 
     def reboot_sitl_mavproxy(self, required_bootcount=None):
         """Reboot SITL instance using MAVProxy and wait for it to reconnect."""
-        old_bootcount = self.get_parameter('STAT_BOOTCNT')
+        old_bootcount = self.get_parameter('STAT_BOOT_CNT')
         self.mavproxy.send("reboot\n")
         self.detect_and_handle_reboot(old_bootcount, required_bootcount=required_bootcount)
 
@@ -1943,7 +1943,7 @@ class AutoTest(ABC):
             if time.time() - tstart > timeout:
                 raise AutoTestTimeoutException("Did not detect reboot")
             try:
-                current_bootcount = self.get_parameter('STAT_BOOTCNT',
+                current_bootcount = self.get_parameter('STAT_BOOT_CNT',
                                                        timeout=1,
                                                        attempts=1,
                                                        verbose=True,
@@ -9378,7 +9378,7 @@ Also, ignores heartbeats not from our target system'''
         new_parameter_value = old_parameter_value + 5
         ex = None
         try:
-            self.set_parameter("STAT_BOOTCNT", 0)
+            self.set_parameter("STAT_BOOT_CNT", 0)
             self.set_parameter("SIM_BARO_COUNT", -1)
 
             if self.is_tracker():
