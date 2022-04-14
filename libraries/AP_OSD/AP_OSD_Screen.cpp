@@ -2900,6 +2900,7 @@ void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
 {
     AP_BattMonitor &battery = AP::battery();
     const auto ap_stats = AP::stats();
+    WITH_SEMAPHORE(ap_stats->get_semaphore());
     const bool have_stats = ap_stats->available();
     const uint8_t col_offset = 11;
 
@@ -2993,7 +2994,7 @@ void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
 
     y += 1;
     backend->write(x, y, false, "FLT TIME");
-    uint32_t flight_time_s = AP::stats()->get_boot_flying_time_s();
+    uint32_t flight_time_s = ap_stats->get_boot_flying_time_s();
     if (!flight_time_s) {
         backend->write(x+col_offset+1, y, false, "---:--");
     } else {
@@ -3124,12 +3125,15 @@ void AP_OSD_Screen::draw_tuned_param_value(uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_traveled_ground_distance(uint8_t x, uint8_t y)
 {
     backend->write(x, y, false, "%c", SYMBOL(SYM_DIST));
-    draw_distance(x+1, y, AP::stats()->get_boot_flying_ground_traveled_m(), true);
+    const auto ap_stats = AP::stats();
+    WITH_SEMAPHORE(ap_stats->get_semaphore());
+    draw_distance(x+1, y, ap_stats->get_boot_flying_ground_traveled_m(), true);
 }
 
 void  AP_OSD_Screen::draw_flightime(uint8_t x, uint8_t y)
 {
-    AP_Stats *ap_stats = AP::stats();
+    const auto ap_stats = AP::stats();
+    WITH_SEMAPHORE(ap_stats->get_semaphore());
     if (ap_stats) {
         uint32_t t = ap_stats->get_boot_flying_time_s();
         backend->write(x, y, false, "%c%3u:%02u", SYMBOL(SYM_FLY), unsigned(t/60), unsigned(t%60));
@@ -3211,6 +3215,7 @@ void AP_OSD_Screen::draw_avg_eff(uint8_t x, uint8_t y, const float distance_trav
     }
 
     const auto ap_stats = AP::stats();
+    WITH_SEMAPHORE(ap_stats->get_semaphore());
     const float distance_travelled_km = distance_travelled_m * 0.001f;
     if (is_positive(distance_travelled_km)) {
         if (eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH) {
@@ -3234,7 +3239,9 @@ invalid:
 
 void AP_OSD_Screen::draw_avg_eff_ground(uint8_t x, uint8_t y, bool draw_eff_symbol)
 {
-    draw_avg_eff(x, y, AP::stats()->get_boot_flying_ground_traveled_m(), draw_eff_symbol);
+    const auto ap_stats = AP::stats();
+    WITH_SEMAPHORE(ap_stats->get_semaphore());
+    draw_avg_eff(x, y, ap_stats->get_boot_flying_ground_traveled_m(), draw_eff_symbol);
 }
 
 void AP_OSD_Screen::draw_climbeff(uint8_t x, uint8_t y)
@@ -3713,7 +3720,9 @@ void AP_OSD_Screen::draw_eff_air(uint8_t x, uint8_t y)
 void AP_OSD_Screen::draw_avg_eff_air(uint8_t x, uint8_t y, bool draw_eff_symbol)
 {
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
-    draw_avg_eff(x, y, AP::stats()->get_boot_flying_air_traveled_m(), draw_eff_symbol);
+    const auto ap_stats = AP::stats();
+    WITH_SEMAPHORE(ap_stats->get_semaphore());
+    draw_avg_eff(x, y, ap_stats->get_boot_flying_air_traveled_m(), draw_eff_symbol);
 #endif
 }
 
