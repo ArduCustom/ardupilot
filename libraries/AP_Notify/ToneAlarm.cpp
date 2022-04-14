@@ -99,11 +99,12 @@ const AP_ToneAlarm::Tone AP_ToneAlarm::_tones[] {
 #define AP_NOTIFY_TONE_EKF_ALERT 31
     { "MBNT255>A#8A#8A#8A#8P8A#8A#8A#8A#8P8A#8A#8A#8A#8P8A#8A#8A#8A#8", true },
 #define AP_NOTIFY_TONE_WAITING_TO_RAISE_THROTTLE 32
-    // { "MBT32L64 O5aaP32aaP32aaP32aaP32aaP32aaP32aaP32aaP32aaP32", true },
     { "MBT32L64 O5aaaP8aaaP8aaaP8aaaP8aaaP8aaaP8aaaP8aaaP8", true },
-#define AP_NOTIFY_TONE_WAITING_FOR_IDLE_THROTTLE 33
+#define AP_NOTIFY_TONE_IDLE_THROTTLE_DELAY 33
+    { "MBT120L8 O4CO1aaP4O4CO1aaP4O4CO1aaP4O4CO1aaP4O4CO1aaP4", true },
+#define AP_NOTIFY_TONE_WAITING_FOR_IDLE_THROTTLE 34
     { "MBT32L64 O1cdefgab", true },
-#define AP_NOTIFY_TONE_WAITING_FOR_LAUNCH 34
+#define AP_NOTIFY_TONE_WAITING_FOR_LAUNCH 35
     { "MBT32L64 O5aP4aP4aP4aP4aP4aP4", true },
 };
 
@@ -459,6 +460,9 @@ void AP_ToneAlarm::update()
         switch(_takeoff_status) {
             case AP_Notify::TKOFS_WAITING_TO_RAISE_THROTTLE:
                 play_tone(AP_NOTIFY_TONE_WAITING_TO_RAISE_THROTTLE);
+                break;
+            case AP_Notify::TKOFS_IDLE_THROTTLE_DELAY:
+                play_tone(AP_NOTIFY_TONE_IDLE_THROTTLE_DELAY);
                 break;
             case AP_Notify::TKOFS_WAITING_FOR_IDLE_THROTTLE:
                 play_tone(AP_NOTIFY_TONE_WAITING_FOR_IDLE_THROTTLE);
