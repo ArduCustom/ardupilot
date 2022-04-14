@@ -15,12 +15,12 @@ const extern AP_HAL::HAL& hal;
 // table of user settable parameters
 const AP_Param::GroupInfo AP_Stats::var_info[] = {
 
-    // @Param: _BOOTCNT
+    // @Param: _BOOT_CNT
     // @DisplayName: Boot Count
     // @Description: Number of times board has been booted
     // @ReadOnly: True
     // @User: Standard
-    AP_GROUPINFO("_BOOTCNT",    0, AP_Stats, params.boot_count, 0),
+    AP_GROUPINFO("_BOOT_CNT",    0, AP_Stats, params.boot_count, 0),
 
     // @Param: _FLT_TIME
     // @DisplayName: Total flight time
@@ -175,6 +175,21 @@ const AP_Param::GroupInfo AP_Stats::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_LOAD",    19, AP_Stats, params.load, 0),
 
+    // @Param: _FLT_CNT
+    // @DisplayName: Flight counter
+    // @Description: Number of times the aircraft has been flying
+    // @ReadOnly: True
+    // @User: Standard
+    AP_GROUPINFO("_FLT_CNT",    20, AP_Stats, params.flight_count, 0),
+
+    // @Param: _HOMEDST_AVG
+    // @DisplayName: Average home distance
+    // @Description: Average home distance
+    // @Units: m
+    // @ReadOnly: True
+    // @User: Standard
+    AP_GROUPINFO("_HOMEDST_AVG",  21, AP_Stats, params.avg_home_distance_m, 0),
+
     AP_GROUPEND
 };
 
@@ -198,6 +213,7 @@ void AP_Stats::copy_variables_from_parameters()
     _total_boot_max_air_speed_mps = params.max_air_speed_mps;
     _total_boot_avg_wind_speed_mps = params.avg_wind_speed_mps;
     _total_boot_max_wind_speed_mps = params.max_wind_speed_mps;
+    _total_boot_avg_home_distance_m = params.avg_home_distance_m;
     _total_boot_max_home_distance_m = params.max_home_distance_m;
     _total_boot_max_relative_altitude_m = params.max_relative_altitude_m;
     _total_boot_avg_flying_current_a = params.avg_flying_current_a;
@@ -205,6 +221,7 @@ void AP_Stats::copy_variables_from_parameters()
     _total_boot_avg_flying_power_w = params.avg_flying_power_w;
     _total_boot_max_flying_power_w = params.max_flying_power_w;
     _total_boot_run_time_s = params.run_time;
+    _total_boot_flight_count = params.flight_count;
     _reset_tstamp_s = params.reset;
 }
 
@@ -232,12 +249,14 @@ void AP_Stats::flush()
     params.max_air_speed_mps.set_and_save_ifchanged(get_total_max_air_speed_mps());
     params.avg_wind_speed_mps.set_and_save_ifchanged(get_total_avg_wind_speed_mps());
     params.max_wind_speed_mps.set_and_save_ifchanged(get_total_max_wind_speed_mps());
+    params.avg_home_distance_m.set_and_save_ifchanged(get_total_avg_home_distance_m());
     params.max_home_distance_m.set_and_save_ifchanged(get_total_max_home_distance_m());
     params.max_relative_altitude_m.set_and_save_ifchanged(get_total_max_relative_altitude_m());
     params.avg_flying_current_a.set_and_save_ifchanged(get_total_avg_flying_current_a());
     params.max_flying_current_a.set_and_save_ifchanged(get_total_max_flying_current_a());
     params.avg_flying_power_w.set_and_save_ifchanged(get_total_avg_flying_power_w());
     params.max_flying_power_w.set_and_save_ifchanged(get_total_max_flying_power_w());
+    params.flight_count.set_and_save_ifchanged(get_total_flight_count());
     params.run_time.set_and_save_ifchanged(get_total_run_time_s());
 }
 
@@ -305,10 +324,11 @@ void AP_Stats::update_flying_distances_and_speeds(uint32_t flying_update_delta, 
         _boot_flying_air_traveled_m += air_distance_m;
     }
 
-    // maximum distance from home
+    // average and maximum distance from home
     if (home_is_set) {
-        const uint32_t distance = lrintf(home_loc.get_distance(loc));
-        _boot_max_home_distance_m = fmaxf(_boot_max_home_distance_m, distance);
+        const uint32_t home_distance = lrintf(home_loc.get_distance(loc));
+        _boot_max_home_distance_m = fmaxf(_boot_max_home_distance_m, home_distance);
+        _boot_avg_home_distance_m = (_boot_avg_home_distance_m * old_flying_sample_count + home_distance) / new_flying_sample_count;
     }
 
     // maximum altitude
@@ -419,12 +439,14 @@ void AP_Stats::reset_params_if_requested(void)
         params.max_air_speed_mps.set_and_save_ifchanged(0);
         params.avg_wind_speed_mps.set_and_save_ifchanged(0);
         params.max_wind_speed_mps.set_and_save_ifchanged(0);
+        params.avg_home_distance_m.set_and_save_ifchanged(0);
         params.max_home_distance_m.set_and_save_ifchanged(0);
         params.max_relative_altitude_m.set_and_save_ifchanged(0);
         params.avg_flying_current_a.set_and_save_ifchanged(0);
         params.max_flying_current_a.set_and_save_ifchanged(0);
         params.avg_flying_power_w.set_and_save_ifchanged(0);
         params.max_flying_power_w.set_and_save_ifchanged(0);
+        params.flight_count.set_and_save_ifchanged(0);
         params.run_time.set_and_save_ifchanged(0);
         params.load.set_and_save_ifchanged(0);
         _boot_tstamp_ms = AP_HAL::millis();
@@ -504,6 +526,7 @@ void AP_Stats::set_flying(const bool status)
     WITH_SEMAPHORE(_sem);
     if (status) {
         if (!_flying_start_tstamp_ms) {
+            _boot_flight_count += 1;
             _flying_start_tstamp_ms = AP_HAL::millis();
         }
     } else {
@@ -511,7 +534,7 @@ void AP_Stats::set_flying(const bool status)
     }
 }
 
-float AP_Stats::calc_total_avg(float total_boot_value, float boot_value)
+float AP_Stats::calc_total_flying_time_related_avg(float total_boot_value, float boot_value)
 {
     const uint32_t boot_flying_time_s = get_boot_flying_time_s();
     const uint32_t total_flying_time_s = _total_boot_flying_time_s + boot_flying_time_s;
@@ -569,7 +592,7 @@ float AP_Stats::get_boot_avg_ground_speed_mps(void)
 
 float AP_Stats::get_total_avg_ground_speed_mps(void)
 {
-    return calc_total_avg(_total_boot_avg_ground_speed_mps, get_boot_avg_ground_speed_mps());
+    return calc_total_flying_time_related_avg(_total_boot_avg_ground_speed_mps, get_boot_avg_ground_speed_mps());
 }
 
 float AP_Stats::get_total_max_ground_speed_mps(void)
@@ -586,7 +609,7 @@ float AP_Stats::get_boot_avg_air_speed_mps(void)
 
 float AP_Stats::get_total_avg_air_speed_mps(void)
 {
-    return calc_total_avg(_total_boot_avg_air_speed_mps, get_boot_avg_air_speed_mps());
+    return calc_total_flying_time_related_avg(_total_boot_avg_air_speed_mps, get_boot_avg_air_speed_mps());
 }
 
 float AP_Stats::get_total_max_air_speed_mps(void)
@@ -596,12 +619,17 @@ float AP_Stats::get_total_max_air_speed_mps(void)
 
 float AP_Stats::get_total_avg_wind_speed_mps(void)
 {
-    return calc_total_avg(_total_boot_avg_wind_speed_mps, get_boot_avg_wind_speed_mps());
+    return calc_total_flying_time_related_avg(_total_boot_avg_wind_speed_mps, get_boot_avg_wind_speed_mps());
 }
 
 float AP_Stats::get_total_max_wind_speed_mps(void)
 {
     return MAX(_total_boot_max_wind_speed_mps, get_boot_max_wind_speed_mps());
+}
+
+uint32_t AP_Stats::get_total_avg_home_distance_m(void)
+{
+    return calc_total_flying_time_related_avg(_total_boot_avg_home_distance_m, get_boot_avg_home_distance_m());
 }
 
 uint32_t AP_Stats::get_total_max_home_distance_m(void)
@@ -616,7 +644,7 @@ uint32_t AP_Stats::get_total_max_relative_altitude_m(void)
 
 float AP_Stats::get_total_avg_flying_current_a(void)
 {
-    return calc_total_avg(_total_boot_avg_flying_current_a, get_boot_avg_flying_current_a());
+    return calc_total_flying_time_related_avg(_total_boot_avg_flying_current_a, get_boot_avg_flying_current_a());
 }
 
 float AP_Stats::get_total_max_flying_current_a(void)
@@ -626,12 +654,17 @@ float AP_Stats::get_total_max_flying_current_a(void)
 
 float AP_Stats::get_total_avg_flying_power_w(void)
 {
-    return calc_total_avg(_total_boot_avg_flying_power_w, get_boot_avg_flying_power_w());
+    return calc_total_flying_time_related_avg(_total_boot_avg_flying_power_w, get_boot_avg_flying_power_w());
 }
 
 float AP_Stats::get_total_max_flying_power_w(void)
 {
     return MAX(_total_boot_max_flying_power_w, get_boot_max_flying_power_w());
+}
+
+uint32_t AP_Stats::get_total_flight_count(void)
+{
+    return _total_boot_flight_count + _boot_flight_count;
 }
 
 AP_Stats *AP::stats(void)
