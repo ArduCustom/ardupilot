@@ -676,7 +676,8 @@ void Plane::set_servos_controlled(void)
             if (g.tkoff_manual_idle_thr) {
                 // manual pass through of throttle while throttle is suppressed
                 throttle_output = throttle_input;
-                AP_Notify::takeoff_status = AP_Notify::TKOFS_WAITING_FOR_LAUNCH;
+                const float current_throttle = SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle);
+                AP_Notify::takeoff_status = current_throttle < throttle_input ? AP_Notify::TKOFS_WAITING_FOR_IDLE_THROTTLE : AP_Notify::TKOFS_WAITING_FOR_LAUNCH;
             } else if (!is_zero(g2.takeoff_idle_thr)) {
                 if (!is_zero(throttle_input)) {
                     throttle_output = g2.takeoff_idle_thr;
@@ -690,10 +691,28 @@ void Plane::set_servos_controlled(void)
                 throttle_output = 0;
                 AP_Notify::takeoff_status = AP_Notify::TKOFS_WAITING_FOR_LAUNCH;
             }
-            const float slew_rate = is_zero(throttle_output) ? 0 : g2.takeoff_idle_thr_slewrate;
-            SRV_Channels::set_slew_rate(SRV_Channel::k_throttle, slew_rate, 100, G_Dt);
+
+            if (is_zero(throttle_output)) takeoff_delay_start_tstamp_ms = 0;
+
+            const uint8_t takeoff_idle_thr_delay = MAX(0, g2.takeoff_idle_thr_delay);
+            if (takeoff_idle_thr_delay) {
+                const uint32_t now = AP_HAL::millis();
+                if (!takeoff_delay_start_tstamp_ms) {
+                    if (!is_zero(throttle_output)) {
+                        takeoff_delay_start_tstamp_ms = now;
+                        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "TKOFF idle THR timer started");
+                    }
+                    throttle_output = 0;
+                } else if (now - takeoff_delay_start_tstamp_ms < uint32_t(takeoff_idle_thr_delay) * 1000) {
+                    AP_Notify::takeoff_status = AP_Notify::TKOFS_IDLE_THROTTLE_DELAY;
+                    throttle_output = 0;
+                }
+            }
+
+            SRV_Channels::set_slew_rate(SRV_Channel::k_throttle, g2.takeoff_idle_thr_slewrate, 100, G_Dt);
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle_output);
         } else {
+            takeoff_delay_start_tstamp_ms = 0;
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0.0); // default
         }
         TECS_controller.set_throttle_demand(square_expo_curve_100(SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle), g2.throttle_expo_auto));
