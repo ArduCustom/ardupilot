@@ -123,6 +123,7 @@ public:
     typedef enum {
         TKOFS_IDLE,
         TKOFS_WAITING_TO_RAISE_THROTTLE,
+        TKOFS_IDLE_THROTTLE_DELAY,
         TKOFS_WAITING_FOR_IDLE_THROTTLE,
         TKOFS_WAITING_FOR_LAUNCH,
     } takeoffStatus;
