@@ -487,12 +487,12 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Advanced
     GSCALAR(flap_slewrate,          "FLAP_SLEWRATE",   75),
 
-    // @Param: THR_SUPP_MAN
-    // @DisplayName: Throttle suppress manual passthru
-    // @Description: When throttle is suppressed in auto mode it is normally forced to zero. If you enable this option, then while suppressed it will be manual throttle. This is useful on petrol engines to hold the idle throttle manually while waiting for takeoff
+    // @Param: TKOFF_IDL_MAN
+    // @DisplayName: Takeoff idle throttle manual or not
+    // @Description: If this is set to one when in auto takeoff state either in auto or takeoff modes then the user has manual control over the takeoff idle throttle
 	// @Values: 0:Disabled,1:Enabled
     // @User: Advanced
-    GSCALAR(throttle_suppress_manual,"THR_SUPP_MAN",   0),
+    GSCALAR(tkoff_manual_idle_thr,"TKOFF_IDL_MAN",   0),
 
     // @Param: THR_PASS_STAB
     // @DisplayName: Throttle passthru in stabilize
