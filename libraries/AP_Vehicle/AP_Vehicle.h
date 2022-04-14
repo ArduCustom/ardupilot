@@ -432,6 +432,8 @@ protected:
     static const struct AP_Param::GroupInfo var_info[];
     static const struct AP_Scheduler::Task scheduler_tasks[];
 
+    void lost_vehicle_alarm_update(void);
+
 #if OSD_ENABLED
     void publish_osd_info();
 #endif

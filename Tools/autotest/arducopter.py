@@ -8879,8 +8879,8 @@ class AutoTestCopter(AutoTest):
         if not lines[0].startswith("TasksV2"):
             raise NotAchievedException("Expected TasksV2 as first line first not (%s)" % lines[0])
         # last line is empty, so -2 here
-        if not lines[-2].startswith("AP_Vehicle::update_arming"):
-            raise NotAchievedException("Expected EFI last not (%s)" % lines[-2])
+        if not lines[-2].startswith("AP_Vehicle::lost_vehicle_alarm_u"):
+            raise NotAchievedException("Expected lost_vehicle_alarm_update last not (%s)" % lines[-2])
 
     def RTL_TO_RALLY(self, target_system=1, target_component=1):
         '''Check RTL to rally point'''
