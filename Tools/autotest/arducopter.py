@@ -8333,8 +8333,8 @@ class AutoTestCopter(AutoTest):
         if not lines[1].startswith("fast_loop"):
             raise NotAchievedException("Expected fast_loop first, not (%s)" % lines[1])
         # last line is empty, so -2 here
-        if not lines[-2].startswith("AP_EFI::update"):
-            raise NotAchievedException("Expected EFI last not (%s)" % lines[-2])
+        if not lines[-2].startswith("AP_Vehicle::lost_vehicle_alarm_u"):
+            raise NotAchievedException("Expected lost_vehicle_alarm_update last not (%s)" % lines[-2])
 
     def tests1a(self):
         '''return list of all tests'''
