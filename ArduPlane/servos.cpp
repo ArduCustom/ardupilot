@@ -672,24 +672,27 @@ void Plane::set_servos_controlled(void)
         } else if ((control_mode == &mode_auto && flight_stage == AP_Vehicle::FixedWing::FLIGHT_NORMAL &&
             mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF) || control_mode == &mode_takeoff) {
             float throttle_input = get_throttle_input(false);
-            if (g.throttle_suppress_manual) {
+            float throttle_output;
+            if (g.tkoff_manual_idle_thr) {
                 // manual pass through of throttle while throttle is suppressed
-                SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle_input);
+                throttle_output = throttle_input;
                 AP_Notify::takeoff_status = AP_Notify::TKOFS_WAITING_FOR_LAUNCH;
             } else if (!is_zero(g2.takeoff_idle_thr)) {
                 if (!is_zero(throttle_input)) {
-                    SRV_Channels::set_slew_rate(SRV_Channel::k_throttle, g2.takeoff_idle_thr_slewrate, 100, G_Dt);
-                    SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, g2.takeoff_idle_thr);
+                    throttle_output = g2.takeoff_idle_thr;
                     const float current_throttle = SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle);
                     AP_Notify::takeoff_status = current_throttle < g2.takeoff_idle_thr ? AP_Notify::TKOFS_WAITING_FOR_IDLE_THROTTLE : AP_Notify::TKOFS_WAITING_FOR_LAUNCH;
                 } else {
-                    SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0.0); // default
+                    throttle_output = 0;
                     AP_Notify::takeoff_status = AP_Notify::TKOFS_WAITING_TO_RAISE_THROTTLE;
                 }
             } else {
-                SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0.0); // default
+                throttle_output = 0;
                 AP_Notify::takeoff_status = AP_Notify::TKOFS_WAITING_FOR_LAUNCH;
             }
+            const float slew_rate = is_zero(throttle_output) ? 0 : g2.takeoff_idle_thr_slewrate;
+            SRV_Channels::set_slew_rate(SRV_Channel::k_throttle, slew_rate, 100, G_Dt);
+            SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle_output);
         } else {
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0.0); // default
         }
