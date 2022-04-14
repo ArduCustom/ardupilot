@@ -24,8 +24,12 @@ bool ModeAuto::_enter()
     plane.auto_state.vtol_mode = false;
 #endif
     plane.next_WP_loc = plane.prev_WP_loc = plane.current_loc;
-    // start or resume the mission, based on MIS_AUTORESET
-    plane.mission.start_or_resume();
+
+    if (plane.is_flying() || !(plane.mission.starts_with_takeoff_cmd(true))) {
+        plane.mission.start_or_resume();
+    } else {
+        plane.mission.start();
+    }
 
     if (hal.util->was_watchdog_armed()) {
         if (hal.util->persistent_data.waypoint_num != 0) {
