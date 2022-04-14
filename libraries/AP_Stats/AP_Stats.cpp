@@ -449,40 +449,42 @@ void AP_Stats::reset_params_if_requested(void)
 
 void AP_Stats::update()
 {
-    WITH_SEMAPHORE(sem);
-
-    if (params.load) {
-        _prev_load = true;
-        return;
-    } else if (_prev_load) {
-        copy_variables_from_parameters();
-        _prev_load = false;
-    }
-
     const uint32_t now_ms = AP_HAL::millis();
 
-    if (is_flying()) {
-        if (_last_update_flying_tstamp_ms) {
-            uint32_t new_flying_sample_count = _flying_sample_count + 1;
-            const uint32_t flying_update_delta = now_ms - _last_update_flying_tstamp_ms;
+    {
+        WITH_SEMAPHORE(_sem);
 
-            update_flying_time(flying_update_delta);
-            update_flying_distances_and_speeds(flying_update_delta, _flying_sample_count, new_flying_sample_count);
-            update_flying_current_and_power(_flying_sample_count, new_flying_sample_count);
-            update_flying_rc(_flying_sample_count, new_flying_sample_count);
-
-            #if HAL_WITH_ESC_TELEM
-            update_flying_esc(_flying_sample_count, new_flying_sample_count);
-            #endif
-
-            _flying_sample_count = new_flying_sample_count;
+        if (params.load) {
+            _prev_load = true;
+            return;
+        } else if (_prev_load) {
+            copy_variables_from_parameters();
+            _prev_load = false;
         }
-        _last_update_flying_tstamp_ms = now_ms;
-    } else {
-        _last_update_flying_tstamp_ms = 0;
-    }
 
-    update_battery();
+        if (is_flying()) {
+            if (_last_update_flying_tstamp_ms) {
+                uint32_t new_flying_sample_count = _flying_sample_count + 1;
+                const uint32_t flying_update_delta = now_ms - _last_update_flying_tstamp_ms;
+
+                update_flying_time(flying_update_delta);
+                update_flying_distances_and_speeds(flying_update_delta, _flying_sample_count, new_flying_sample_count);
+                update_flying_current_and_power(_flying_sample_count, new_flying_sample_count);
+                update_flying_rc(_flying_sample_count, new_flying_sample_count);
+
+                #if HAL_WITH_ESC_TELEM
+                update_flying_esc(_flying_sample_count, new_flying_sample_count);
+                #endif
+
+                _flying_sample_count = new_flying_sample_count;
+            }
+            _last_update_flying_tstamp_ms = now_ms;
+        } else {
+            _last_update_flying_tstamp_ms = 0;
+        }
+
+        update_battery();
+    }
 
     if (_flush_tstamp_ms) {
         if (now_ms - _flush_tstamp_ms > flush_interval_ms) {
@@ -499,7 +501,7 @@ void AP_Stats::update()
 
 void AP_Stats::set_flying(const bool status)
 {
-    WITH_SEMAPHORE(sem);
+    WITH_SEMAPHORE(_sem);
     if (status) {
         if (!_flying_start_tstamp_ms) {
             _flying_start_tstamp_ms = AP_HAL::millis();
@@ -524,7 +526,6 @@ bool AP_Stats::has_been_flying_for_at_least_s(uint32_t time_s)
 
 uint32_t AP_Stats::get_boot_flying_time_s(void)
 {
-    WITH_SEMAPHORE(sem);
     return _boot_flying_time_ms / 1000;
 }
 
@@ -535,7 +536,6 @@ uint32_t AP_Stats::get_total_flying_time_s(void)
 
 uint32_t AP_Stats::get_boot_run_time_s(void)
 {
-    WITH_SEMAPHORE(sem);
     uint32_t now = AP_HAL::millis();
     return (now - _boot_tstamp_ms) / 1000;
 }
@@ -545,21 +545,9 @@ uint32_t AP_Stats::get_total_run_time_s(void)
     return _total_boot_run_time_s + get_boot_run_time_s();
 }
 
-float AP_Stats::get_boot_flying_ground_traveled_m(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_flying_ground_traveled_m;
-}
-
 float AP_Stats::get_total_flying_ground_traveled_m(void)
 {
     return _total_boot_flying_ground_traveled_m + get_boot_flying_ground_traveled_m();
-}
-
-float AP_Stats::get_boot_flying_air_traveled_m(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_flying_air_traveled_m;
 }
 
 float AP_Stats::get_total_flying_air_traveled_m(void)
@@ -567,40 +555,21 @@ float AP_Stats::get_total_flying_air_traveled_m(void)
     return _total_boot_flying_air_traveled_m + get_boot_flying_air_traveled_m();
 }
 
-float AP_Stats::get_boot_flying_energy_wh(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_flying_energy_wh;
-}
-
 float AP_Stats::get_total_flying_energy_wh(void)
 {
     return _total_boot_flying_energy_wh + get_boot_flying_energy_wh();
-}
-
-uint32_t AP_Stats::get_boot_flying_mah(void)
-{
-    WITH_SEMAPHORE(sem);
-    return lrintf(_boot_flying_mah);
 }
 
 float AP_Stats::get_boot_avg_ground_speed_mps(void)
 {
     const auto flight_time_s = get_boot_flying_time_s();
     if (!flight_time_s) return 0;
-    WITH_SEMAPHORE(sem);
     return _boot_flying_ground_traveled_m / flight_time_s;
 }
 
 float AP_Stats::get_total_avg_ground_speed_mps(void)
 {
     return calc_total_avg(_total_boot_avg_ground_speed_mps, get_boot_avg_ground_speed_mps());
-}
-
-float AP_Stats::get_boot_max_ground_speed_mps(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_max_ground_speed_mps;
 }
 
 float AP_Stats::get_total_max_ground_speed_mps(void)
@@ -612,7 +581,6 @@ float AP_Stats::get_boot_avg_air_speed_mps(void)
 {
     const auto flight_time_s = get_boot_flying_time_s();
     if (!flight_time_s) return 0;
-    WITH_SEMAPHORE(sem);
     return _boot_flying_air_traveled_m / flight_time_s;
 }
 
@@ -621,21 +589,9 @@ float AP_Stats::get_total_avg_air_speed_mps(void)
     return calc_total_avg(_total_boot_avg_air_speed_mps, get_boot_avg_air_speed_mps());
 }
 
-float AP_Stats::get_boot_max_air_speed_mps(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_max_air_speed_mps;
-}
-
 float AP_Stats::get_total_max_air_speed_mps(void)
 {
     return MAX(_total_boot_max_air_speed_mps, get_boot_max_air_speed_mps());
-}
-
-float AP_Stats::get_boot_avg_wind_speed_mps(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_avg_wind_speed_mps;
 }
 
 float AP_Stats::get_total_avg_wind_speed_mps(void)
@@ -643,21 +599,9 @@ float AP_Stats::get_total_avg_wind_speed_mps(void)
     return calc_total_avg(_total_boot_avg_wind_speed_mps, get_boot_avg_wind_speed_mps());
 }
 
-float AP_Stats::get_boot_max_wind_speed_mps(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_max_wind_speed_mps;
-}
-
 float AP_Stats::get_total_max_wind_speed_mps(void)
 {
     return MAX(_total_boot_max_wind_speed_mps, get_boot_max_wind_speed_mps());
-}
-
-uint32_t AP_Stats::get_boot_max_home_distance_m(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_max_home_distance_m;
 }
 
 uint32_t AP_Stats::get_total_max_home_distance_m(void)
@@ -665,39 +609,9 @@ uint32_t AP_Stats::get_total_max_home_distance_m(void)
     return MAX(_total_boot_max_home_distance_m, get_boot_max_home_distance_m());
 }
 
-uint32_t AP_Stats::get_boot_max_relative_altitude_m(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_max_relative_altitude_m;
-}
-
 uint32_t AP_Stats::get_total_max_relative_altitude_m(void)
 {
     return MAX(_total_boot_max_relative_altitude_m, get_boot_max_relative_altitude_m());
-}
-
-float AP_Stats::get_boot_min_rc_rssi(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_min_rc_rssi;
-}
-
-uint8_t AP_Stats::get_boot_min_rc_rssi_dbm(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_min_rc_rssi_dbm;
-}
-
-uint16_t AP_Stats::get_boot_max_rc_tx_power_mw(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_max_rc_tx_power_mw;
-}
-
-float AP_Stats::get_boot_avg_flying_current_a(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_avg_flying_current_a;
 }
 
 float AP_Stats::get_total_avg_flying_current_a(void)
@@ -705,21 +619,9 @@ float AP_Stats::get_total_avg_flying_current_a(void)
     return calc_total_avg(_total_boot_avg_flying_current_a, get_boot_avg_flying_current_a());
 }
 
-float AP_Stats::get_boot_max_flying_current_a(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_max_flying_current_a;
-}
-
 float AP_Stats::get_total_max_flying_current_a(void)
 {
     return MAX(_total_boot_max_flying_current_a, get_boot_max_flying_current_a());
-}
-
-float AP_Stats::get_boot_avg_flying_power_w(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_avg_flying_power_w;
 }
 
 float AP_Stats::get_total_avg_flying_power_w(void)
@@ -727,39 +629,9 @@ float AP_Stats::get_total_avg_flying_power_w(void)
     return calc_total_avg(_total_boot_avg_flying_power_w, get_boot_avg_flying_power_w());
 }
 
-float AP_Stats::get_boot_max_flying_power_w(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_max_flying_power_w;
-}
-
 float AP_Stats::get_total_max_flying_power_w(void)
 {
     return MAX(_total_boot_max_flying_power_w, get_boot_max_flying_power_w());
-}
-
-float AP_Stats::get_boot_min_voltage_v(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_min_voltage_v;
-}
-
-float AP_Stats::get_boot_min_cell_voltage_v(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_min_cell_voltage_v;
-}
-
-int16_t AP_Stats::get_boot_avg_esc_temperature_degc(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_avg_esc_temperature_degc;
-}
-
-int16_t AP_Stats::get_boot_max_esc_temperature_degc(void)
-{
-    WITH_SEMAPHORE(sem);
-    return _boot_max_esc_temperature_degc;
 }
 
 AP_Stats *AP::stats(void)
