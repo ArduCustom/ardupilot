@@ -285,18 +285,14 @@ void AP_Stats::update_flying_distances_and_speeds(uint32_t flying_update_delta, 
             home_loc = ahrs.get_home();
         }
         ahrs.get_relative_position_D_home(relative_altitude_m);
-        relative_altitude_m = -relative_altitude_m; // NED to NEU
         have_airspeed_estimate = ahrs.airspeed_estimate(air_speed_mps);
 
         wind_speed_vector = ahrs.wind_estimate();
     }
+    relative_altitude_m = -relative_altitude_m; // NED to NEU
 
     float wind_speed_mps = wind_speed_vector.length();
     float ground_speed_mps = ground_speed_vector.length();
-
-    // total distance travelled
-    float dist_ground_m = (ground_speed_mps * flying_update_delta) * 0.001f;
-    _boot_flying_ground_traveled_m += dist_ground_m;
 
     // maximum ground speed
     _boot_max_ground_speed_mps = fmaxf(_boot_max_ground_speed_mps, ground_speed_mps);
@@ -318,10 +314,6 @@ void AP_Stats::update_flying_distances_and_speeds(uint32_t flying_update_delta, 
     // max airspeed / total air distance travelled using either true or synthetic air speed
     if (have_airspeed_estimate) {
         _boot_max_air_speed_mps = fmaxf(_boot_max_air_speed_mps, air_speed_mps);
-
-        // XXX might be interesting to take into account AoA for better precision 
-        float air_distance_m = (air_speed_mps * flying_update_delta) * 0.001f;
-        _boot_flying_air_traveled_m += air_distance_m;
     }
 
     // average and maximum distance from home
@@ -333,6 +325,35 @@ void AP_Stats::update_flying_distances_and_speeds(uint32_t flying_update_delta, 
 
     // maximum altitude
     _boot_max_relative_altitude_m = fmaxf(_boot_max_relative_altitude_m, lrintf(relative_altitude_m));
+}
+
+void AP_Stats::update_flying_travel(uint32_t flying_update_delta, uint32_t old_flying_sample_count, uint32_t new_flying_sample_count)
+{
+    Vector2f ground_speed_vector;
+    bool have_airspeed_estimate;
+    float air_speed_mps = 0.0f;
+    {
+        // minimize semaphore scope
+        AP_AHRS &ahrs = AP::ahrs();
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        ground_speed_vector = ahrs.groundspeed_vector();
+        have_airspeed_estimate = ahrs.airspeed_estimate(air_speed_mps);
+    }
+
+    float ground_speed_mps = ground_speed_vector.length();
+
+    // total distance travelled
+    float dist_ground_m = (ground_speed_mps * flying_update_delta) * 0.001f;
+    _boot_flying_ground_traveled_m += dist_ground_m;
+
+    // max airspeed / total air distance travelled using either true or synthetic air speed
+    if (have_airspeed_estimate) {
+        _boot_max_air_speed_mps = fmaxf(_boot_max_air_speed_mps, air_speed_mps);
+
+        // XXX might be interesting to take into account AoA for better precision 
+        float air_distance_m = (air_speed_mps * flying_update_delta) * 0.001f;
+        _boot_flying_air_traveled_m += air_distance_m;
+    }
 }
 
 void AP_Stats::update_flying_current_and_power(uint32_t old_flying_sample_count, uint32_t new_flying_sample_count)
@@ -489,23 +510,46 @@ void AP_Stats::update()
                 uint32_t new_flying_sample_count = _flying_sample_count + 1;
                 const uint32_t flying_update_delta = now_ms - _last_update_flying_tstamp_ms;
 
-                update_flying_time(flying_update_delta);
-                update_flying_distances_and_speeds(flying_update_delta, _flying_sample_count, new_flying_sample_count);
-                update_flying_current_and_power(_flying_sample_count, new_flying_sample_count);
-                update_flying_rc(_flying_sample_count, new_flying_sample_count);
-
-                #if HAL_WITH_ESC_TELEM
-                update_flying_esc(_flying_sample_count, new_flying_sample_count);
-                #endif
+                update_flying_travel(flying_update_delta, _flying_sample_count, new_flying_sample_count);
 
                 _flying_sample_count = new_flying_sample_count;
             }
             _last_update_flying_tstamp_ms = now_ms;
+
+            if (_last_slow_update_flying_tstamp_ms) {
+                if (now_ms - _last_slow_update_flying_tstamp_ms >= 100) {
+                    uint32_t new_flying_slow_update_sample_count = _flying_slow_update_sample_count + 1;
+                    const uint32_t flying_slow_update_delta = now_ms - _last_slow_update_flying_tstamp_ms;
+
+                    update_flying_time(flying_slow_update_delta);
+                    update_flying_distances_and_speeds(flying_slow_update_delta, _flying_slow_update_sample_count, new_flying_slow_update_sample_count);
+                    update_flying_current_and_power(_flying_slow_update_sample_count, new_flying_slow_update_sample_count);
+
+                    update_flying_rc(_flying_slow_update_sample_count, new_flying_slow_update_sample_count);
+
+                    #if HAL_WITH_ESC_TELEM
+                    update_flying_esc(_flying_slow_update_sample_count, new_flying_slow_update_sample_count);
+                    #endif
+
+                    _flying_slow_update_sample_count = new_flying_slow_update_sample_count;
+                    _last_slow_update_flying_tstamp_ms = now_ms;
+                }
+            } else {
+                _last_slow_update_flying_tstamp_ms = now_ms;
+            }
+
         } else {
             _last_update_flying_tstamp_ms = 0;
         }
 
-        update_battery();
+        if (_last_slow_update_tstamp_ms) {
+            if (now_ms - _last_slow_update_tstamp_ms >= 100) {
+                _last_slow_update_tstamp_ms = now_ms;
+                update_battery();
+            }
+        } else {
+            _last_slow_update_tstamp_ms = now_ms;
+        }
     }
 
     if (_flush_tstamp_ms) {
