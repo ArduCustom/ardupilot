@@ -178,9 +178,9 @@ bool AP_Mission::is_takeoff_next(uint16_t cmd_index)
 }
 
 /// check mission starts with a takeoff command
-bool AP_Mission::starts_with_takeoff_cmd()
+bool AP_Mission::starts_with_takeoff_cmd(bool begining)
 {
-    uint16_t cmd_index = _restart ? AP_MISSION_CMD_INDEX_NONE : _nav_cmd.index;
+    uint16_t cmd_index = _restart || begining ? AP_MISSION_CMD_INDEX_NONE : _nav_cmd.index;
     if (cmd_index == AP_MISSION_CMD_INDEX_NONE) {
         cmd_index = AP_MISSION_FIRST_REAL_COMMAND;
     }

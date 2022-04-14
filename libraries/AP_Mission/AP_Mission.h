@@ -431,7 +431,7 @@ public:
     void start_or_resume();
 
     /// check mission starts with a takeoff command
-    bool starts_with_takeoff_cmd();
+    bool starts_with_takeoff_cmd(bool begining = false);
 
     /// reset - reset mission to the first command
     void reset();
