@@ -609,6 +609,7 @@ public:
     AP_Float rtl_sink_max;
 
     AP_Int8 takeoff_idle_thr_slewrate;
+    AP_Int8 takeoff_idle_thr_delay;
     AP_Float takeoff_idle_thr;
 };
 
