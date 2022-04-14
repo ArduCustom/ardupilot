@@ -40,12 +40,14 @@ public:
     float    get_total_max_air_speed_mps(void);
     float    get_total_avg_wind_speed_mps(void);
     float    get_total_max_wind_speed_mps(void);
+    uint32_t get_total_avg_home_distance_m(void);
     uint32_t get_total_max_home_distance_m(void);
     uint32_t get_total_max_relative_altitude_m(void);
     float    get_total_avg_flying_current_a(void);
     float    get_total_max_flying_current_a(void);
     float    get_total_avg_flying_power_w(void);
     float    get_total_max_flying_power_w(void);
+    uint32_t get_total_flight_count(void);
 
     float get_boot_flying_ground_traveled_m(void) { return _boot_flying_ground_traveled_m; }
     float get_boot_flying_air_traveled_m(void) { return _boot_flying_air_traveled_m; }
@@ -55,6 +57,7 @@ public:
     float get_boot_max_air_speed_mps(void) { return _boot_max_air_speed_mps; }
     float get_boot_avg_wind_speed_mps(void) { return _boot_avg_wind_speed_mps; }
     float get_boot_max_wind_speed_mps(void) { return _boot_max_wind_speed_mps; }
+    uint32_t get_boot_avg_home_distance_m(void) { return _boot_avg_home_distance_m; }
     uint32_t get_boot_max_home_distance_m(void) { return _boot_max_home_distance_m; }
     uint32_t get_boot_max_relative_altitude_m(void) { return _boot_max_relative_altitude_m; }
     float get_boot_min_rc_rssi(void) { return _boot_min_rc_rssi; }
@@ -68,6 +71,7 @@ public:
     float get_boot_min_cell_voltage_v(void) { return _boot_min_cell_voltage_v; }
     int16_t get_boot_avg_esc_temperature_degc(void) { return _boot_avg_esc_temperature_degc; }
     int16_t get_boot_max_esc_temperature_degc(void) { return _boot_max_esc_temperature_degc; }
+    uint32_t get_boot_flight_count(void) { return _boot_flight_count; }
 
 
     bool available(void) { return _flying_sample_count > 0; }
@@ -99,6 +103,7 @@ private:
         AP_Int32 flying_ground_traveled;
         AP_Int32 flying_air_traveled;
         AP_Float flying_energy;
+        AP_Int32 flight_count;
 
         AP_Float avg_ground_speed_mps;
         AP_Float max_ground_speed_mps;
@@ -106,6 +111,7 @@ private:
         AP_Float max_air_speed_mps;
         AP_Float avg_wind_speed_mps;
         AP_Float max_wind_speed_mps;
+        AP_Int32 avg_home_distance_m;
         AP_Int32 max_home_distance_m;
         AP_Int32 max_relative_altitude_m;
         AP_Float avg_flying_current_a;
@@ -152,6 +158,7 @@ private:
     float    _boot_max_air_speed_mps = 0;
     float    _boot_avg_wind_speed_mps = 0;
     float    _boot_max_wind_speed_mps = 0;
+    float    _boot_avg_home_distance_m = 0;
     uint32_t _boot_max_home_distance_m = 0;
     uint32_t _boot_max_relative_altitude_m = 0;
     float    _boot_min_rc_rssi = FLT_MAX;
@@ -165,6 +172,7 @@ private:
     float    _boot_min_cell_voltage_v = FLT_MAX;
     int16_t  _boot_avg_esc_temperature_degc = 0;
     int16_t  _boot_max_esc_temperature_degc = INT16_MIN;
+    uint32_t _boot_flight_count = 0;
 
     uint32_t _total_boot_flying_time_s = 0;             // seconds spent flying
     uint32_t _total_boot_flying_ground_traveled_m = 0;  // ground distance in meter traveled while flying
@@ -176,12 +184,14 @@ private:
     float    _total_boot_max_air_speed_mps = 0;
     float    _total_boot_avg_wind_speed_mps = 0;
     float    _total_boot_max_wind_speed_mps = 0;
+    uint32_t _total_boot_avg_home_distance_m = 0;
     uint32_t _total_boot_max_home_distance_m = 0;
     uint32_t _total_boot_max_relative_altitude_m = 0;
     float    _total_boot_avg_flying_current_a = 0;
     float    _total_boot_max_flying_current_a = 0;
     float    _total_boot_avg_flying_power_w = 0;
     float    _total_boot_max_flying_power_w = 0;
+    uint32_t _total_boot_flight_count = 0;
     uint32_t _total_boot_run_time_s = 0;                // total stored wallclock time spent running ArduPilot (seconds) when booted up
     uint32_t _reset_tstamp_s = 0;                       // last time AP_Stats parameters were reset (in seconds since AP_Stats Jan 1st 2016)
 
@@ -199,7 +209,7 @@ private:
     void update_flying_rc(uint32_t old_flying_sample_count, uint32_t new_flying_sample_count);
     void update_flying_esc(uint32_t old_flying_sample_count, uint32_t new_flying_sample_count);
     bool has_been_flying_for_at_least_s(uint32_t time_s);
-    float calc_total_avg(float total_boot_value, float boot_value);
+    float calc_total_flying_time_related_avg(float total_boot_value, float boot_value);
 };
 
 namespace AP {
