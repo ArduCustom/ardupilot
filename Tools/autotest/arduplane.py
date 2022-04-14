@@ -505,7 +505,6 @@ class AutoTestPlane(AutoTest):
         final_alt = m.alt
         self.progress("Final altitude %u initial %u\n" %
                       (final_alt, initial_alt))
-        self.set_parameter("FLIGHT_OPTIONS", 0)
 
         # back to FBWA
         self.change_mode('FBWA')
@@ -1189,7 +1188,7 @@ class AutoTestPlane(AutoTest):
         self.set_rc(3, 1500)
         self.set_rc(4, 1500)
         self.set_parameters({
-            "FLIGHT_OPTIONS": 1<<19,
+            "FLIGHT_OPTIONS": 1<<20,
             "CRUISE_YAW_RATE": 9
         })
         m = self.mav.recv_match(type='VFR_HUD', blocking=True)
@@ -1826,7 +1825,7 @@ class AutoTestPlane(AutoTest):
         self.wait_ready_to_arm()
         rtl_alt = 100 # m
         self.set_parameters({
-            "FLIGHT_OPTIONS": (1<<19),
+            "FLIGHT_OPTIONS": (1<<21),
             "RTL_ALT_MIN": rtl_alt,
             "THR_FS_VALUE": 960
         })
@@ -2312,7 +2311,7 @@ function'''
         self.fly_home_land_and_disarm()
 
     def test_cruise_gliding(self):
-        self.set_parameter("FLIGHT_OPTIONS", 1 << 22)
+        self.set_parameter("FLIGHT_OPTIONS", 1 << 23)
         self.takeoff(alt=200)
         self.change_mode('CRUISE')
         self.progress("Climbing to 250m at half speed")
@@ -2330,27 +2329,36 @@ function'''
         self.disarm_vehicle(force=True)
 
     def test_emergency_landing(self):
-        self.set_parameter("FLIGHT_OPTIONS", 1 << 21)
-        self.takeoff(alt=100)
-        self.set_parameter("THR_FS_VALUE", 960)
-        self.progress("Failing receiver (throttle-to-950)")
+        self.set_parameters({
+            "FS_ELAND_DELAY": 30,
+            "RTL_ALT_MIN": 100
+        })
+        self.takeoff(alt=200)
         self.context_collect("STATUSTEXT")
-        self.progress("Failsafe and wait for the plane to go down")
-        self.set_parameter("SIM_RC_FAIL", 2) # throttle-to-950
+        self.progress("Failsafe")
+        self.set_parameter("SIM_RC_FAIL", 1)
         self.wait_mode('RTL') # long failsafe
-        self.wait_altitude(20, 30, timeout=300, relative=True)
+        self.progress("Wait for home altitude")
+        self.wait_altitude(95, 105, timeout=300, relative=True)
+        self.delay_sim_time(25)
+        self.progress("Should stay at home altitude for at least 25s")
+        self.wait_servo_channel_value(3, 1200, timeout=4, comparator=operator.ge)
+        self.wait_altitude(95, 105, timeout=4, relative=True)
+        self.progress("Should start emergency landing")
+        self.wait_servo_channel_value(3, 1000, timeout=10, comparator=operator.eq)
+        self.wait_altitude(45, 55, timeout=300, relative=True)
         self.progress("Unfailsafe and check the plane climbs back to RTL altitude")
-        self.set_parameter("SIM_RC_FAIL", 0) # unfailsafe
+        self.set_parameter("SIM_RC_FAIL", 0)
         self.wait_servo_channel_value(3, 1200, timeout=4, comparator=operator.ge)
         expected_alt = self.get_parameter("RTL_ALT_MIN")
         self.wait_altitude(expected_alt-5, expected_alt+5, timeout=100, relative=True)
         self.progress("Failsafe again and wait for landing complete and auto disarm")
-        self.set_parameter("SIM_RC_FAIL", 2) # throttle-to-950
-        self.delay_sim_time(118)
+        self.set_parameter("SIM_RC_FAIL", 1)
+        self.delay_sim_time(28)
         self.wait_servo_channel_value(3, 1000, timeout=130, comparator=operator.eq)
         self.wait_altitude(-5, 5, timeout=300, relative=True)
         self.wait_statustext("Auto disarmed", timeout=240, check_context=True)
-        self.set_parameter("SIM_RC_FAIL", 0) # unfailsafe
+        self.set_parameter("SIM_RC_FAIL", 0)
 
     def rtl_home_altitude(self):
         self.reboot_sitl()
