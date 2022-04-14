@@ -206,6 +206,8 @@ private:
     AP_YawController yawController{aparm};
     AP_SteerController steerController{};
 
+    uint32_t takeoff_delay_start_tstamp_ms = 0;
+
     HAL_Semaphore _throttle_output_sem;
     float _throttle_output;
 
