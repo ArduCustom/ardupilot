@@ -3648,7 +3648,7 @@ class AutoTestPlane(AutoTest):
                 new_home.longitude,
                 new_home.altitude/1000.0, # mm => m
             )
-            old_bootcount = self.get_parameter('STAT_BOOTCNT')
+            old_bootcount = self.get_parameter('STAT_BOOT_CNT')
             self.progress("Forcing watchdog reset")
             os.kill(self.sitl.pid, signal.SIGALRM)
             self.detect_and_handle_reboot(old_bootcount)
