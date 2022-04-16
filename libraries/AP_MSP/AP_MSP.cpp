@@ -45,7 +45,7 @@ const AP_Param::GroupInfo AP_MSP::var_info[] = {
     // @Param: _OPTIONS
     // @DisplayName: MSP OSD Options
     // @Description: A bitmask to set some MSP specific options
-    // @Bitmask: 0:EnableTelemetryMode, 1: DisableDJIWorkarounds, 2:EnableBTFLFonts
+    // @Bitmask: 0:EnableTelemetryMode, 1: DisableDJIWorkarounds, 2:EnableBTFLFonts, 6: replace RSSI with LQ
     // @User: Standard
     AP_GROUPINFO("_OPTIONS", 2, AP_MSP, _options, 0),
 
