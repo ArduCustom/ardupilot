@@ -161,10 +161,4 @@ bool ModeQRTL::update_target_altitude()
     return true;
 }
 
-// only nudge during approach
-bool ModeQRTL::allows_throttle_nudging() const
-{
-    return (submode == SubMode::RTL) && (plane.quadplane.poscontrol.get_state() == QuadPlane::QPOS_APPROACH);
-}
-
 #endif
