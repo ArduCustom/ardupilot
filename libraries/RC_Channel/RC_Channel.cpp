@@ -306,7 +306,7 @@ float RC_Channel::norm_input_ignore_trim() const
 /*
   get percentage input from 0 to 100. This ignores the trim value.
  */
-uint8_t RC_Channel::percent_input() const
+float RC_Channel::percent_input() const
 {
     if (radio_in <= radio_min) {
         return reversed?100:0;
@@ -314,7 +314,7 @@ uint8_t RC_Channel::percent_input() const
     if (radio_in >= radio_max) {
         return reversed?0:100;
     }
-    uint8_t ret = 100.0f * (radio_in - radio_min) / (float)(radio_max - radio_min);
+    float ret = 100.0f * (radio_in - radio_min) / (float)(radio_max - radio_min);
     if (reversed) {
         ret = 100 - ret;
     }

@@ -55,7 +55,7 @@ public:
     // returns true if input is within deadzone of min
     bool        in_min_dz() const;
 
-    uint8_t     percent_input() const;
+    float     percent_input() const;
 
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -82,6 +82,8 @@ public:
     int16_t    get_radio_max() const {return radio_max.get();}
 
     int16_t    get_radio_trim() const { return radio_trim.get();}
+
+    int16_t    get_radio_range() const { return get_radio_max() - get_radio_min(); }
 
     void       set_and_save_trim() { radio_trim.set_and_save_ifchanged(radio_in);}
 
