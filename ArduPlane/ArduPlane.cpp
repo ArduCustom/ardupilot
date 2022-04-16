@@ -462,7 +462,7 @@ void Plane::update_control_mode(void)
 
     if ((g2.flight_options & FlightOptions::ALLOW_GLIDING_IN_AUTO_THR_MODES) && !rc_failsafe() && control_mode->does_auto_throttle() && control_mode != &mode_takeoff && control_mode != &mode_auto) {
 
-        set_auto_thr_gliding(get_throttle_input() < g.throttle_dz);
+        set_auto_thr_gliding(is_zero(get_throttle_input()));
 
         if (auto_thr_gliding_state == ATGS_GLIDING) {
             set_target_altitude_current();
