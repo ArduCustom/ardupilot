@@ -71,6 +71,14 @@ void ModeRTL::update()
     plane.calc_nav_pitch();
     plane.calc_throttle();
 
+    float altitude = plane.relative_altitude;
+    if (!plane.terrain_disabled()) plane.terrain.height_above_terrain(altitude, true);
+
+    if (plane.auto_state.emergency_landing && plane.g.fs_emergency_landing_leveling_altitude > -1 && altitude < plane.g.fs_emergency_landing_leveling_altitude.get()) {
+        plane.nav_roll_cd = 0;
+        return;
+    }
+
     bool alt_threshold_reached = false;
     if (plane.g2.flight_options & FlightOptions::CLIMB_BEFORE_TURN) {
         // Climb to RTL_ALT_MIN before turning. This overrides RTL_CLIMB_MIN.
@@ -90,6 +98,7 @@ void ModeRTL::update()
         plane.setup_glide_slope();
         plane.rtl.done_climb = true;
     }
+
     if (!plane.rtl.done_climb) {
         // Constrain the roll limit as a failsafe, that way if something goes wrong the plane will
         // eventually turn back and go to RTL instead of going perfectly straight. This also leaves
@@ -97,6 +106,7 @@ void ModeRTL::update()
         const int level_roll_limit_cd = MIN(plane.roll_limit_cd, plane.g.rtl_level_roll_limit*100);
         plane.nav_roll_cd = constrain_int32(plane.nav_roll_cd, -level_roll_limit_cd, level_roll_limit_cd);
     }
+
 }
 
 void ModeRTL::navigate()
@@ -139,7 +149,10 @@ void ModeRTL::navigate()
                 plane.auto_state.reached_home_in_fs_ms = now;
             }
 
-            if (plane.auto_state.emergency_landing && plane.relative_altitude < 10) {
+            float altitude = plane.relative_altitude;
+            if (!plane.terrain_disabled()) plane.terrain.height_above_terrain(altitude, true);
+
+            if (plane.auto_state.emergency_landing && altitude < 10) {
                 plane.auto_state.reached_emergency_landing_no_return_altitude = true;
             }
         } else if (!plane.auto_state.reached_emergency_landing_no_return_altitude) {
