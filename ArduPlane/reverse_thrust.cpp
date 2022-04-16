@@ -77,6 +77,9 @@ bool Plane::allow_reverse_thrust(void) const
     case Mode::Number::CIRCLE:
         allow |= (g.use_reverse_thrust & USE_REVERSE_THRUST_CIRCLE);
         break;
+    case Mode::Number::COURSE_HOLD:
+        allow |= (g.use_reverse_thrust & USE_REVERSE_THRUST_COURSE_HOLD);
+        break;
     case Mode::Number::CRUISE:
         allow |= (g.use_reverse_thrust & USE_REVERSE_THRUST_CRUISE);
         break;
