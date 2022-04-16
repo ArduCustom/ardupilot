@@ -639,7 +639,7 @@ class AutoTestPlane(AutoTest):
             m = self.mav.recv_match(type='VFR_HUD', blocking=True)
             self.progress("GroundSpeed: %f want=%f" %
                           (m.groundspeed, initial_speed))
-            if abs(initial_speed - m.groundspeed) > 1:
+            if abs(initial_speed - m.groundspeed) > 1.5:
                 raise NotAchievedException("Initial speed not as expected (want=%f got=%f" % (initial_speed, m.groundspeed))
 
         self.progress("Setting groundspeed")
