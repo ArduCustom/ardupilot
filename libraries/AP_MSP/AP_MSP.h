@@ -56,6 +56,7 @@ public:
         TELEMETRY_MODE = 1U<<0,
         TELEMETRY_DISABLE_DJI_WORKAROUNDS = 1U<<1,
         DISPLAYPORT_BTFL_SYMBOLS = 1U<<2,
+        LQ_INSTEAD_OF_RSSI = 1U<<6,
     };
 
     bool is_option_enabled(const Option option) const;
