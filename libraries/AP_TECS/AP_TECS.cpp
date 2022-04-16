@@ -270,7 +270,7 @@ const AP_Param::GroupInfo AP_TECS::var_info[] = {
     // @Range: 0.2 1.0
     // @Increment: 0.1
     // @User: Advanced
-    AP_GROUPINFO("THR_FF_FILT", 59, AP_TECS, _thr_ff_filter, 1.0f),
+    AP_GROUPINFO("THR_FF_FILT", 59, AP_TECS, _thr_ff_filter, 0.06f),
 
     // @Param: THR_FF_DAMP
     // @DisplayName: Throttle FF component dampening factor
@@ -278,7 +278,7 @@ const AP_Param::GroupInfo AP_TECS::var_info[] = {
     // @Range: 0.0 1.0
     // @Increment: 0.1
     // @User: Advanced
-    AP_GROUPINFO("THR_FF_DAMP", 60, AP_TECS, _thr_ff_damp, 1.0f),
+    AP_GROUPINFO("THR_FF_DAMP", 60, AP_TECS, _thr_ff_damp, 0.6f),
 
     // @Param: SPDRATE_ACC
     // @DisplayName: Speed demand rate acceleration (m/s^3)
