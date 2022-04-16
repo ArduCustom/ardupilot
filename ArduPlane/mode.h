@@ -102,10 +102,6 @@ public:
     // subclasses override this if they require navigation.
     virtual void navigate() { return; }
 
-    // this allows certain flight modes to mix RC input with throttle
-    // depending on airspeed_nudge_cm
-    virtual bool allows_throttle_nudging() const { return false; }
-
     // true if the mode sets the vehicle destination, which controls
     // whether control input is ignored with STICK_MIXING=0
     virtual bool does_auto_navigation() const { return false; }
@@ -170,8 +166,6 @@ public:
 
     void navigate() override;
 
-    bool allows_throttle_nudging() const override { return true; }
-
     bool does_auto_navigation() const override;
 
     bool does_auto_throttle() const override;
@@ -214,8 +208,6 @@ public:
     void navigate() override;
 
     virtual bool is_guided_mode() const override { return true; }
-
-    bool allows_throttle_nudging() const override { return true; }
 
     bool does_auto_navigation() const override { return true; }
 
@@ -269,8 +261,6 @@ public:
 
     bool isHeadingLinedUp(const Location loiterCenterLoc, const Location targetLoc);
     bool isHeadingLinedUp_cd(const int32_t bearing_cd);
-
-    bool allows_throttle_nudging() const override { return true; }
 
     bool does_auto_navigation() const override { return true; }
 
@@ -332,8 +322,6 @@ public:
 
     void navigate() override;
 
-    bool allows_throttle_nudging() const override { return true; }
-
     bool does_auto_navigation() const override { return true; }
 
     bool does_auto_throttle() const override { return true; }
@@ -386,8 +374,6 @@ public:
     void update() override { }
 
     bool allows_arming() const override { return false; }
-
-    bool allows_throttle_nudging() const override { return true; }
 
     bool does_auto_throttle() const override { return true; }
 };
@@ -494,7 +480,6 @@ public:
     bool is_vtol_mode() const override { return true; }
     bool is_vtol_man_throttle() const override { return true; }
     virtual bool is_vtol_man_mode() const override { return true; }
-    bool allows_throttle_nudging() const override { return true; }
 
     // methods that affect movement of the vehicle in this mode
     void update() override;
@@ -599,8 +584,6 @@ public:
 
     bool update_target_altitude() override;
 
-    bool allows_throttle_nudging() const override;
-
 protected:
 
     bool _enter() override;
@@ -675,8 +658,6 @@ public:
 
     void navigate() override;
 
-    bool allows_throttle_nudging() const override { return true; }
-
     bool does_auto_navigation() const override { return true; }
 
     bool does_auto_throttle() const override { return true; }
@@ -715,8 +696,6 @@ public:
     void update_soaring();
 
     void navigate() override;
-
-    bool allows_throttle_nudging() const override { return true; }
 
     bool does_auto_navigation() const override { return true; }
 
