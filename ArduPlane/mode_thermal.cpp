@@ -132,9 +132,14 @@ bool ModeThermal::exit_heading_aligned() const
     }
     case Mode::Number::FLY_BY_WIRE_B:
         return (!AP::ahrs().home_is_set() || plane.mode_loiter.isHeadingLinedUp(plane.next_WP_loc, AP::ahrs().get_home()));
-    case Mode::Number::CRUISE:
+    case Mode::Number::COURSE_HOLD: {
+        int32_t target_heading_cd;
+        return (!plane.mode_course_hold.get_target_heading_cd(target_heading_cd) || plane.mode_loiter.isHeadingLinedUp_cd(target_heading_cd));
+    }
+    case Mode::Number::CRUISE: {
         int32_t target_heading_cd;
         return (!plane.mode_cruise.get_target_heading_cd(target_heading_cd) || plane.mode_loiter.isHeadingLinedUp_cd(target_heading_cd));
+    }
     default:
         break;
     }
