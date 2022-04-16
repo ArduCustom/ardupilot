@@ -1268,7 +1268,11 @@ bool AP_MSP_Telem_Backend::get_rssi(float &rssi) const
     if (!ap_rssi->enabled()) {
         return false;
     }
-    rssi =  ap_rssi->read_receiver_rssi(); // range is [0-1]
+    if (AP::msp()->is_option_enabled(AP_MSP::Option::LQ_INSTEAD_OF_RSSI)) {
+        rssi = ap_rssi->read_receiver_link_quality() * 0.01f;
+    } else {
+        rssi = ap_rssi->read_receiver_rssi(); // range is [0-1]
+    }
     return true;
 }
 #endif //HAL_MSP_ENABLED
