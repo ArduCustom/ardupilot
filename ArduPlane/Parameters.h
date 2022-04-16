@@ -265,7 +265,7 @@ public:
         k_param_throttle_slewrate,
         k_param_tkoff_manual_idle_thr,
         k_param_throttle_passthru_stabilize,
-        k_param_rc_12_old,
+        k_param_fs_emergency_landing_leveling_altitude,
         k_param_throttle_dz,
         k_param_fs_emergency_landing_delay,
         k_param_fs_timeout_short,
@@ -418,6 +418,7 @@ public:
     AP_Float fs_timeout_long;
     AP_Int8 gcs_heartbeat_fs_enabled;
     AP_Int16 fs_emergency_landing_delay;
+    AP_Float fs_emergency_landing_leveling_altitude;
 
     // Flight modes
     //
