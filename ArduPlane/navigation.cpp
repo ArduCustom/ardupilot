@@ -157,28 +157,24 @@ void Plane::calc_airspeed_errors()
 
     // FBW_B/cruise airspeed target
     if (!failsafe.rc_failsafe && (control_mode == &mode_fbwb || control_mode == &mode_cruise || control_mode == &mode_loiter || control_mode == &mode_rtl)) {
+
+        // 10% deadzone for airspeed control when gliding in auto thr modes is enabled
+        float min_airspeed_throttle_input = g2.flight_options & FlightOptions::ALLOW_GLIDING_IN_AUTO_THR_MODES ? 10 : 0;
+
         if (g2.flight_options & FlightOptions::CRUISE_TRIM_AIRSPEED) {
             target_airspeed_cm = aparm.airspeed_cruise_cm;
         } else if (g2.flight_options & FlightOptions::CRUISE_TRIM_THROTTLE) {
             float control_min = 0.0f;
-            float control_mid = 0.0f;
             const float control_max = channel_throttle->get_range();
             const float control_in = get_throttle_input();
-            switch (channel_throttle->get_type()) {
-            case RC_Channel::ControlType::ANGLE:
-                    control_min = -control_max;
-                    break;
-            case RC_Channel::ControlType::RANGE:
-                    control_mid = channel_throttle->get_control_mid();
-                    break;
-            }
+            const float control_mid = channel_throttle->get_control_mid();
             const float mid_stick_deadband = 0.1f;
             const float deadband_neg = mid_stick_deadband * (control_mid - control_min);
             const float deadband_pos = mid_stick_deadband * (control_max - control_mid);
             if (control_in <= (control_mid - deadband_neg)) {
                 target_airspeed_cm = linear_interpolate(aparm.airspeed_min * 100, aparm.airspeed_cruise_cm,
                                                         control_in,
-                                                        control_min, control_mid - deadband_neg);
+                                                        min_airspeed_throttle_input, control_mid - deadband_neg);
             } else if (control_in >= (control_mid + deadband_pos)) {
                 target_airspeed_cm = linear_interpolate(aparm.airspeed_cruise_cm, aparm.airspeed_max * 100,
                                                         control_in,
@@ -187,8 +183,9 @@ void Plane::calc_airspeed_errors()
                 target_airspeed_cm = aparm.airspeed_cruise_cm;
             }
         } else {
-            target_airspeed_cm = (aparm.airspeed_max - aparm.airspeed_min) * get_throttle_input() + aparm.airspeed_min * 100;
+            target_airspeed_cm = linear_interpolate(aparm.airspeed_min, aparm.airspeed_max, get_throttle_input(true), min_airspeed_throttle_input, 100) * 100;
         }
+
 #if OFFBOARD_GUIDED == ENABLED
     } else if (control_mode == &mode_guided && guided_state.target_airspeed_cm >  0.0) { // if offbd guided speed change cmd not set, then this section is skipped
         // offboard airspeed demanded
@@ -262,11 +259,6 @@ void Plane::calc_airspeed_errors()
         airspeed_nudge_cm = 0; //airspeed_nudge_cm forced to zero
     }
 #endif
-
-    // Bump up the target airspeed based on throttle nudging
-    if (control_mode->allows_throttle_nudging() && airspeed_nudge_cm > 0) {
-        target_airspeed_cm += airspeed_nudge_cm;
-    }
 
     float airspeed_min_cm = aparm.airspeed_min * 100;
 
