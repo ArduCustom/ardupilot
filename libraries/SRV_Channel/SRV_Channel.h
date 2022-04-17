@@ -17,8 +17,6 @@
 #include <AP_Common/AP_Common.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_Common/Bitmask.h>
-#include <AP_Volz_Protocol/AP_Volz_Protocol.h>
-#include <AP_RobotisServo/AP_RobotisServo.h>
 #include <AP_SBusOut/AP_SBusOut.h>
 #include <AP_BLHeli/AP_BLHeli.h>
 #include <AP_FETtecOneWire/AP_FETtecOneWire.h>
@@ -599,17 +597,9 @@ private:
     static SRV_Channels *_singleton;
 
 #ifndef HAL_BUILD_AP_PERIPH
-    // support for Volz protocol
-    AP_Volz_Protocol volz;
-    static AP_Volz_Protocol *volz_ptr;
-
     // support for SBUS protocol
     AP_SBusOut sbus;
     static AP_SBusOut *sbus_ptr;
-
-    // support for Robotis servo protocol
-    AP_RobotisServo robotis;
-    static AP_RobotisServo *robotis_ptr;
 #endif // HAL_BUILD_AP_PERIPH
 
 #if HAL_SUPPORT_RCOUT_SERIAL
