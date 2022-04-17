@@ -90,13 +90,6 @@
 #define AP_SERIALMANAGER_SToRM32_BUFSIZE_RX     128
 #define AP_SERIALMANAGER_SToRM32_BUFSIZE_TX     128
 
-#define AP_SERIALMANAGER_VOLZ_BAUD           115
-#define AP_SERIALMANAGER_VOLZ_BUFSIZE_RX     128
-#define AP_SERIALMANAGER_VOLZ_BUFSIZE_TX     128
-
-#define AP_SERIALMANAGER_ROBOTIS_BUFSIZE_RX  128
-#define AP_SERIALMANAGER_ROBOTIS_BUFSIZE_TX  128
-
 // MegaSquirt EFI protocol
 #define AP_SERIALMANAGER_EFI_MS_BAUD           115
 #define AP_SERIALMANAGER_EFI_MS_BUFSIZE_RX     512
@@ -140,12 +133,10 @@ public:
         SerialProtocol_Lidar360 = 11,                // Lightware SF40C, TeraRanger Tower or RPLidarA2
         SerialProtocol_Aerotenna_USD1      = 12, // USD1 support - deprecated, users should use Rangefinder
         SerialProtocol_Beacon = 13,
-        SerialProtocol_Volz = 14,                    // Volz servo protocol
         SerialProtocol_Sbus1 = 15,
         SerialProtocol_ESCTelemetry = 16,
         SerialProtocol_Devo_Telem = 17,
         SerialProtocol_OpticalFlow = 18,
-        SerialProtocol_Robotis = 19,
         SerialProtocol_NMEAOutput = 20,
         SerialProtocol_WindVane = 21,
         SerialProtocol_SLCAN = 22,
