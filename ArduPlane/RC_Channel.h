@@ -53,6 +53,10 @@ public:
     bool throttle_battery_compensation_is_disabled_in_manual_mode(void) const {
         return get_singleton() != nullptr && (_options & uint32_t(Option::PLANE_DISABLE_MAN_BAT_COMP));
     }
+    
+    bool switch_to_manual_after_disarming_option_is_enabled(void) const {
+        return get_singleton() != nullptr && (_options & uint32_t(Option::PLANE_SWITCH_TO_MANUAL_AFTER_DISARMING));
+    }
 
     RC_Channel *get_arming_channel(void) const override;
 
