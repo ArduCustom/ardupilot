@@ -318,7 +318,8 @@ bool AP_Arming_Plane::arm(const AP_Arming::Method method, const bool do_arming_c
 
     gcs().send_text(MAV_SEVERITY_INFO, "Throttle armed");
 
-    plane.arming_mode_switch_armed_tstamp_ms = AP_HAL::millis();
+    plane.armed_tstamp_ms = AP_HAL::millis();
+    plane.disarmed_tstamp_ms = 0;
 
     return true;
 }
@@ -400,6 +401,9 @@ bool AP_Arming_Plane::disarm(const AP_Arming::Method method, bool do_disarm_chec
     // re-initialize speed variable used in AUTO and GUIDED for
     // DO_CHANGE_SPEED commands
     plane.new_airspeed_cm = -1;
+
+    plane.armed_tstamp_ms = 0;
+    plane.disarmed_tstamp_ms = AP_HAL::millis();
 
     gcs().send_text(MAV_SEVERITY_INFO, "Throttle disarmed");
 
