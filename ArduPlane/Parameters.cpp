@@ -574,6 +574,21 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Standard
     GSCALAR(fs_emergency_landing_delay, "FS_ELAND_DELAY", -1),
 
+    // @Param: FS_ELAND_UPWIND
+    // @DisplayName: Failsafe emergency landing land upwind
+    // @Description: If set to 1 wait to go upwind to level roll
+    // @User: Standard
+    GSCALAR(fs_emergency_landing_land_upwind, "FS_ELAND_UPWIND", 1),
+
+    // @Param: FS_ELAND_GLDALT
+    // @DisplayName: Failsafe emergency landing gliding altitude
+    // @Description: Altitude below which the plane will start gliding in FS RTL emergency landing
+    // @Units: m
+    // @Range: 0 600
+    // @Increment: 0.1
+    // @User: Standard
+    GSCALAR(fs_emergency_landing_gliding_altitude, "FS_ELAND_GLDALT", 15),
+
     // @Param: FS_ELAND_LVLALT
     // @DisplayName: Failsafe emergency landing leveling altitude
     // @Description: Altitude below which the plane will level in FS RTL emergency landing. Set to -1 to disable and continue landing in spiral until touching the ground.
