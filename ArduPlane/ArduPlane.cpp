@@ -475,6 +475,22 @@ void Plane::update_control_mode(void)
         }
     }
 
+
+    if (arming_mode_switch_armed_tstamp_ms && AP_HAL::millis() - arming_mode_switch_armed_tstamp_ms > 3000) {
+        switch (g2.arming_mode_sw) {
+            case ARMING_MODE_SWITCH_DISABLED:
+                break;
+            case ARMING_MODE_SWITCH_TKOFF:
+                set_mode(plane.mode_takeoff , ModeReason::ARMING_MODE_SW);
+                break;
+            case ARMING_MODE_SWITCH_AUTO:
+                set_mode(plane.mode_auto , ModeReason::ARMING_MODE_SW);
+                break;
+        }
+        arming_mode_switch_armed_tstamp_ms = 0;
+    }
+
+
     update_fly_forward();
 
     control_mode->update();
