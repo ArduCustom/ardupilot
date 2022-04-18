@@ -1994,79 +1994,6 @@ class AutoTestPlane(AutoTest):
                 continue
             last_collision = now
 
-    def SimADSB(self):
-        '''trivial tests to ensure simulated ADSB sensor continues to
-function'''
-        self.set_parameters({
-            "SIM_ADSB_COUNT": 1,
-            "ADSB_TYPE": 1,
-        })
-        self.reboot_sitl()
-        self.assert_receive_message('ADSB_VEHICLE', timeout=30)
-
-    def test_adsb(self):
-        self.context_push()
-        ex = None
-        try:
-            # message ADSB_VEHICLE 37 -353632614 1491652305 0 584070 0 0 0 "bob" 3 1 255 17
-            self.set_parameter("RC12_OPTION", 38) # avoid-adsb
-            self.set_rc(12, 2000)
-            self.set_parameters({
-                "ADSB_TYPE": 1,
-                "AVD_ENABLE": 1,
-                "AVD_F_ACTION": mavutil.mavlink.MAV_COLLISION_ACTION_RTL,
-            })
-            self.reboot_sitl()
-            self.wait_ready_to_arm()
-            here = self.mav.location()
-            self.change_mode("FBWA")
-            self.delay_sim_time(2) # TODO: work out why this is required...
-            self.test_adsb_send_threatening_adsb_message(here)
-            self.progress("Waiting for collision message")
-            m = self.assert_receive_message('COLLISION', timeout=4)
-            if m.threat_level != 2:
-                raise NotAchievedException("Expected some threat at least")
-            if m.action != mavutil.mavlink.MAV_COLLISION_ACTION_RTL:
-                raise NotAchievedException("Incorrect action; want=%u got=%u" %
-                                           (mavutil.mavlink.MAV_COLLISION_ACTION_RTL, m.action))
-            self.wait_mode("RTL")
-
-            self.progress("Sending far-away ABSD_VEHICLE message")
-            self.mav.mav.adsb_vehicle_send(
-                37, # ICAO address
-                int(here.lat+1 * 1e7),
-                int(here.lng * 1e7),
-                mavutil.mavlink.ADSB_ALTITUDE_TYPE_PRESSURE_QNH,
-                int(here.alt*1000 + 10000), # 10m up
-                0, # heading in cdeg
-                0, # horizontal velocity cm/s
-                0, # vertical velocity cm/s
-                "bob".encode("ascii"), # callsign
-                mavutil.mavlink.ADSB_EMITTER_TYPE_LIGHT,
-                1, # time since last communication
-                65535, # flags
-                17 # squawk
-            )
-            self.wait_for_collision_threat_to_clear()
-            self.change_mode("FBWA")
-
-            self.progress("Disabling ADSB-avoidance with RC channel")
-            self.set_rc(12, 1000)
-            self.delay_sim_time(1) # let the switch get polled
-            self.test_adsb_send_threatening_adsb_message(here)
-            m = self.mav.recv_match(type='COLLISION', blocking=True, timeout=4)
-            self.progress("Got (%s)" % str(m))
-            if m is not None:
-                raise NotAchievedException("Got collision message when I shouldn't have")
-
-        except Exception as e:
-            self.print_exception_caught(e)
-            ex = e
-        self.context_pop()
-        self.reboot_sitl()
-        if ex is not None:
-            raise ex
-
     def fly_do_guided_request(self, target_system=1, target_component=1):
         self.progress("Takeoff")
         self.takeoff(alt=50)
@@ -2609,12 +2536,6 @@ function'''
         self.wait_ready_to_arm()
         self.arm_vehicle()
         self.fly_mission(mission)
-
-    def test_vectornav(self):
-        self.fly_external_AHRS("VectorNav", 1, "ap1.txt")
-
-    def test_lord(self):
-        self.fly_external_AHRS("LORD", 2, "ap1.txt")
 
     def get_accelvec(self, m):
         return Vector3(m.xacc, m.yacc, m.zacc) * 0.001 * 9.81
@@ -3704,14 +3625,6 @@ function'''
              "Tests Disabling fence while undergoing action caused by breach",
              self.test_fence_disable_under_breach_action),
 
-            ("ADSB",
-             "Test ADSB",
-             self.test_adsb),
-
-            ("SimADSB",
-             "Test SIM_ADSB",
-             self.SimADSB),
-
             ("Button",
              "Test Buttons",
              self.test_button),
@@ -3731,14 +3644,6 @@ function'''
             ("FRSkyD",
              "Test FrSkyD serial output",
              self.test_frsky_d),
-
-            ("LTM",
-             "Test LTM serial output",
-             self.test_ltm),
-
-            ("DEVO",
-             "Test DEVO serial output",
-             self.DEVO),
 
             ("AdvancedFailsafe",
              "Test Advanced Failsafe",
@@ -3791,14 +3696,6 @@ function'''
             ("Terrain-loiter",
              "Test terrain following in loiter",
              self.test_loiter_terrain),
-
-            ("VectorNavEAHRS",
-             "Test VectorNav EAHRS support",
-             self.test_vectornav),
-
-            ("LordEAHRS",
-             "Test LORD Microstrain EAHRS support",
-             self.test_lord),
 
             ("Deadreckoning",
              "Test deadreckoning support",

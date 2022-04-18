@@ -827,6 +827,7 @@ private:
         DELAY,
         SINKING_TO_GLIDE_ALTITUDE,
         GLIDING,
+        ALIGNMENT_INTO_WIND,
         GLIDING_NO_RETURN,
     };
 
@@ -835,10 +836,7 @@ private:
         bool triggered_by_rc_failsafe;
         bool manual_alt_control;
         bool reached_home_altitude;
-
-        // how much time we have been loitering above home in FS
-        uint32_t reached_home_in_fs_ms;
-
+        uint32_t emergency_landing_tstamp_ms;
         FSEmergencyLandingStatus emergency_landing_status = FSEmergencyLandingStatus::INACTIVE;
     } rtl;
 
