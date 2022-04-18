@@ -515,14 +515,6 @@ private:
 
         // how much correction have we added for terrain data
         float terrain_correction;
-
-        // how much time we have been loitering above home in FS
-        uint32_t reached_home_in_fs_ms;
-
-        // emergency landing started
-        bool emergency_landing;
-
-        bool reached_emergency_landing_no_return_altitude;
     } auto_state;
 
 #if AP_SCRIPTING_ENABLED
@@ -822,11 +814,22 @@ private:
         } set_status;
     } auto_trim;
 
+    enum class FSEmergencyLandingStatus {
+        INACTIVE,
+        DELAY,
+        SINKING_TO_GLIDE_ALTITUDE,
+        GLIDING,
+        ALIGNMENT_INTO_WIND,
+        GLIDING_NO_RETURN,
+    };
+
     struct {
         bool done_climb;
         bool triggered_by_rc_failsafe;
         bool manual_alt_control;
         bool reached_home_altitude;
+        uint32_t emergency_landing_tstamp_ms;
+        FSEmergencyLandingStatus emergency_landing_status = FSEmergencyLandingStatus::INACTIVE;
     } rtl;
 
     struct {
