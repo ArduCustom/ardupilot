@@ -69,4 +69,5 @@ enum class ModeReason : uint8_t {
   QLAND_INSTEAD_OF_RTL = 49,
   DEADRECKON_FAILSAFE = 50,
   ARMING_MODE_SW = 51,
+  DISARMED = 52,
 };
