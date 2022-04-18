@@ -620,6 +620,7 @@ protected:
         SUPPRESS_CRSF_MESSAGE   = (1U << 9), // suppress CRSF mode/rate message for ELRS systems
         MULTI_RECEIVER_SUPPORT  = (1U << 10), // allow multiple receivers
         USE_CRSF_LQ_AS_RSSI     = (1U << 11), // returns CRSF link quality as RSSI value, instead of RSSI
+        PLANE_SWITCH_TO_MANUAL_AFTER_DISARMING  = (1U << 21), // plane only: switch to manual after disarming and re-read mode switch when arming
         PLANE_DISABLE_MAN_BAT_COMP  = (1U << 22), // plane only: disable throttle battery voltage compensation in manual mode
         PLANE_DISABLE_MAN_THR_EXPO  = (1U << 23), // plane only: disable throttle expo in manual mode
     };
