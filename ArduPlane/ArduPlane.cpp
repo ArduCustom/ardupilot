@@ -468,7 +468,7 @@ void Plane::update_control_mode(void)
             set_target_altitude_current();
         }
 
-    } else if (!rc_failsafe() || !plane.auto_state.emergency_landing) {
+    } else if (!rc_failsafe() && (control_mode != &mode_rtl || plane.rtl.emergency_landing_status != Plane::FSEmergencyLandingStatus::GLIDING_NO_RETURN)) {
         if (control_mode->does_auto_throttle()) {
             set_auto_thr_gliding(false);
         } else {

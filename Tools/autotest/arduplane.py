@@ -2413,9 +2413,14 @@ class AutoTestPlane(AutoTest):
         self.disarm_vehicle(force=True)
 
     def test_emergency_landing(self):
+        eland_delay = 30
+        eland_gldalt = 20
+        rtl_alt = 100
         self.set_parameters({
-            "FS_ELAND_DELAY": 30,
-            "RTL_ALT_MIN": 100
+            "FS_ELAND_DELAY": eland_delay,
+            "FS_ELAND_GLDALT": eland_gldalt,
+            "FS_ELAND_UPWIND": 0,
+            "RTL_ALT_MIN": rtl_alt,
         })
         self.takeoff(alt=200)
         self.context_collect("STATUSTEXT")
@@ -2423,22 +2428,22 @@ class AutoTestPlane(AutoTest):
         self.set_parameter("SIM_RC_FAIL", 1)
         self.wait_mode('RTL') # long failsafe
         self.progress("Wait for home altitude")
-        self.wait_altitude(95, 105, timeout=300, relative=True)
-        self.delay_sim_time(25)
+        self.wait_altitude(rtl_alt-5, rtl_alt+5, timeout=300, relative=True)
+        self.delay_sim_time(eland_delay-5)
         self.progress("Should stay at home altitude for at least 25s")
-        self.wait_servo_channel_value(3, 1200, timeout=4, comparator=operator.ge)
-        self.wait_altitude(95, 105, timeout=4, relative=True)
+        self.wait_altitude(rtl_alt-5, rtl_alt+5, timeout=4, relative=True)
         self.progress("Should start emergency landing")
-        self.wait_servo_channel_value(3, 1000, timeout=10, comparator=operator.eq)
-        self.wait_altitude(45, 55, timeout=300, relative=True)
+        self.wait_statustext("Emergency landing started", timeout=10, check_context=True)
+        self.wait_altitude(rtl_alt/2-5, rtl_alt/2+5, timeout=300, relative=True)
         self.progress("Unfailsafe and check the plane climbs back to RTL altitude")
         self.set_parameter("SIM_RC_FAIL", 0)
-        self.wait_servo_channel_value(3, 1200, timeout=4, comparator=operator.ge)
         expected_alt = self.get_parameter("RTL_ALT_MIN")
         self.wait_altitude(expected_alt-5, expected_alt+5, timeout=100, relative=True)
         self.progress("Failsafe again and wait for landing complete and auto disarm")
         self.set_parameter("SIM_RC_FAIL", 1)
-        self.delay_sim_time(28)
+        self.delay_sim_time(eland_delay-5)
+        self.wait_statustext("Emergency landing started", timeout=10, check_context=True)
+        self.wait_altitude(eland_gldalt-5, eland_gldalt+5, timeout=30, relative=True)
         self.wait_servo_channel_value(3, 1000, timeout=130, comparator=operator.eq)
         self.wait_altitude(-5, 5, timeout=300, relative=True)
         self.wait_statustext("Auto disarmed", timeout=240, check_context=True)
