@@ -271,8 +271,8 @@ public:
         k_param_fs_emergency_landing_delay,
         k_param_fs_timeout_short,
         k_param_fs_timeout_long,
-        k_param_rc_13_old,
-        k_param_rc_14_old,
+        k_param_fs_emergency_landing_gliding_altitude,
+        k_param_fs_emergency_landing_land_upwind,
         k_param_tuning,
 
         //
@@ -420,6 +420,8 @@ public:
     AP_Int8 gcs_heartbeat_fs_enabled;
     AP_Int16 fs_emergency_landing_delay;
     AP_Float fs_emergency_landing_leveling_altitude;
+    AP_Float fs_emergency_landing_gliding_altitude;
+    AP_Int8 fs_emergency_landing_land_upwind;
 
     // Flight modes
     //
