@@ -477,10 +477,15 @@ void Plane::update_control_mode(void)
         }
     }
 
+    const uint32_t now = AP_HAL::millis();
 
-    if (arming_mode_switch_armed_tstamp_ms && AP_HAL::millis() - arming_mode_switch_armed_tstamp_ms > 3000) {
+    if (armed_tstamp_ms && now - armed_tstamp_ms > 3000) {
         switch (g2.arming_mode_sw) {
             case ARMING_MODE_SWITCH_DISABLED:
+                if (g2.rc_channels.switch_to_manual_after_disarming_option_is_enabled()) {
+                    // reread mode
+                    reset_control_switch();
+                }
                 break;
             case ARMING_MODE_SWITCH_TKOFF:
                 set_mode(plane.mode_takeoff , ModeReason::ARMING_MODE_SW);
@@ -489,9 +494,15 @@ void Plane::update_control_mode(void)
                 set_mode(plane.mode_auto , ModeReason::ARMING_MODE_SW);
                 break;
         }
-        arming_mode_switch_armed_tstamp_ms = 0;
+        armed_tstamp_ms = 0;
     }
 
+    if (disarmed_tstamp_ms && now - disarmed_tstamp_ms > 3000) {
+        if (g2.rc_channels.switch_to_manual_after_disarming_option_is_enabled() && control_mode != &mode_manual) {
+            set_mode(mode_manual, ModeReason::DISARMED);
+        }
+        disarmed_tstamp_ms = 0;
+    }
 
     update_fly_forward();
 
