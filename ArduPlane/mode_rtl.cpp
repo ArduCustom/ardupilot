@@ -14,9 +14,7 @@ bool ModeRTL::_enter()
     plane.rtl.triggered_by_rc_failsafe = plane.failsafe.rc_failsafe;
     plane.rtl.manual_alt_control = false;
     plane.rtl.reached_home_altitude = false;
-    plane.auto_state.emergency_landing = false;
-    plane.auto_state.reached_home_in_fs_ms = 0;
-    plane.auto_state.reached_emergency_landing_no_return_altitude = false;
+    plane.rtl.emergency_landing_status = Plane::FSEmergencyLandingStatus::INACTIVE;
 #if HAL_QUADPLANE_ENABLED
     plane.vtol_approach_s.approach_stage = Plane::Landing_ApproachStage::RTL;
 
@@ -74,7 +72,8 @@ void ModeRTL::update()
     float altitude = plane.relative_altitude;
     if (!plane.terrain_disabled()) plane.terrain.height_above_terrain(altitude, true);
 
-    if (plane.auto_state.emergency_landing && plane.g.fs_emergency_landing_leveling_altitude > -1 && altitude < plane.g.fs_emergency_landing_leveling_altitude.get()) {
+    if ((plane.rtl.emergency_landing_status == Plane::FSEmergencyLandingStatus::GLIDING || plane.rtl.emergency_landing_status == Plane::FSEmergencyLandingStatus::GLIDING_NO_RETURN) &&
+            (plane.g.fs_emergency_landing_land_upwind || (plane.g.fs_emergency_landing_leveling_altitude > -1 && altitude < plane.g.fs_emergency_landing_leveling_altitude.get()))) {
         plane.nav_roll_cd = 0;
         return;
     }
@@ -135,46 +134,108 @@ void ModeRTL::navigate()
 
         if (plane.failsafe.rc_failsafe &&
             !(plane.mission.contains_item(MAV_CMD_DO_LAND_START) && (plane.g.rtl_autoland == RtlAutoland::RTL_THEN_DO_LAND_START || plane.g.rtl_autoland == RtlAutoland::RTL_IMMEDIATE_DO_LAND_START)) &&
-            plane.g.fs_emergency_landing_delay > -1 && plane.reached_loiter_target()) {
-            if (plane.auto_state.reached_home_in_fs_ms) {
-                if (now - plane.auto_state.reached_home_in_fs_ms > uint32_t(MAX(0, plane.g.fs_emergency_landing_delay)) * 1000) {
-                    plane.set_auto_thr_gliding(true);
-                    if (!plane.auto_state.emergency_landing) {
-                        plane.auto_state.emergency_landing = true;
-                        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Emergency landing started");
+            plane.g.fs_emergency_landing_delay > -1) {
+            
+            float emergency_landing_gliding_altitude_m = plane.g.fs_emergency_landing_gliding_altitude;
+            if (plane.g.fs_emergency_landing_leveling_altitude > -1 && plane.g.fs_emergency_landing_leveling_altitude > emergency_landing_gliding_altitude_m) {
+                emergency_landing_gliding_altitude_m = plane.g.fs_emergency_landing_leveling_altitude;
+            }
+
+            switch (plane.rtl.emergency_landing_status) {
+                case Plane::FSEmergencyLandingStatus::INACTIVE:
+                    if (plane.reached_loiter_target() && plane.rtl.reached_home_altitude) {
+                        plane.rtl.emergency_landing_tstamp_ms = now;
+                        plane.rtl.emergency_landing_status = Plane::FSEmergencyLandingStatus::DELAY;
+                    } else {
+                        break;
                     }
+                    FALLTHROUGH;
+
+                case Plane::FSEmergencyLandingStatus::DELAY:
+                    if (now - plane.rtl.emergency_landing_tstamp_ms > uint32_t(MAX(0, plane.g.fs_emergency_landing_delay)) * 1000) {
+                        plane.next_WP_loc.set_alt_cm(emergency_landing_gliding_altitude_m * 100, Location::AltFrame::ABOVE_HOME);
+                        plane.setup_terrain_target_alt(plane.next_WP_loc);
+                        plane.set_target_altitude_location(plane.next_WP_loc);
+                        plane.rtl.emergency_landing_status = Plane::FSEmergencyLandingStatus::SINKING_TO_GLIDE_ALTITUDE;
+                        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Emergency landing started");
+                    } else {
+                        break;
+                    }
+                    FALLTHROUGH;
+
+                case Plane::FSEmergencyLandingStatus::SINKING_TO_GLIDE_ALTITUDE: {
+                    float altitude = plane.relative_altitude;
+
+                    // if (altitude < emergency_landing_gliding_altitude_m + 2.0f && (!plane.g.fs_emergency_landing_land_upwind || wind_speed_mps <= 1.0f || (angle > target_angle - 2 && angle < target_angle + 2))) {
+                    if (altitude < emergency_landing_gliding_altitude_m + 2.0f) {
+                        plane.rtl.emergency_landing_tstamp_ms = now;
+                        plane.rtl.emergency_landing_status = Plane::FSEmergencyLandingStatus::ALIGNMENT_INTO_WIND;
+                    } else {
+                        break;
+                    }
+                    FALLTHROUGH;
                 }
-            } else if (plane.rtl.reached_home_altitude) {
-                // trigger emergency landing counter only when the plane has reached home altitude
-                plane.auto_state.reached_home_in_fs_ms = now;
+
+                case Plane::FSEmergencyLandingStatus::ALIGNMENT_INTO_WIND:
+                    if (plane.g.fs_emergency_landing_land_upwind) {
+                        float yaw;
+                        Vector3f v;
+                        {
+                            AP_AHRS &ahrs = AP::ahrs();
+                            WITH_SEMAPHORE(ahrs.get_semaphore());
+                            v = ahrs.wind_estimate();
+                            yaw = ahrs.yaw;
+                        }
+                        float wind_angle = 0;
+                        const float wind_speed_mps = v.length();
+                        if (wind_speed_mps > 1.0f) {
+                            wind_angle = ToDeg(wrap_2PI(atan2f(v.y, v.x) - yaw));
+                        }
+
+                        const float wind_target_angle = 180 + plane.loiter.direction * 2;
+
+                        if (now - plane.rtl.emergency_landing_tstamp_ms > 120000 || wind_speed_mps <= 1.0f || (wind_angle > wind_target_angle - 2 && wind_angle < wind_target_angle + 2)) {
+                            plane.rtl.emergency_landing_status = Plane::FSEmergencyLandingStatus::GLIDING;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        plane.rtl.emergency_landing_status = Plane::FSEmergencyLandingStatus::GLIDING;
+                    }
+                    FALLTHROUGH;
+
+
+                case Plane::FSEmergencyLandingStatus::GLIDING: {
+                    plane.set_auto_thr_gliding(true);
+                    float altitude = plane.relative_altitude;
+                    if (!plane.terrain_disabled()) plane.terrain.height_above_terrain(altitude, true);
+
+                    if (altitude < 10) {
+                        // below 10m don't go back to home altitude if FS ends
+                        plane.rtl.emergency_landing_status = Plane::FSEmergencyLandingStatus::GLIDING_NO_RETURN;
+                    }
+                    FALLTHROUGH;
+                }
+
+                case Plane::FSEmergencyLandingStatus::GLIDING_NO_RETURN:
+                    plane.disarm_if_autoland_complete();
             }
 
-            float altitude = plane.relative_altitude;
-            if (!plane.terrain_disabled()) plane.terrain.height_above_terrain(altitude, true);
-
-            if (plane.auto_state.emergency_landing && altitude < 10) {
-                plane.auto_state.reached_emergency_landing_no_return_altitude = true;
-            }
-        } else if (!plane.auto_state.reached_emergency_landing_no_return_altitude) {
-            plane.auto_state.emergency_landing = false;
-            plane.auto_state.reached_home_in_fs_ms = 0;
+        } else if (plane.rtl.emergency_landing_status != Plane::FSEmergencyLandingStatus::GLIDING_NO_RETURN) {
+            plane.rtl.emergency_landing_status = Plane::FSEmergencyLandingStatus::INACTIVE;
         }
 
-        if (plane.auto_state.reached_emergency_landing_no_return_altitude && !plane.is_flying()) {
-            plane.disarm_if_autoland_complete();
-        }
-
-        if (((plane.g2.flight_options & FlightOptions::RTL_MANUAL_ALT_CONTROL) == 0 || plane.failsafe.rc_failsafe || plane.rtl.triggered_by_rc_failsafe) && plane.reached_loiter_target()) {
-
+        if (((plane.g2.flight_options & FlightOptions::RTL_MANUAL_ALT_CONTROL) == 0 || plane.failsafe.rc_failsafe || plane.rtl.triggered_by_rc_failsafe) && plane.rtl.emergency_landing_status == Plane::FSEmergencyLandingStatus::INACTIVE && plane.reached_loiter_target()) {
             int32_t home_altitude_cm;
             if (plane.g.RTL_home_altitude > -1) {
                 home_altitude_cm = plane.get_home_RTL_altitude_cm();
-                plane.next_WP_loc.set_alt_cm(home_altitude_cm, Location::AltFrame::ABSOLUTE);
-                plane.setup_terrain_target_alt(plane.next_WP_loc);
-                plane.set_target_altitude_location(plane.next_WP_loc);
             } else {
                 home_altitude_cm = plane.get_RTL_altitude_cm();
             }
+
+            plane.next_WP_loc.set_alt_cm(home_altitude_cm, Location::AltFrame::ABSOLUTE);
+            plane.setup_terrain_target_alt(plane.next_WP_loc);
+            plane.set_target_altitude_location(plane.next_WP_loc);
 
             plane.rtl.done_climb = true;
 
