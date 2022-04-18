@@ -840,7 +840,8 @@ private:
         FSEmergencyLandingStatus emergency_landing_status = FSEmergencyLandingStatus::INACTIVE;
     } rtl;
 
-    uint32_t arming_mode_switch_armed_tstamp_ms = 0;
+    uint32_t armed_tstamp_ms = 0;
+    uint32_t disarmed_tstamp_ms = 0;
 
     // last time home was updated while disarmed
     uint32_t last_home_update_ms;
