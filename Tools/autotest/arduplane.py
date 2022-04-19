@@ -2791,12 +2791,6 @@ function'''
         self.arm_vehicle()
         self.fly_mission(mission)
 
-    def test_vectornav(self):
-        self.fly_external_AHRS("VectorNav", 1, "ap1.txt")
-
-    def test_lord(self):
-        self.fly_external_AHRS("LORD", 2, "ap1.txt")
-
     def get_accelvec(self, m):
         return Vector3(m.xacc, m.yacc, m.zacc) * 0.001 * 9.81
 
@@ -4133,14 +4127,6 @@ function'''
             ("TerrainLoiter",
              "Test terrain following in loiter",
              self.TerrainLoiter),
-
-            ("VectorNavEAHRS",
-             "Test VectorNav EAHRS support",
-             self.test_vectornav),
-
-            ("LordEAHRS",
-             "Test LORD Microstrain EAHRS support",
-             self.test_lord),
 
             ("Deadreckoning",
              "Test deadreckoning support",
