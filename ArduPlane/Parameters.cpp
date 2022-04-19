@@ -591,12 +591,21 @@ const AP_Param::Info Plane::var_info[] = {
 
     // @Param: FS_ELAND_LVLALT
     // @DisplayName: Failsafe emergency landing leveling altitude
-    // @Description: Altitude below which the plane will level in FS RTL emergency landing. Set to -1 to disable and continue landing in spiral until touching the ground.
+    // @Description: Altitude below which the plane will level in FS RTL emergency landing. Only used when FS_ELAND_UPDWIND is 0. Set to -1 to disable and continue landing in spiral until touching the ground.
     // @Units: m
     // @Range: 0 600
     // @Increment: 0.1
     // @User: Standard
     GSCALAR(fs_emergency_landing_leveling_altitude, "FS_ELAND_LVLALT", -1),
+
+    // @Param: FS_ELAND_LOTRAD
+    // @DisplayName: Failsafe emergency landing loiter radius
+    // @Description: Failsafe emergency landing loiter radius. Set to 0 to use RTL_RADIUS.
+    // @Units: m
+    // @Range: 0 600
+    // @Increment: 0.1
+    // @User: Standard
+    GSCALAR(fs_emergency_landing_loiter_radius, "FS_ELAND_LOTRAD", 0),
 
     // @Param: FS_GCS_ENABL
     // @DisplayName: GCS failsafe enable

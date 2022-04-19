@@ -251,7 +251,7 @@ public:
         k_param_rc_8_old,
         k_param_rc_9_old,
         k_param_rc_10_old,
-        k_param_rc_11_old,
+        k_param_fs_emergency_landing_loiter_radius,
 
         k_param_throttle_min,
         k_param_throttle_max,
@@ -421,6 +421,7 @@ public:
     AP_Float fs_emergency_landing_leveling_altitude;
     AP_Float fs_emergency_landing_gliding_altitude;
     AP_Int8 fs_emergency_landing_land_upwind;
+    AP_Int16 fs_emergency_landing_loiter_radius;
 
     // Flight modes
     //
