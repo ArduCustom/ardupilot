@@ -72,7 +72,7 @@ void ModeRTL::update()
     float altitude = plane.relative_altitude;
     if (!plane.terrain_disabled()) plane.terrain.height_above_terrain(altitude, true);
 
-    if ((plane.rtl.emergency_landing_status == Plane::FSEmergencyLandingStatus::GLIDING || plane.rtl.emergency_landing_status == Plane::FSEmergencyLandingStatus::GLIDING_NO_RETURN) &&
+    if (plane.rtl.emergency_landing_status >= Plane::FSEmergencyLandingStatus::GLIDING &&
             (plane.g.fs_emergency_landing_land_upwind || (plane.g.fs_emergency_landing_leveling_altitude > -1 && altitude < plane.g.fs_emergency_landing_leveling_altitude.get()))) {
         plane.nav_roll_cd = 0;
         return;
@@ -221,7 +221,11 @@ void ModeRTL::navigate()
                     plane.disarm_if_autoland_complete();
             }
 
-        } else if (plane.rtl.emergency_landing_status != Plane::FSEmergencyLandingStatus::GLIDING_NO_RETURN) {
+        } else if (plane.rtl.emergency_landing_status != Plane::FSEmergencyLandingStatus::INACTIVE && plane.rtl.emergency_landing_status != Plane::FSEmergencyLandingStatus::GLIDING_NO_RETURN) {
+            // we just came out of FS and not reached no return altitude in emergency landing so reset loiter radius
+            int16_t radius = plane.g.rtl_radius != 0 ? plane.g.rtl_radius : plane.aparm.loiter_radius;
+            plane.loiter.radius = abs(radius);
+            plane.loiter.direction = radius < 0 ? -1 : 1;
             plane.rtl.emergency_landing_status = Plane::FSEmergencyLandingStatus::INACTIVE;
         }
 
@@ -281,6 +285,17 @@ void ModeRTL::navigate()
 
     // manual loiter radius and direction control
     plane.update_loiter_radius_and_direction();
+
+    if (plane.rc_failsafe()) {
+        int16_t radius = plane.g.rtl_radius != 0 ? plane.g.rtl_radius : plane.aparm.loiter_radius;
+
+        if (plane.rtl.emergency_landing_status >= Plane::FSEmergencyLandingStatus::SINKING_TO_GLIDE_ALTITUDE && plane.g.fs_emergency_landing_loiter_radius) {
+            radius = plane.g.fs_emergency_landing_loiter_radius;
+        }
+
+        plane.loiter.radius = abs(radius);
+        plane.loiter.direction = radius < 0 ? -1 : 1;
+    }
 
     // Zero indicates to use WP_LOITER_RAD
     plane.update_loiter(lrintf(plane.loiter.radius));
