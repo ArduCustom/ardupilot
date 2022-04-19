@@ -826,8 +826,8 @@ private:
         INACTIVE,
         DELAY,
         SINKING_TO_GLIDE_ALTITUDE,
-        GLIDING,
         ALIGNMENT_INTO_WIND,
+        GLIDING,
         GLIDING_NO_RETURN,
     };
 
