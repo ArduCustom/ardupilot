@@ -1163,7 +1163,7 @@ class AutoTestPlane(AutoTest):
             self.arm_vehicle()
             self.wait_statustext("Gripper Grabbed", timeout=60)
             self.wait_statustext("Gripper Released", timeout=60)
-            self.wait_statustext("Auto disarmed", timeout=60)
+            self.wait_statustext("Auto disarmed", timeout=100)
         except Exception as e:
             self.print_exception_caught(e)
             ex = e
