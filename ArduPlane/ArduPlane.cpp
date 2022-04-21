@@ -460,20 +460,24 @@ void Plane::update_control_mode(void)
         steer_state.hold_course_cd = -1;
     }
 
-    if ((g2.flight_options & FlightOptions::ALLOW_GLIDING_IN_AUTO_THR_MODES) && !rc_failsafe() && control_mode->does_auto_throttle() && control_mode != &mode_takeoff && control_mode != &mode_auto) {
+    if (!rc_failsafe_active()) {
+        if ((g2.flight_options & FlightOptions::ALLOW_GLIDING_IN_AUTO_THR_MODES) && control_mode->does_auto_throttle() && control_mode != &mode_takeoff && control_mode != &mode_auto) {
 
-        set_auto_thr_gliding(is_zero(get_throttle_input()));
+            set_auto_thr_gliding(is_zero(get_throttle_input()));
 
-        if (auto_thr_gliding_state == ATGS_GLIDING) {
-            set_target_altitude_current();
-        }
+            if (auto_thr_gliding_state == ATGS_GLIDING) {
+                set_target_altitude_current();
+            }
 
-    } else if (!rc_failsafe() && (control_mode != &mode_rtl || plane.rtl.emergency_landing_status != Plane::FSEmergencyLandingStatus::GLIDING_NO_RETURN)) {
-        if (control_mode->does_auto_throttle()) {
-            set_auto_thr_gliding(false);
-        } else {
-            auto_thr_gliding_state = ATGS_DISABLED;
-            TECS_controller.set_auto_thr_gliding(false);
+        } else if (control_mode != &mode_rtl || plane.rtl.emergency_landing_status != Plane::FSEmergencyLandingStatus::GLIDING_NO_RETURN) {
+            // gliding in auto thr modes option disabled or mode doesn't do auto throttle and mode != RTL or in RTL but emergency landing status is not GLIDING_NO_RETURN
+            // then disable gliding, allows to disable gliding when coming out of FS in RTL while in emergency mode but not reached the no return altitude or if we disabled the gliding option
+            if (control_mode->does_auto_throttle()) {
+                set_auto_thr_gliding(false);
+            } else {
+                auto_thr_gliding_state = ATGS_DISABLED;
+                TECS_controller.set_auto_thr_gliding(false);
+            }
         }
     }
 
