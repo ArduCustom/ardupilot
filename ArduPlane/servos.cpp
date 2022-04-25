@@ -96,6 +96,10 @@ bool Plane::suppress_throttle(void)
         return true;
     }
 
+    if (g2.arming_mode_sw != ARMING_MODE_SWITCH_DISABLED && armed_tstamp_ms) {
+        return true;
+    }
+
 #if PARACHUTE == ENABLED
     if (control_mode->does_auto_throttle() && parachute.release_initiated()) {
         // throttle always suppressed in auto-throttle modes after parachute release initiated
