@@ -238,7 +238,7 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @Description: Base unit to be used for displaying distance and vertical speed efficiency values
     // @Values: 0:mAh,1:Wh
     // @User: Standard
-    AP_GROUPINFO("_EFF_UNIT", 63, AP_OSD, efficiency_unit_base, AP_OSD::EFF_UNIT_BASE_MAH),
+    AP_GROUPINFO("_EFF_UNIT", 63, AP_OSD, efficiency_unit_base, AP_OSD::EFF_UNIT_BASE_WH),
 
 #if HAL_WITH_ESC_TELEM
     // @Param: _W_BLHRPM
