@@ -428,7 +428,7 @@ void Scheduler::_monitor_thread(void *arg)
             }
 #endif
         }
-        if (loop_delay >= 500 && !sched->in_expected_delay()) {
+        if (loop_delay >= 1000 && !sched->in_expected_delay()) {
             // at 500ms we declare an internal error
             INTERNAL_ERROR(AP_InternalError::error_t::main_loop_stuck);
         }
