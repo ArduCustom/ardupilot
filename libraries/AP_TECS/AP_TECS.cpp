@@ -56,7 +56,7 @@ const AP_Param::GroupInfo AP_TECS::var_info[] = {
     // @Range: 0.0 0.5
     // @Increment: 0.02
     // @User: Advanced
-    AP_GROUPINFO("INTEG_GAIN", 4, AP_TECS, _integGain, 0.1f),
+    AP_GROUPINFO("INTEG_GAIN", 4, AP_TECS, _integGain, 0.4f),
 
     // @Param: VERT_ACC
     // @DisplayName: Vertical Acceleration Limit (metres/sec^2)
