@@ -118,9 +118,9 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     AP_GROUPINFO("_H_OFFSET", 11, AP_OSD, h_offset, 32),
 
     // @Param: _W_RSSI
-    // @DisplayName: RSSI warn level (in %)
-    // @Description: Set level at which RSSI item will flash
-    // @Range: 0 99
+    // @DisplayName: RSSI warn level
+    // @Description: Set level at which RSSI item will flash (% for the percentage element or -dBm for the dBm element)
+    // @Range: -128 100
     // @User: Standard
     AP_GROUPINFO("_W_RSSI", 12, AP_OSD, warn_rssi, 30),
 
