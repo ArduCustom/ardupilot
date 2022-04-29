@@ -2824,7 +2824,7 @@ void AP_OSD_Screen::draw_rssi_dbm(uint8_t x, uint8_t y, int8_t value, bool blink
 void AP_OSD_Screen::draw_crsf_rssi_dbm(uint8_t x, uint8_t y)
 {
     const int8_t rssidbm = AP::crsf()->get_link_status().rssi_dbm;
-    const bool blink = rssidbm > osd->warn_rssi;
+    const bool blink = -rssidbm < osd->warn_rssi;
     backend->write(x, y, blink, "%c", SYMBOL(SYM_RSSI));
     draw_rssi_dbm(x+1, y, rssidbm, blink);
 }
