@@ -64,7 +64,7 @@ class AP_MSP;
 #define PARAM_INDEX(key, idx, group) (uint32_t(uint32_t(key) << 23 | uint32_t(idx) << 18 | uint32_t(group)))
 #define PARAM_TOKEN_INDEX(token) PARAM_INDEX(AP_Param::get_persistent_key(token.key), token.idx, token.group_element)
 
-#define AP_OSD_NUM_SYMBOLS 105
+#define AP_OSD_NUM_SYMBOLS 106
 /*
   class to hold one setting
  */
@@ -236,6 +236,7 @@ private:
     AP_OSD_Setting course_hold_heading{false, 0, 0};
     AP_OSD_Setting course_hold_heading_adjustment{false, 0, 0};
     AP_OSD_Setting rc_failsafe{false, 0, 0};
+    AP_OSD_Setting loiter_radius{false, 0, 0};
 #if OSD_DEBUG_ELEMENT
     AP_OSD_Setting debug{false, 0, 0};
 #endif
@@ -366,6 +367,8 @@ private:
     void draw_course_hold_heading(uint8_t x, uint8_t y);
     void draw_course_hold_heading_adjustment(uint8_t x, uint8_t y);
     void draw_rc_failsafe(uint8_t x, uint8_t y);
+    void draw_loiter_radius(uint8_t x, uint8_t y);
+    bool loiter_radius_changed(uint16_t &radius);
 #if OSD_DEBUG_ELEMENT
     void draw_debug(uint8_t x, uint8_t y);
 #endif

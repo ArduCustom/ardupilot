@@ -1534,6 +1534,25 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     AP_SUBGROUPINFO(debug, "DEBUG", 36, AP_OSD_Screen, AP_OSD_Setting),
 #endif
 
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    // @Param: LOIT_RAD_EN
+    // @DisplayName: LOIT_RAD_EN
+    // @Description: Displays the RC failsafe status
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: LOIT_RAD_X
+    // @DisplayName: LOIT_RAD_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: LOIT_RAD_Y
+    // @DisplayName: LOIT_RAD_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(loiter_radius, "LOIT_RAD", 35, AP_OSD_Screen, AP_OSD_Setting),
+#endif
+
+
     AP_GROUPEND
 };
 
@@ -1658,6 +1677,7 @@ uint8_t AP_OSD_AbstractScreen::symbols_lookup_table[AP_OSD_NUM_SYMBOLS];
 #define SYM_PITCH 102
 #define SYM_DPS 103
 #define SYM_HEADING 104
+#define SYM_RADIUS 105
 
 #define SYMBOL(n) AP_OSD_AbstractScreen::symbols_lookup_table[n]
 
@@ -3728,6 +3748,50 @@ void AP_OSD_Screen::draw_avg_eff_air(uint8_t x, uint8_t y, bool draw_eff_symbol)
 #endif
 }
 
+bool AP_OSD_Screen::loiter_radius_changed(uint16_t &radius)
+{
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    static uint32_t last_changed;
+    static uint16_t last_value;
+    const bool relevant = AP::vehicle()->get_loiter_radius_target(radius);
+
+    if (!relevant) {
+        last_changed = 0;
+        return false;
+    }
+
+    const uint32_t now = AP_HAL::millis();
+    if (radius != last_value) {
+        if (last_changed) last_value = radius;
+        last_changed = now;
+    }
+    if (!last_changed || now - last_changed > 2000) {
+        return false;
+    }
+
+    return true;
+#else
+    return false;
+#endif
+}
+
+void AP_OSD_Screen::draw_loiter_radius(uint8_t x, uint8_t y)
+{
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    if (!AP_Notify::flags.armed) {
+        backend->write(x, y, false, "%c", SYMBOL(SYM_RADIUS));
+        draw_distance(x+1, y, 0, true, false);
+        return;
+    }
+
+    uint16_t radius;
+    if (loiter_radius_changed(radius)) {
+        backend->write(x, y, false, "%c", SYMBOL(SYM_RADIUS));
+        draw_distance(x+1, y, radius);
+    }
+#endif
+}
+
 // End plane specific elements
 
 #define DRAW_SETTING(n) if (n.enabled) draw_ ## n(n.xpos, n.ypos)
@@ -3844,6 +3908,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(aoa);
     DRAW_SETTING(eff_air);
     DRAW_SETTING(avg_eff_air);
+    DRAW_SETTING(loiter_radius);
 #endif
 }
 #endif
