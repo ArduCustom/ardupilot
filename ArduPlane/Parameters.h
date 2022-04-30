@@ -67,7 +67,7 @@ public:
         k_param_manual_level, // unused
         k_param_land_pitch_cd,  // unused - moved to AP_Landing
         k_param_ins_old,            // *** Deprecated, remove with next eeprom number change
-        k_param_stick_mixing,
+        k_param_stick_mixing, // unused
         k_param_kff_throttle_above_trim_to_pitch_curve,
         k_param_mix_throttle_above_trim_to_elevator_curve,
         k_param_mix_flap_to_elevator_curve,
@@ -456,7 +456,6 @@ public:
     AP_Float flap_retracted_speed;
     AP_Float flap_deployed_speed;
     AP_Int8 takeoff_flap_percent;  
-    AP_Enum<StickMixing> stick_mixing;
     AP_Float takeoff_throttle_min_speed;
     AP_Float takeoff_throttle_min_accel;
     AP_Int8 takeoff_throttle_delay;
