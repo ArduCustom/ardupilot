@@ -39,6 +39,11 @@ bool ModeRTL::_enter()
     return true;
 }
 
+void ModeRTL::_exit()
+{
+    plane.rtl.loitering = false;
+}
+
 void ModeRTL::update()
 {
     plane.calc_nav_roll();
@@ -295,6 +300,10 @@ void ModeRTL::navigate()
 
         plane.loiter.radius = abs(radius);
         plane.loiter.direction = radius < 0 ? -1 : 1;
+    }
+
+    if (plane.reached_loiter_target()) {
+        plane.rtl.loitering = true;
     }
 
     // Zero indicates to use WP_LOITER_RAD
