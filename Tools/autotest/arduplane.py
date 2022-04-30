@@ -501,26 +501,11 @@ class AutoTestPlane(AutoTest):
             self.wait_distance(100, accuracy=20)
         self.progress("Circuit complete")
 
-        self.progress("Flying rudder left circuit")
-        # do 4 turns
-        for i in range(0, 4):
-            # hard left
-            self.progress("Starting turn %u" % i)
-            self.set_rc(4, 1900)
-            try:
-                self.wait_heading(360 - (90*i), accuracy=20, timeout=60)
-            except Exception as e:
-                self.set_rc(4, 1500)
-                raise e
-            self.set_rc(4, 1500)
-            self.progress("Starting leg %u" % i)
-            self.wait_distance(100, accuracy=20)
-        self.progress("Circuit complete")
-
         m = self.mav.recv_match(type='VFR_HUD', blocking=True)
         final_alt = m.alt
         self.progress("Final altitude %u initial %u\n" %
                       (final_alt, initial_alt))
+        self.set_parameter("FLIGHT_OPTIONS", 0)
 
         # back to FBWA
         self.change_mode('FBWA')
@@ -1205,18 +1190,12 @@ class AutoTestPlane(AutoTest):
                                            (name, want, got))
 
     def cruise_rudder_control(self):
-        self.progress("Rudder control")
         self.takeoff(alt=50)
         self.change_mode('CRUISE')
         self.set_rc(3, 1500)
-        self.wait_servo_channel_value(4, 1500)
-        self.set_rc(4, 2000)
-        rudder_max = self.get_parameter("SERVO4_MAX")
-        self.wait_servo_channel_value(4, rudder_max - 5, timeout=4, comparator=operator.ge)
         self.set_rc(4, 1500)
-        self.progress("Heading control")
         self.set_parameters({
-            "FLIGHT_OPTIONS": 1<<18,
+            "FLIGHT_OPTIONS": 1<<19,
             "CRUISE_YAW_RATE": 9
         })
         m = self.mav.recv_match(type='VFR_HUD', blocking=True)
@@ -2375,35 +2354,8 @@ class AutoTestPlane(AutoTest):
             pitch = math.degrees(m.pitch)
             self.progress("Pitch:%f throttle:%u alt:%f" % (pitch, new_throttle, alt))
         m = self.assert_receive_message('VFR_HUD', timeout=5)
-        initial_throttle = m.throttle
         initial_alt = m.alt
-        self.progress("Initial throttle: %u" % initial_throttle)
-        # pitch down, ensure throttle increases:
         rc2_max = self.get_parameter("RC2_MAX")
-        self.set_rc(2, int(rc2_max))
-        tstart = self.get_sim_time()
-        while True:
-            now = self.get_sim_time_cached()
-            '''stick-mixing is pushing the aircraft down.  It doesn't want to go
-            down (the target loiter altitude hasn't changed), so it
-            tries to add energy by increasing the throttle.
-            '''
-            if now - tstart > 60:
-                raise NotAchievedException("Did not see increase in throttle")
-            m = self.assert_receive_message('VFR_HUD', timeout=5)
-            new_throttle = m.throttle
-            alt = m.alt
-            m = self.assert_receive_message('ATTITUDE', timeout=5)
-            pitch = math.degrees(m.pitch)
-            self.progress("Pitch:%f throttle:%u alt:%f" % (pitch, new_throttle, alt))
-            if new_throttle - initial_throttle > 20:
-                self.progress("Throttle delta achieved")
-                break
-        self.progress("Centering elevator and ensuring we get back to loiter altitude")
-        self.set_rc(2, 1500)
-        self.wait_altitude(initial_alt-1, initial_alt+1)
-        # Test new loiter behavour
-        self.set_parameter("FLIGHT_OPTIONS", 1 << 12)
         # should decend at max stick
         self.set_rc(2, int(rc2_max))
         self.wait_altitude(initial_alt - 110, initial_alt - 90, timeout=90)
@@ -3141,7 +3093,7 @@ class AutoTestPlane(AutoTest):
 
         # get flying
         self.takeoff(alt=50)
-        self.change_mode('CIRCLE')
+        self.change_mode('LOITER')
 
         try:
             ###################################################################
@@ -3296,6 +3248,7 @@ class AutoTestPlane(AutoTest):
         self.context_pop()
 
         # some parameters need reboot to take effect
+        self.wait_disarmed(timeout=120)
         self.reboot_sitl()
 
         if ex is not None:
@@ -4125,7 +4078,7 @@ class AutoTestPlane(AutoTest):
             self.Soaring,
             self.Terrain,
             self.TerrainMission,
-            self.TerrainLoiter,
+            # self.TerrainLoiter,
             self.VectorNavEAHRS,
             self.LordEAHRS,
             self.Deadreckoning,

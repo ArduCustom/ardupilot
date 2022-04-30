@@ -80,14 +80,6 @@ MAV_MODE GCS_MAVLINK_Plane::base_mode() const
         _base_mode |= MAV_MODE_FLAG_STABILIZE_ENABLED;
     }
 
-    if (plane.g.stick_mixing != StickMixing::NONE && plane.control_mode != &plane.mode_initializing) {
-        if ((plane.g.stick_mixing != StickMixing::VTOL_YAW) || (plane.control_mode == &plane.mode_auto)) {
-            // all modes except INITIALISING have some form of manual
-            // override if stick mixing is enabled
-            _base_mode |= MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
-        }
-    }
-
     // we are armed if we are not initialising
     if (plane.control_mode != &plane.mode_initializing && plane.arming.is_armed()) {
         _base_mode |= MAV_MODE_FLAG_SAFETY_ARMED;
