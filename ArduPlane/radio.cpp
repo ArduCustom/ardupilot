@@ -223,12 +223,11 @@ int16_t Plane::rudder_input(void)
         return 0;
     }
 
-    if (stick_mixing_enabled()) {
-        return channel_rudder->get_control_in();
+    if (control_mode->does_auto_navigation() || (control_mode == &mode_cruise && (g2.flight_options & FlightOptions::CRUISE_HEADING_CONTROL_WITH_YAW_STICK))) {
+        return 0;
     }
 
-    return 0;
-    
+    return channel_rudder->get_control_in();
 }
 
 void Plane::control_failsafe()
