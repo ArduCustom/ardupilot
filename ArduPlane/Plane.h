@@ -831,6 +831,7 @@ private:
         bool reached_home_altitude;
         uint32_t emergency_landing_tstamp_ms;
         FSEmergencyLandingStatus emergency_landing_status = FSEmergencyLandingStatus::INACTIVE;
+        bool loitering = false;
     } rtl;
 
     struct {
@@ -1119,6 +1120,7 @@ private:
     void setup_turn_angle(void);
     bool reached_loiter_target(void);
     float demanded_airspeed(void) const override { return target_airspeed_cm * 0.01f; };
+    bool get_loiter_radius_target(uint16_t &radius) const override;
 
     // radio.cpp
     void set_control_channels(void) override;
