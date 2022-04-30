@@ -326,6 +326,7 @@ public:
 protected:
 
     bool _enter() override;
+    void _exit() override;
 
 private:
 
