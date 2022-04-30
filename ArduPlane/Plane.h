@@ -919,7 +919,6 @@ private:
     void calc_nav_pitch();
     float calc_speed_scaler(void);
     float get_speed_scaler(void) const { return surface_speed_scaler; }
-    bool stick_mixing_enabled(void);
     void stabilize_roll(float speed_scaler);
     float stabilize_roll_get_roll_out(float speed_scaler);
     void stabilize_pitch(float speed_scaler);
