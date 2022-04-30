@@ -290,6 +290,8 @@ public:
 
     virtual bool get_cruise_locked_heading(uint16_t &heading) const { return false; }
 
+    virtual bool get_loiter_radius_target(uint16_t &radius) const { return false; }
+
     virtual bool rc_failsafe(void) const { return false; }
 
 #if HAL_WITH_FRSKY_TELEM_BIDIRECTIONAL
