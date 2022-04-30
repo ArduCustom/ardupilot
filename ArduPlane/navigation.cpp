@@ -388,6 +388,16 @@ void Plane::update_loiter_radius_and_direction(void)
     }
 }
 
+bool Plane::get_loiter_radius_target(uint16_t &radius) const
+{
+    if ((control_mode != &mode_rtl || !plane.rtl.loitering) && control_mode != &mode_loiter) {
+        return false;
+    }
+
+    radius = plane.loiter.radius;
+    return true;
+}
+
 /*
   handle speed and height control in FBWB, CRUISE, and optionally, LOITER mode.
   In this mode the elevator is used to change target altitude. The
