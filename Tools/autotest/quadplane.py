@@ -679,7 +679,6 @@ class AutoTestQuadPlane(AutoTest):
     def PilotYaw(self):
         '''Test pilot yaw in various modes'''
         self.takeoff(10, mode="QLOITER")
-        self.set_parameter("STICK_MIXING", 0)
         self.set_rc(4, 1700)
         for mode in "QLOITER", "QHOVER":
             self.wait_heading(45)
@@ -696,8 +695,7 @@ class AutoTestQuadPlane(AutoTest):
         self.set_parameters({"SIM_WIND_SPD": 10,
                              "SIM_WIND_DIR": 240,
                              "Q_WVANE_ENABLE": 3, # WVANE_ENABLE = 3 gives direction of side into wind
-                             "Q_WVANE_GAIN": 3,
-                             "STICK_MIXING": 0})
+                             "Q_WVANE_GAIN": 3})
 
         self.takeoff(10, mode="QLOITER")
 
