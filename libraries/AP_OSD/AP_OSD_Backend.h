@@ -194,6 +194,7 @@ protected:
     static const uint8_t SYM_DPS = 0xAA;
     static const uint8_t SYM_HEADING = 0x89;
     static const uint8_t SYM_RADIUS = 0x7A;
+    static const uint8_t SYM_FLAP = 0x23;
 
     static const uint8_t SYM_SIDEBAR_R_ARROW = 0x09;
     static const uint8_t SYM_SIDEBAR_L_ARROW = 0x0A;
@@ -315,5 +316,6 @@ protected:
         SYM_DPS,
         SYM_HEADING,
         SYM_RADIUS,
+        SYM_FLAP,
     };
 };
