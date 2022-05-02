@@ -1678,6 +1678,7 @@ uint8_t AP_OSD_AbstractScreen::symbols_lookup_table[AP_OSD_NUM_SYMBOLS];
 #define SYM_DPS 103
 #define SYM_HEADING 104
 #define SYM_RADIUS 105
+#define SYM_FLAP 106
 
 #define SYMBOL(n) AP_OSD_AbstractScreen::symbols_lookup_table[n]
 
@@ -3696,10 +3697,10 @@ void AP_OSD_Screen::draw_auto_flaps(uint8_t x, uint8_t y)
 {
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     if (!AP_Notify::flags.armed) {
-        backend->write(x, y, false, "---%c", SYMBOL(SYM_PCNT));
+        backend->write(x, y, false, "%c---%c", SYMBOL(SYM_FLAP), SYMBOL(SYM_PCNT));
     } else if (AP::vehicle()->control_mode_does_auto_throttle()) {
         uint8_t flaps_pcnt = AP::vehicle()->auto_flap_percent();
-        backend->write(x, y, false, "%3u%c", (uint)lrintf(flaps_pcnt), SYMBOL(SYM_PCNT));
+        backend->write(x, y, false, "%c%3u%c", SYMBOL(SYM_FLAP), (uint)lrintf(flaps_pcnt), SYMBOL(SYM_PCNT));
     }
 #endif
 }
