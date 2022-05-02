@@ -811,7 +811,7 @@ void Plane::set_servos_flaps(void)
     if (control_mode->does_auto_throttle()) {
         float flapSpeedSource = 0;
         if (ahrs.airspeed_sensor_enabled()) {
-            flapSpeedSource = TECS_controller.get_target_airspeed();
+            flapSpeedSource = throttle_suppressed ? target_airspeed_cm * 0.01f : TECS_controller.get_target_airspeed();
         } else {
             flapSpeedSource = aparm.throttle_cruise;
         }
