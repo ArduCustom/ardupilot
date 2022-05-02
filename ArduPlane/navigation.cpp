@@ -156,7 +156,7 @@ void Plane::calc_airspeed_errors()
 
 
     // FBW_B/cruise airspeed target
-    if (!failsafe.rc_failsafe && (control_mode == &mode_fbwb || control_mode == &mode_cruise || control_mode == &mode_loiter || control_mode == &mode_rtl)) {
+    if (!failsafe.rc_failsafe && (control_mode == &mode_fbwb || control_mode == &mode_cruise || control_mode == &mode_loiter || control_mode == &mode_rtl || control_mode == &mode_circle || (control_mode == &mode_auto && g2.flight_options & FlightOptions::MODE_AUTO_MANUAL_AIRSPEED_CONTROL))) {
 
         // 10% deadzone for airspeed control when gliding in auto thr modes is enabled
         float min_airspeed_throttle_input = g2.flight_options & FlightOptions::ALLOW_GLIDING_IN_AUTO_THR_MODES ? 10 : 0;
