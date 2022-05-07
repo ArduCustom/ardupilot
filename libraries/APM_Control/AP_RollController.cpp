@@ -41,28 +41,28 @@ const AP_Param::GroupInfo AP_RollController::var_info[] = {
 
     // @Param: _RATE_P
     // @DisplayName: Roll axis rate controller P gain
-    // @Description: Roll axis rate controller P gain.  Converts the difference between desired roll rate and actual roll rate into a motor speed output
+    // @Description: Roll axis rate controller P gain. Converts the difference between desired roll rate and actual roll rate into a control surface angle
     // @Range: 0.08 0.35
     // @Increment: 0.005
     // @User: Standard
 
     // @Param: _RATE_I
     // @DisplayName: Roll axis rate controller I gain
-    // @Description: Roll axis rate controller I gain.  Corrects long-term difference in desired roll rate vs actual roll rate
+    // @Description: Roll axis rate controller I gain. Corrects long-term difference in desired roll rate vs actual roll rate
     // @Range: 0.01 0.6
     // @Increment: 0.01
     // @User: Standard
 
     // @Param: _RATE_IMAX
     // @DisplayName: Roll axis rate controller I gain maximum
-    // @Description: Roll axis rate controller I gain maximum.  Constrains the maximum motor output that the I gain will output
+    // @Description: Roll axis rate controller I gain maximum. Constrains the maximum control surface angle that the I gain will output
     // @Range: 0 1
     // @Increment: 0.01
     // @User: Standard
 
     // @Param: _RATE_D
     // @DisplayName: Roll axis rate controller D gain
-    // @Description: Roll axis rate controller D gain.  Compensates for short-term change in desired roll rate vs actual roll rate
+    // @Description: Roll axis rate controller D gain. Compensates for short-term change in desired roll rate vs actual roll rate
     // @Range: 0.001 0.03
     // @Increment: 0.001
     // @User: Standard
