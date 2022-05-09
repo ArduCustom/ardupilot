@@ -519,7 +519,7 @@ void AP_RCProtocol_CRSF::process_link_stats_frame(const void* data)
         }
     }
 
-    _link_status.rf_mode = MIN(link->rf_mode, 7U);
+    _link_status.rf_mode = link->rf_mode;
     _link_status.tx_power = link->uplink_tx_power < sizeof(AP_RCProtocol_CRSF::tx_powers) ? AP_RCProtocol_CRSF::tx_powers[link->uplink_tx_power] : -1;
     _link_status.snr = link->uplink_snr;
     _link_status.active_antenna = link->active_antenna;
