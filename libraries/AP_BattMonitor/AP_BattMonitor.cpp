@@ -763,8 +763,7 @@ void AP_BattMonitor::check_failsafes(void)
                     break;
             }
 
-            GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Battery %d is %s %.2fV used %.0f mAh", i + 1, type_str,
-                            (double)voltage(i), (double)state[i].consumed_mah);
+            GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Battery %d is %s", i + 1, type_str);
             _has_triggered_failsafe = true;
 #ifndef HAL_BUILD_AP_PERIPH
             AP_Notify::flags.failsafe_battery = true;
