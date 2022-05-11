@@ -714,6 +714,8 @@ void Plane::set_servos_controlled(void)
             }
 
             SRV_Channels::set_slew_rate(SRV_Channel::k_throttle, g2.takeoff_idle_thr_slewrate, 100, G_Dt);
+            SRV_Channels::set_slew_rate(SRV_Channel::k_throttleLeft, g2.takeoff_idle_thr_slewrate, 100, G_Dt);
+            SRV_Channels::set_slew_rate(SRV_Channel::k_throttleRight, g2.takeoff_idle_thr_slewrate, 100, G_Dt);
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle_output);
         } else {
             takeoff_delay_start_tstamp_ms = 0;
