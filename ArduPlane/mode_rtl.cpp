@@ -75,7 +75,9 @@ void ModeRTL::update()
     plane.calc_throttle();
 
     float altitude = plane.relative_altitude;
+#if AP_TERRAIN_AVAILABLE
     if (!plane.terrain_disabled()) plane.terrain.height_above_terrain(altitude, true);
+#endif
 
     if (plane.rtl.emergency_landing_status >= Plane::FSEmergencyLandingStatus::GLIDING &&
             (plane.g.fs_emergency_landing_land_upwind || (plane.g.fs_emergency_landing_leveling_altitude > -1 && altitude < plane.g.fs_emergency_landing_leveling_altitude.get()))) {
@@ -213,7 +215,9 @@ void ModeRTL::navigate()
                 case Plane::FSEmergencyLandingStatus::GLIDING: {
                     plane.set_auto_thr_gliding(true);
                     float altitude = plane.relative_altitude;
+#if AP_TERRAIN_AVAILABLE
                     if (!plane.terrain_disabled()) plane.terrain.height_above_terrain(altitude, true);
+#endif
 
                     if (altitude < 10) {
                         // below 10m don't go back to home altitude if FS ends
