@@ -30,6 +30,7 @@ void Plane::failsafe_short_on_event(enum failsafe_state fstype, ModeReason reaso
     case Mode::Number::FLY_BY_WIRE_A:
     case Mode::Number::AUTOTUNE:
     case Mode::Number::FLY_BY_WIRE_B:
+    case Mode::Number::COURSE_HOLD:
     case Mode::Number::CRUISE:
     case Mode::Number::TRAINING:  
         if(plane.emergency_landing) {
@@ -121,6 +122,7 @@ void Plane::failsafe_long_on_event(enum failsafe_state fstype, ModeReason reason
     case Mode::Number::FLY_BY_WIRE_A:
     case Mode::Number::AUTOTUNE:
     case Mode::Number::FLY_BY_WIRE_B:
+    case Mode::Number::COURSE_HOLD:
     case Mode::Number::CRUISE:
     case Mode::Number::TRAINING:
     case Mode::Number::CIRCLE:
