@@ -52,6 +52,7 @@ public:
 #if HAL_QUADPLANE_ENABLED
         LOITER_ALT_QLAND = 25,
 #endif
+        COURSE_HOLD   = 26,
     };
 
     // Constructor
@@ -413,7 +414,27 @@ protected:
     bool _enter() override;
 };
 
-class ModeCruise : public Mode
+class ModeCourseHold : public Mode
+{
+public:
+
+    Number mode_number() const override { return Number::COURSE_HOLD; }
+    const char *name() const override { return "COURSE HOLD"; }
+    const char *name4() const override { return "CRSH"; }
+
+    // methods that affect movement of the vehicle in this mode
+    void update() override;
+
+    void navigate() override;
+
+    bool get_target_heading_cd(int32_t &target_heading) const;
+
+protected:
+
+    bool _enter() override;
+};
+
+class ModeCruise : public ModeCourseHold
 {
 public:
 
@@ -428,20 +449,12 @@ public:
     // methods that affect movement of the vehicle in this mode
     void update() override;
 
-    void navigate() override;
-
-    bool get_target_heading_cd(int32_t &target_heading) const;
-
     bool does_auto_throttle() const override { return true; }
 
 protected:
 
     bool _enter() override;
 
-    bool locked_heading;
-    int32_t locked_heading_cd;
-    uint32_t lock_timer_ms;
-    uint32_t heading_update_tstamp;
 };
 
 #if HAL_ADSB_ENABLED
