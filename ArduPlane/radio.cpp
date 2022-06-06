@@ -223,7 +223,7 @@ int16_t Plane::rudder_input(void)
         return 0;
     }
 
-    if (control_mode->does_auto_navigation() || (control_mode == &mode_cruise && (g2.flight_options & FlightOptions::CRUISE_HEADING_CONTROL_WITH_YAW_STICK))) {
+    if (control_mode->does_auto_navigation() || ((control_mode == &mode_cruise || control_mode == &mode_course_hold) && (g2.flight_options & FlightOptions::COURSE_HOLD_HEADING_CONTROL_WITH_YAW_STICK))) {
         return 0;
     }
 
