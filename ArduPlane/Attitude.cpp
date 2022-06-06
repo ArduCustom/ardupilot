@@ -513,7 +513,7 @@ void Plane::calc_nav_yaw_coordinated(float speed_scaler)
     bool disable_integrator = false;
     int16_t rudder_in = rudder_input();
 
-    if (control_mode == &mode_cruise && g2.flight_options & FlightOptions::CRUISE_HEADING_CONTROL_WITH_YAW_STICK) {
+    if ((control_mode == &mode_course_hold || control_mode == &mode_cruise) && g2.flight_options & FlightOptions::COURSE_HOLD_HEADING_CONTROL_WITH_YAW_STICK) {
         rudder_in = 0;
     }
 

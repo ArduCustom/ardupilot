@@ -296,7 +296,7 @@ public:
      */
     virtual bool get_wp_crosstrack_error_m(float &xtrack_error) const { return false; }
 
-    virtual bool get_cruise_locked_heading(uint16_t &heading) const { return false; }
+    virtual bool get_course_hold_heading(uint16_t &heading) const { return false; }
 
     virtual bool rc_failsafe(void) const { return false; }
 
