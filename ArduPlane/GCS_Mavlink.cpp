@@ -46,6 +46,7 @@ MAV_MODE GCS_MAVLINK_Plane::base_mode() const
     case Mode::Number::QAUTOTUNE:
 #endif
 #endif  // HAL_QUADPLANE_ENABLED
+    case Mode::Number::COURSE_HOLD:
     case Mode::Number::CRUISE:
         _base_mode = MAV_MODE_FLAG_STABILIZE_ENABLED;
         break;
