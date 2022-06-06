@@ -1188,6 +1188,33 @@ class AutoTestPlane(AutoTest):
                 raise NotAchievedException("fence status incorrect; %s want=%u got=%u" %
                                            (name, want, got))
 
+    def CourseHoldMode(self):
+        '''Test course hold mode'''
+        self.set_parameters({
+            "FLIGHT_OPTIONS": 1<<20,
+            "CRUISE_YAW_RATE": 9
+        })
+        self.takeoff(alt=50)
+        self.change_mode('COURSE_HOLD')
+        self.progress("Check manual throttle control")
+        self.set_rc(3, 1200)
+        self.wait_servo_channel_value(3, 1205, timeout=1, comparator=operator.lt)
+        self.wait_servo_channel_value(3, 1195, timeout=1, comparator=operator.gt)
+        self.set_rc(3, 1700)
+        self.wait_servo_channel_value(3, 1705, timeout=1, comparator=operator.lt)
+        self.wait_servo_channel_value(3, 1695, timeout=1, comparator=operator.gt)
+        self.set_rc(3, 1500)
+        self.wait_servo_channel_value(3, 1505, timeout=1, comparator=operator.lt)
+        self.wait_servo_channel_value(3, 1495, timeout=1, comparator=operator.gt)
+        self.set_rc(4, 1500)
+        self.progress("Check rudder stick heading control")
+        m = self.mav.recv_match(type='VFR_HUD', blocking=True)
+        initial_heading = m.heading
+        adjusted_heading = (initial_heading + 90) % 360
+        self.set_rc(4, 1000)
+        self.wait_heading(adjusted_heading, accuracy=2, timeout=20)
+        self.fly_home_land_and_disarm()
+
     def CruiseRudderControl(self):
         '''Test CruiseRudderControl'''
         self.takeoff(alt=50)
@@ -4101,6 +4128,7 @@ class AutoTestPlane(AutoTest):
             self.ManualRTLAltControl,
             self.CruiseGliding,
             self.CruiseRudderControl,
+            self.CourseHoldMode,
             # self.EmergencyLanding,
             self.IMUTempCal,
             self.MAV_DO_AUX_FUNCTION,
