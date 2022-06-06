@@ -141,6 +141,7 @@ public:
     friend class ModeAcro;
     friend class ModeFBWA;
     friend class ModeFBWB;
+    friend class ModeCourseHold;
     friend class ModeCruise;
     friend class ModeAutoTune;
     friend class ModeAuto;
@@ -265,6 +266,7 @@ private:
     ModeAcro mode_acro;
     ModeFBWA mode_fbwa;
     ModeFBWB mode_fbwb;
+    ModeCourseHold mode_course_hold;
     ModeCruise mode_cruise;
     ModeAutoTune mode_autotune;
     ModeAuto mode_auto;
@@ -827,6 +829,13 @@ private:
         bool reached_home_altitude;
     } rtl;
 
+    struct {
+        bool locked_heading;
+        int32_t locked_heading_cd;
+        uint32_t lock_timer_ms;
+        uint32_t heading_update_tstamp;
+    } course_hold;
+
     // last time home was updated while disarmed
     uint32_t last_home_update_ms;
 
@@ -1302,16 +1311,16 @@ public:
 
     bool is_auto_throttle_gliding(void) const override { return auto_thr_gliding_state == ATGS_GLIDING; }
 
-    bool get_cruise_locked_heading(uint16_t &locked_heading) const override {
-        if (control_mode != &mode_cruise) {
+    bool get_course_hold_heading(uint16_t &locked_heading) const override {
+        if (control_mode != &mode_cruise && control_mode != &mode_course_hold) {
             return false;
         }
 
         int32_t locked_heading_cd;
-        const bool heading_locked = mode_cruise.get_target_heading_cd(locked_heading_cd);
+        const bool heading_locked = mode_course_hold.get_target_heading_cd(locked_heading_cd);
 
         if (heading_locked) {
-            locked_heading = lrintf(locked_heading_cd * 0.01f);
+            locked_heading = wrap_360((int)lrintf(locked_heading_cd * 0.01f));
         }
 
         return heading_locked;

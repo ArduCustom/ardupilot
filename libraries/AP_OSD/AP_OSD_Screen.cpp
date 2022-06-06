@@ -1481,7 +1481,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @DisplayName: CRS_HEAD_Y
     // @Description: Vertical position on screen
     // @Range: 0 15
-    AP_SUBGROUPINFO(cruise_heading, "CRS_HEAD", 39, AP_OSD_Screen, AP_OSD_Setting),
+    AP_SUBGROUPINFO(course_hold_heading, "CRS_HEAD", 39, AP_OSD_Screen, AP_OSD_Setting),
 
     // @Param: CRS_HADJ_EN
     // @DisplayName: CRS_HADJ_EN
@@ -1497,7 +1497,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     // @DisplayName: CRS_HADJ_Y
     // @Description: Vertical position on screen
     // @Range: 0 15
-    AP_SUBGROUPINFO(cruise_heading_adjustment, "CRS_HADJ", 38, AP_OSD_Screen, AP_OSD_Setting),
+    AP_SUBGROUPINFO(course_hold_heading_adjustment, "CRS_HADJ", 38, AP_OSD_Screen, AP_OSD_Setting),
 #endif
 
     // @Param: RC_FS_EN
@@ -3609,12 +3609,12 @@ void AP_OSD_Screen::draw_peak_pitch_rate(uint8_t x, uint8_t y) {
 #endif
 }
 
-bool AP_OSD_Screen::cruise_heading_changed(uint16_t &locked_heading)
+bool AP_OSD_Screen::course_hold_heading_changed(uint16_t &locked_heading)
 {
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     static uint32_t last_changed;
     static uint16_t last_value;
-    const bool heading_locked = AP::vehicle()->get_cruise_locked_heading(locked_heading);
+    const bool heading_locked = AP::vehicle()->get_course_hold_heading(locked_heading);
 
     if (!heading_locked) {
         last_changed = 0;
@@ -3636,7 +3636,7 @@ bool AP_OSD_Screen::cruise_heading_changed(uint16_t &locked_heading)
 #endif
 }
 
-void AP_OSD_Screen::draw_cruise_heading_adjustment(uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_course_hold_heading_adjustment(uint8_t x, uint8_t y)
 {
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     if (!AP_Notify::flags.armed) {
@@ -3646,7 +3646,7 @@ void AP_OSD_Screen::draw_cruise_heading_adjustment(uint8_t x, uint8_t y)
 
     static int16_t last_fixed = -1;
     uint16_t locked_heading;
-    if (cruise_heading_changed(locked_heading) && last_fixed != -1) {
+    if (course_hold_heading_changed(locked_heading) && last_fixed != -1) {
         int16_t heading_adj = locked_heading - last_fixed;
         if (heading_adj > 180) heading_adj -= 360;
         if (heading_adj < -180) heading_adj += 360;
@@ -3657,7 +3657,7 @@ void AP_OSD_Screen::draw_cruise_heading_adjustment(uint8_t x, uint8_t y)
 #endif
 }
 
-void AP_OSD_Screen::draw_cruise_heading(uint8_t x, uint8_t y)
+void AP_OSD_Screen::draw_course_hold_heading(uint8_t x, uint8_t y)
 {
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     if (!AP_Notify::flags.armed) {
@@ -3666,7 +3666,7 @@ void AP_OSD_Screen::draw_cruise_heading(uint8_t x, uint8_t y)
     }
 
     uint16_t locked_heading;
-    if (cruise_heading_changed(locked_heading)) {
+    if (course_hold_heading_changed(locked_heading)) {
         backend->write(x, y, false, "%c%3d%c", SYMBOL(SYM_HEADING), locked_heading, SYMBOL(SYM_DEGR));
     }
 #endif
@@ -3838,8 +3838,8 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(aspd_dem);
     DRAW_SETTING(peak_roll_rate);
     DRAW_SETTING(peak_pitch_rate);
-    DRAW_SETTING(cruise_heading);
-    DRAW_SETTING(cruise_heading_adjustment);
+    DRAW_SETTING(course_hold_heading);
+    DRAW_SETTING(course_hold_heading_adjustment);
     DRAW_SETTING(auto_flaps);
     DRAW_SETTING(aoa);
     DRAW_SETTING(eff_air);
