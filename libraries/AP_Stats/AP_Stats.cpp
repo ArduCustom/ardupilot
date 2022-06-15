@@ -575,6 +575,8 @@ void AP_Stats::set_flying(const bool status)
         }
     } else {
         _flying_start_tstamp_ms = 0;
+        _last_update_flying_tstamp_ms = 0;
+        _last_slow_update_flying_tstamp_ms = 0;
     }
 }
 
