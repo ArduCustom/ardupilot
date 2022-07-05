@@ -138,6 +138,9 @@ private:
         TUNING_SET_MIXING =                 17,
         TUNING_SET_THR_EXPO =               18,
         TUNING_SET_FLAP =                   19,
+        TUNING_SET_FW_ROLL_PITCH =          20,
+        TUNING_SET_FW_ROLL =                21,
+        TUNING_SET_FW_PITCH =               22,
     };
 
     AP_Float *get_param_pointer(uint8_t parm) override;
@@ -165,6 +168,9 @@ private:
     static const uint8_t tuning_set_mixing[];
     static const uint8_t tuning_set_thr_expo[];
     static const uint8_t tuning_set_flap[];
+    static const uint8_t tuning_set_fw_roll_pitch[];
+    static const uint8_t tuning_set_fw_roll[];
+    static const uint8_t tuning_set_fw_pitch[];
 
     // mask of what params have been set
     uint64_t have_set;
