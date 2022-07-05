@@ -790,6 +790,10 @@ void Plane::set_servos_controlled(void)
     {
         WITH_SEMAPHORE(_throttle_output_before_battery_compensation_sem);
         _throttle_output_before_battery_compensation = SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle);
+
+        if (_throttle_output_before_battery_compensation < 0 && !allow_reverse_thrust()) {
+            _throttle_output_before_battery_compensation = 0;
+        }
     }
 
     // conpensate for battery voltage drop
