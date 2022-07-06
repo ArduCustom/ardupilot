@@ -53,13 +53,13 @@ const AP_Param::GroupInfo AP_Stats::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_TRAVEL_GND",    4, AP_Stats, params.flying_ground_traveled, 0),
 
-    // @Param: _FLT_ENERGY
-    // @DisplayName: Total consumed energy while flying
-    // @Description: Total consumed energy while flying
+    // @Param: _FLT_NRG_WOL
+    // @DisplayName: Total consumed energy while flying (without losses)
+    // @Description: Total consumed energy while flying (without losses)
     // @Units: Wh
     // @ReadOnly: True
     // @User: Standard
-    AP_GROUPINFO("_FLT_ENERGY",  5, AP_Stats, params.flying_energy, 0),
+    AP_GROUPINFO("_FLT_NRG_WOL",  5, AP_Stats, params.flying_energy_without_losses, 0),
 
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     // @Param: _TRAVEL_AIR
@@ -154,16 +154,16 @@ const AP_Param::GroupInfo AP_Stats::var_info[] = {
     AP_GROUPINFO("_CURRENT_MAX",  16, AP_Stats, params.max_flying_current_a, 0),
 
     // @Param: _POWER_AVG
-    // @DisplayName: Average power while flying
-    // @Description: Average power while flying
+    // @DisplayName: Average power while flying (includes losses)
+    // @Description: Average power while flying (includes losses)
     // @Units: W
     // @ReadOnly: True
     // @User: Standard
     AP_GROUPINFO("_POWER_AVG",  17, AP_Stats, params.avg_flying_power_w, 0),
 
     // @Param: _POWER_MAX
-    // @DisplayName: Maximum power while flying
-    // @Description: Maximum power while flying
+    // @DisplayName: Maximum power while flying (includes losses)
+    // @Description: Maximum power while flying (includes losses)
     // @Units: W
     // @ReadOnly: True
     // @User: Standard
@@ -198,6 +198,22 @@ const AP_Param::GroupInfo AP_Stats::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_FLT_TIME_MX",   22, AP_Stats, params.flight_time_max, 0),
 
+    // @Param: _FLT_NRG_WL
+    // @DisplayName: Total consumed energy while flying (with losses)
+    // @Description: Total consumed energy while flying (with losses)
+    // @Units: Wh
+    // @ReadOnly: True
+    // @User: Standard
+    AP_GROUPINFO("_FLT_NRG_WL",   23, AP_Stats, params.flying_energy_with_losses, 0),
+
+    // @Param: _FLT_BTME_MX
+    // @DisplayName: Maximum flight time with one battery
+    // @Description: Maximum flight time with one battery
+    // @Units: s
+    // @ReadOnly: True
+    // @User: Standard
+    AP_GROUPINFO("_FLT_BTME_MX",   24, AP_Stats, params.battery_flying_time_max, 0),
+
     AP_GROUPEND
 };
 
@@ -214,7 +230,8 @@ void AP_Stats::copy_variables_from_parameters()
     _total_boot_flying_time_s = params.flying_time;
     _total_boot_flying_ground_traveled_m = params.flying_ground_traveled;
     _total_boot_flying_air_traveled_m = params.flying_air_traveled;
-    _total_boot_flying_energy_wh = params.flying_energy;
+    _total_boot_flying_energy_wh_without_losses = params.flying_energy_without_losses;
+    _total_boot_flying_energy_wh_with_losses = params.flying_energy_with_losses;
     _total_boot_avg_ground_speed_mps = params.avg_ground_speed_mps;
     _total_boot_max_ground_speed_mps = params.max_ground_speed_mps;
     _total_boot_avg_air_speed_mps = params.avg_air_speed_mps;
@@ -248,10 +265,12 @@ void AP_Stats::init()
 void AP_Stats::flush()
 {
     params.flight_time_max.set_and_save_ifchanged(MAX(uint32_t(params.flight_time_max), get_current_flight_time_s()));
+    params.battery_flying_time_max.set_and_save_ifchanged(MAX(uint32_t(params.battery_flying_time_max), get_boot_flying_time_s()));
     params.flying_time.set_and_save_ifchanged(get_total_flying_time_s());
     params.flying_ground_traveled.set_and_save_ifchanged(lrintf(get_total_flying_ground_traveled_m()));
     params.flying_air_traveled.set_and_save_ifchanged(lrintf(get_total_flying_air_traveled_m()));
-    params.flying_energy.set_and_save_ifchanged(get_total_flying_energy_wh());
+    params.flying_energy_without_losses.set_and_save_ifchanged(get_total_flying_energy_wh_without_losses());
+    params.flying_energy_with_losses.set_and_save_ifchanged(get_total_flying_energy_wh_with_losses());
     params.avg_ground_speed_mps.set_and_save_ifchanged(get_total_avg_ground_speed_mps());
     params.max_ground_speed_mps.set_and_save_ifchanged(get_total_max_ground_speed_mps());
     params.avg_air_speed_mps.set_and_save_ifchanged(get_total_avg_air_speed_mps());
@@ -390,12 +409,16 @@ void AP_Stats::update_battery(void)
     AP_BattMonitor &battery = AP::battery();
 
     // Energy
-    float energy_wh = 0;
-    _energy_is_available = battery.consumed_wh_without_losses(energy_wh);
+    float energy_wh_without_losses = 0;
+    float energy_wh_with_losses = 0;
+    _energy_is_available = battery.consumed_wh_without_losses(energy_wh_without_losses);
+    _energy_is_available = battery.consumed_wh(energy_wh_with_losses);
     if (_energy_is_available && is_flying()) {
-        _boot_flying_energy_wh += energy_wh - _prev_update_energy_wh;
+        _boot_flying_energy_wh_without_losses += energy_wh_without_losses - _prev_update_energy_wh_without_losses;
+        _boot_flying_energy_wh_with_losses += energy_wh_with_losses - _prev_update_energy_wh_with_losses;
     }
-    _prev_update_energy_wh = energy_wh;
+    _prev_update_energy_wh_without_losses = energy_wh_without_losses;
+    _prev_update_energy_wh_with_losses = energy_wh_with_losses;
 
     // mAh
     float mah = 0;
@@ -463,7 +486,8 @@ void AP_Stats::reset_params_if_requested(void)
         params.flying_time.set_and_save_ifchanged(0);
         params.flying_ground_traveled.set_and_save_ifchanged(0);
         params.flying_air_traveled.set_and_save_ifchanged(0);
-        params.flying_energy.set_and_save_ifchanged(0);
+        params.flying_energy_without_losses.set_and_save_ifchanged(0);
+        params.flying_energy_with_losses.set_and_save_ifchanged(0);
         params.avg_ground_speed_mps.set_and_save_ifchanged(0);
         params.max_ground_speed_mps.set_and_save_ifchanged(0);
         params.avg_air_speed_mps.set_and_save_ifchanged(0);
@@ -479,6 +503,7 @@ void AP_Stats::reset_params_if_requested(void)
         params.max_flying_power_w.set_and_save_ifchanged(0);
         params.flight_count.set_and_save_ifchanged(0);
         params.flight_time_max.set_and_save_ifchanged(0);
+        params.battery_flying_time_max.set_and_save_ifchanged(0);
         params.run_time.set_and_save_ifchanged(0);
         params.load.set_and_save_ifchanged(0);
         _boot_tstamp_ms = AP_HAL::millis();
@@ -641,9 +666,14 @@ float AP_Stats::get_total_flying_air_traveled_m(void)
     return _total_boot_flying_air_traveled_m + get_boot_flying_air_traveled_m();
 }
 
-float AP_Stats::get_total_flying_energy_wh(void)
+float AP_Stats::get_total_flying_energy_wh_without_losses(void)
 {
-    return _total_boot_flying_energy_wh + get_boot_flying_energy_wh();
+    return _total_boot_flying_energy_wh_without_losses + get_boot_flying_energy_wh_without_losses();
+}
+
+float AP_Stats::get_total_flying_energy_wh_with_losses(void)
+{
+    return _total_boot_flying_energy_wh_with_losses + get_boot_flying_energy_wh_with_losses();
 }
 
 float AP_Stats::get_boot_avg_ground_speed_mps(void)
