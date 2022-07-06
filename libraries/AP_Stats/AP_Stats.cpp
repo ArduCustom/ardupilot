@@ -190,6 +190,14 @@ const AP_Param::GroupInfo AP_Stats::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_HOMEDST_AVG",  21, AP_Stats, params.avg_home_distance_m, 0),
 
+    // @Param: _FLT_TIME_MX
+    // @DisplayName: Maximum flight time
+    // @Description: Maximum flight time
+    // @Units: s
+    // @ReadOnly: True
+    // @User: Standard
+    AP_GROUPINFO("_FLT_TIME_MX",   22, AP_Stats, params.flight_time_max, 0),
+
     AP_GROUPEND
 };
 
@@ -239,6 +247,7 @@ void AP_Stats::init()
 
 void AP_Stats::flush()
 {
+    params.flight_time_max.set_and_save_ifchanged(MAX(uint32_t(params.flight_time_max), get_current_flight_time_s()));
     params.flying_time.set_and_save_ifchanged(get_total_flying_time_s());
     params.flying_ground_traveled.set_and_save_ifchanged(lrintf(get_total_flying_ground_traveled_m()));
     params.flying_air_traveled.set_and_save_ifchanged(lrintf(get_total_flying_air_traveled_m()));
@@ -262,6 +271,7 @@ void AP_Stats::flush()
 
 void AP_Stats::update_flying_time(uint32_t flying_update_delta)
 {
+    _current_flight_time_ms += flying_update_delta;
     _boot_flying_time_ms += flying_update_delta;
 }
 
@@ -468,6 +478,7 @@ void AP_Stats::reset_params_if_requested(void)
         params.avg_flying_power_w.set_and_save_ifchanged(0);
         params.max_flying_power_w.set_and_save_ifchanged(0);
         params.flight_count.set_and_save_ifchanged(0);
+        params.flight_time_max.set_and_save_ifchanged(0);
         params.run_time.set_and_save_ifchanged(0);
         params.load.set_and_save_ifchanged(0);
         _boot_tstamp_ms = AP_HAL::millis();
@@ -577,6 +588,7 @@ void AP_Stats::set_flying(const bool status)
         _flying_start_tstamp_ms = 0;
         _last_update_flying_tstamp_ms = 0;
         _last_slow_update_flying_tstamp_ms = 0;
+        _current_flight_time_ms = 0;
     }
 }
 
@@ -591,6 +603,11 @@ float AP_Stats::calc_total_flying_time_related_avg(float total_boot_value, float
 bool AP_Stats::has_been_flying_for_at_least_s(uint32_t time_s)
 {
     return is_flying() && AP_HAL::millis() - _flying_start_tstamp_ms >= time_s * 1000;
+}
+
+uint32_t AP_Stats::get_current_flight_time_s(void)
+{
+    return _current_flight_time_ms / 1000;
 }
 
 uint32_t AP_Stats::get_boot_flying_time_s(void)
