@@ -2951,7 +2951,7 @@ void AP_OSD_Screen::draw_stats(uint8_t x, uint8_t y)
     backend->write(x, y, false, "USD CAPA");
     draw_mah(x+col_offset, y, have_stats && ap_stats->mah_is_available(), false, ap_stats->get_boot_flying_mah());
     backend->write(x+col_offset+5, y, false, "/");
-    draw_energy(x+col_offset+6, y, have_stats && ap_stats->energy_is_available(), false, ap_stats->get_boot_flying_energy_wh());
+    draw_energy(x+col_offset+6, y, have_stats && ap_stats->energy_is_available(), false, ap_stats->get_boot_flying_energy_wh_with_losses());
 
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     y += 1;
@@ -3248,7 +3248,7 @@ void AP_OSD_Screen::draw_avg_eff(uint8_t x, uint8_t y, const float distance_trav
             backend->write(x+value_offset, y, false, "%3d%c", efficiency, SYMBOL(SYM_MAH));
         } else {
             if (!ap_stats->energy_is_available()) goto invalid;
-            const float efficiency = ap_stats->get_boot_flying_energy_wh() / distance_travelled_km;
+            const float efficiency = ap_stats->get_boot_flying_energy_wh_without_losses() / distance_travelled_km;
             if (!isfinite(efficiency) || roundf(efficiency) > 999) goto invalid;
             const char* const fmt = (efficiency < 9.995 ? "%1.2f%c" : (efficiency < 99.95 ? "%2.1f%c" : "%3.0f%c"));
             backend->write(x+value_offset, y, false, fmt, efficiency, SYMBOL(SYM_WH));
