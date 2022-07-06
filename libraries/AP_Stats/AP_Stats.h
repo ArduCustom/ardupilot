@@ -32,7 +32,8 @@ public:
     uint32_t get_total_run_time_s(void);
     float    get_total_flying_ground_traveled_m(void);
     float    get_total_flying_air_traveled_m(void);
-    float    get_total_flying_energy_wh(void);
+    float    get_total_flying_energy_wh_without_losses(void);
+    float    get_total_flying_energy_wh_with_losses(void);
     float    get_boot_avg_ground_speed_mps(void);
     float    get_total_avg_ground_speed_mps(void);
     float    get_total_max_ground_speed_mps(void);
@@ -52,7 +53,8 @@ public:
 
     float get_boot_flying_ground_traveled_m(void) { return _boot_flying_ground_traveled_m; }
     float get_boot_flying_air_traveled_m(void) { return _boot_flying_air_traveled_m; }
-    float get_boot_flying_energy_wh(void) { return _boot_flying_energy_wh; }
+    float get_boot_flying_energy_wh_without_losses(void) { return _boot_flying_energy_wh_without_losses; }
+    float get_boot_flying_energy_wh_with_losses(void) { return _boot_flying_energy_wh_with_losses; }
     uint32_t get_boot_flying_mah(void) { return lrintf(_boot_flying_mah); }
     float get_boot_max_ground_speed_mps(void) { return _boot_max_ground_speed_mps; }
     float get_boot_max_air_speed_mps(void) { return _boot_max_air_speed_mps; }
@@ -103,9 +105,11 @@ private:
         AP_Int32 flying_time;
         AP_Int32 flying_ground_traveled;
         AP_Int32 flying_air_traveled;
-        AP_Float flying_energy;
+        AP_Float flying_energy_without_losses;
+        AP_Float flying_energy_with_losses;
         AP_Int32 flight_count;
         AP_Int32 flight_time_max;
+        AP_Int32 battery_flying_time_max;
 
         AP_Float avg_ground_speed_mps;
         AP_Float max_ground_speed_mps;
@@ -141,7 +145,8 @@ private:
     uint32_t _flying_slow_update_sample_count = 0;
     uint32_t _flying_for_some_time_sample_count = 0;
 
-    float    _prev_update_energy_wh = 0;
+    float    _prev_update_energy_wh_without_losses = 0;
+    float    _prev_update_energy_wh_with_losses = 0;
     float    _prev_update_mah = 0;
 
     bool     _energy_is_available = false;
@@ -158,7 +163,8 @@ private:
     uint32_t _boot_flying_time_ms = 0;
     float    _boot_flying_ground_traveled_m = 0;
     float    _boot_flying_air_traveled_m = 0;
-    float    _boot_flying_energy_wh = 0;
+    float    _boot_flying_energy_wh_without_losses = 0;
+    float    _boot_flying_energy_wh_with_losses = 0;
     float    _boot_flying_mah = 0;
     float    _boot_max_ground_speed_mps = 0;
     float    _boot_max_air_speed_mps = 0;
@@ -183,7 +189,8 @@ private:
     uint32_t _total_boot_flying_time_s = 0;             // seconds spent flying
     uint32_t _total_boot_flying_ground_traveled_m = 0;  // ground distance in meter traveled while flying
     uint32_t _total_boot_flying_air_traveled_m = 0;     // air distance in meter traveled while flying
-    float    _total_boot_flying_energy_wh = 0;          // consumed energy in Wh while flying
+    float    _total_boot_flying_energy_wh_without_losses = 0;          // consumed energy in Wh while flying
+    float    _total_boot_flying_energy_wh_with_losses = 0;          // consumed energy in Wh while flying
     float    _total_boot_avg_ground_speed_mps = 0;
     float    _total_boot_max_ground_speed_mps = 0;
     float    _total_boot_avg_air_speed_mps = 0;
