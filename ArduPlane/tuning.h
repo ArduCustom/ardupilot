@@ -113,6 +113,8 @@ private:
 
         TUNING_AILERONS_DIFF =                90,
         TUNING_ELEVATOR_DIFF =                91,
+
+        TUNING_Q_TRIM_PITCH =                 92,
     };
 
     /*
