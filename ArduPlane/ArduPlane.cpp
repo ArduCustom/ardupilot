@@ -81,9 +81,6 @@ const AP_Scheduler::Task Plane::scheduler_tasks[] = {
     SCHED_TASK_CLASS(AP_Baro, &plane.barometer, accumulate,  50, 150,  69),
     SCHED_TASK_CLASS(AP_Notify,      &plane.notify,  update, 50, 300,  72),
     SCHED_TASK(read_rangefinder,       50,    100, 78),
-#if AP_ICENGINE_ENABLED
-    SCHED_TASK_CLASS(AP_ICEngine,      &plane.g2.ice_control, update,     10, 100,  81),
-#endif
 #if AP_OPTICALFLOW_ENABLED
     SCHED_TASK_CLASS(AP_OpticalFlow, &plane.optflow, update,    50,    50,  87),
 #endif
