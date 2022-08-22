@@ -1724,8 +1724,10 @@ void QuadPlane::update(void)
         return;
     }
 
+    const bool throttle_emergency_stop = plane.arming.get_throttle_cut() && is_zero(plane.channel_throttle->get_control_in());
+
     // keep motors interlock state upto date with E-stop
-    motors->set_interlock(!SRV_Channels::get_emergency_stop());
+    motors->set_interlock(!SRV_Channels::get_emergency_stop() && !throttle_emergency_stop);
 
     if ((ahrs_view != NULL) && !is_equal(_last_ahrs_trim_pitch, ahrs_trim_pitch.get())) {
         _last_ahrs_trim_pitch = ahrs_trim_pitch.get();
