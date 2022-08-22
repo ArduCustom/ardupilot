@@ -338,20 +338,22 @@ bool AP_Arming_Plane::disarm(const AP_Arming::Method method, bool do_disarm_chec
 {
     if (do_disarm_checks) {
 
-        // don't allow disarming in flight, cut the throttle instead and change mode to FBWA if in auto throttle mode
+        // FW: don't allow disarming in flight, cut the throttle instead and change mode to FBWA if in auto throttle mode
+        // VTOL mode: only stop the motors if the throttle is at 0
 #if CONFIG_HAL_BOARD != HAL_BOARD_SITL
         if (plane.is_flying()) {
             if (method == AP_Arming::Method::AUXSWITCH) {
                 set_throttle_cut(true);
                 emergency_landing_prev_status = plane.emergency_landing;
                 plane.emergency_landing = true;
-                if (plane.control_mode->does_auto_throttle()) {
+                if (!plane.control_mode->is_vtol_mode() && plane.control_mode->does_auto_throttle()) {
                     throttle_cut_prev_mode = plane.control_mode;
                     plane.set_mode(plane.mode_fbwa, ModeReason::RC_COMMAND);
                 } else {
                     throttle_cut_prev_mode = NULL;
                 }
-                gcs().send_text(MAV_SEVERITY_INFO , "Throttle cut by arm switch");
+                const bool disarm_prevented = !is_zero(plane.channel_throttle->get_control_in()) && plane.control_mode->is_vtol_mode();
+                gcs().send_text(MAV_SEVERITY_INFO , disarm_prevented ? "Disarm prevented" : "Throttle cut by arm switch");
             }
             // obviously this could happen in-flight so we can't warn about it
             return false;
