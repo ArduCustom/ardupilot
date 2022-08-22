@@ -803,10 +803,8 @@ bool AP_Arming_Copter::disarm(const AP_Arming::Method method, bool do_disarm_che
         return true;
     }
 
-    // do not allow disarm via mavlink if we think we are flying:
-    if (do_disarm_checks &&
-        method == AP_Arming::Method::MAVLINK &&
-        !copter.ap.land_complete) {
+    // do not allow disarm if we think we are flying:
+    if (do_disarm_checks && !is_zero(copter.channel_throttle->get_control_in()) && !copter.ap.land_complete) {
         return false;
     }
 
