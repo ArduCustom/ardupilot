@@ -1197,6 +1197,12 @@ void Plane::servos_output(void)
     quadplane.tiltrotor.bicopter_output();
 #endif
 
+    if (arming.get_throttle_cut()) {
+        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle , 0.0);
+        SRV_Channels::set_output_scaled(SRV_Channel::k_throttleLeft , 0.0);
+        SRV_Channels::set_output_scaled(SRV_Channel::k_throttleRight , 0.0);
+    }
+
     // support forced flare option
     force_flare();
 
