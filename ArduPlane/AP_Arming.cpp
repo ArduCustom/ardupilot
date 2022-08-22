@@ -302,6 +302,7 @@ bool AP_Arming_Plane::arm(const AP_Arming::Method method, const bool do_arming_c
             plane.set_mode(*throttle_cut_prev_mode, ModeReason::RC_COMMAND);
         }
         set_throttle_cut(false);
+        plane.emergency_landing = emergency_landing_prev_status;
         gcs().send_text(MAV_SEVERITY_INFO , "Rearmed");
         return true;
     }
@@ -341,6 +342,8 @@ bool AP_Arming_Plane::disarm(const AP_Arming::Method method, bool do_disarm_chec
         if (plane.is_flying()) {
             if (method == AP_Arming::Method::AUXSWITCH) {
                 set_throttle_cut(true);
+                emergency_landing_prev_status = plane.emergency_landing;
+                plane.emergency_landing = true;
                 if (plane.control_mode->does_auto_throttle()) {
                     throttle_cut_prev_mode = plane.control_mode;
                     plane.set_mode(plane.mode_fbwa, ModeReason::RC_COMMAND);
