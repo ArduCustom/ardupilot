@@ -2396,7 +2396,8 @@ void AP_OSD_Screen::draw_throttle_value(uint8_t x, uint8_t y, float throttle_v, 
 
 void AP_OSD_Screen::draw_throttle_output(uint8_t x, uint8_t y)
 {
-    draw_throttle_value(x, y, gcs().get_hud_throttle(), AP_Notify::flags.throttle_cut || AP::vehicle()->is_auto_throttle_gliding());
+    const float throttle_value = gcs().get_hud_throttle();
+    draw_throttle_value(x, y, throttle_value, is_zero(throttle_value) && (AP_Notify::flags.throttle_cut || AP::vehicle()->is_auto_throttle_gliding()));
 }
 
 #if HAL_OSD_SIDEBAR_ENABLE
