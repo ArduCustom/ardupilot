@@ -50,6 +50,8 @@ private:
     // mode the plane was in when throttle cut was enabled
     Mode *throttle_cut_prev_mode;
 
+    bool emergency_landing_prev_status;
+
     // oneshot with duration AP_ARMING_DELAY_MS used by quadplane to delay spoolup after arming:
     // ignored unless OPTION_DELAY_ARMING or OPTION_TILT_DISARMED is set
     bool delay_arming;
