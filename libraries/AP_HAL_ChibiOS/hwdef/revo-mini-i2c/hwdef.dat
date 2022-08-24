@@ -23,7 +23,7 @@ FLASH_SIZE_KB 1024
 I2C_ORDER I2C1 I2C2
 
 # order of UARTs (and USB)
-SERIAL_ORDER OTG1 USART1 USART3 USART6 USART2 UART4 
+SERIAL_ORDER OTG1 USART1 USART2 USART3 UART4 EMPTY USART6 
 
 # rcinput is PB14, which is the 1st "PWM IN" pin (the white wire on a
 # revolution board)
