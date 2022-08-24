@@ -213,7 +213,7 @@ const AP_Param::GroupInfo AP_BattMonitor_Params::var_info[] = {
 
     // @Param: CELL_COUNT
     // @DisplayName: Battery cell count
-    // @Description: Overrides cell count autodetection if not -1
+    // @Description: Set to -1 to disable cell count. Set to 0 for automatic cell count detection, the detected cell count is the integral part of voltage/CELL_DT_V+1. Or set to the number of cells.
     // @Increment: 1
     // @User: Advanced
     AP_GROUPINFO("CELL_COUNT", 63, AP_BattMonitor_Params, _cell_count, -1),
