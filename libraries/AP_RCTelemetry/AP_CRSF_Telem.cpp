@@ -814,7 +814,10 @@ void AP_CRSF_Telem::update_vtx_params()
         for (uint8_t i = 0; i < len; i++) {
             crc = crc8_dvb(crc, crcptr[i], 0xBA);
         }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
         crcptr[len] = crc;
+#pragma GCC diagnostic pop
         _telem_size = len + 1;
     }
 }
