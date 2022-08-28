@@ -128,6 +128,9 @@ void AP_Baro_BMP388::timer(void)
         return;
     }
     const uint8_t status = buf[0];
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
     if ((status & 0x20) != 0) {
         // we have pressure data
         update_pressure((buf[3] << 16) | (buf[2] << 8) | buf[1]);
@@ -136,6 +139,7 @@ void AP_Baro_BMP388::timer(void)
         // we have temperature data
         update_temperature((buf[6] << 16) | (buf[5] << 8) | buf[4]);
     }
+#pragma GCC diagnostic pop
 
     dev->check_next_register();
 }

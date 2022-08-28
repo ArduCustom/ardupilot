@@ -262,7 +262,7 @@ void AP_BattMonitor_Backend::check_failsafe_types(bool &low_voltage, bool &low_c
 {
     // use voltage or sag compensated voltage
     float voltage_used;
-    float cell_voltage_used;
+    float cell_voltage_used = 0;
     bool cell_voltage_available;
     switch (_params.failsafe_voltage_source()) {
         case AP_BattMonitor_Params::BattMonitor_LowVoltageSource_Raw:
