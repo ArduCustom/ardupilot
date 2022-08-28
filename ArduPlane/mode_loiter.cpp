@@ -87,6 +87,5 @@ void ModeLoiter::navigate()
     // manual loiter radius and direction control
     plane.update_loiter_radius_and_direction();
 
-    // Zero indicates to use WP_LOITER_RAD
     plane.update_loiter(lrintf(plane.loiter.radius));
 }
