@@ -112,6 +112,9 @@ void ModeTakeoff::update()
         plane.next_WP_loc.offset_bearing(direction, MAX(dist-dist_done, 0));
         plane.next_WP_loc.alt = start_loc.alt + target_alt*100.0;
 
+        plane.setup_terrain_target_alt(plane.next_WP_loc);
+        plane.set_target_altitude_location(plane.next_WP_loc);
+
         plane.set_flight_stage(AP_Vehicle::FixedWing::FLIGHT_NORMAL);
         
 #if AP_FENCE_ENABLED
@@ -126,6 +129,7 @@ void ModeTakeoff::update()
         plane.takeoff_calc_roll();
         plane.takeoff_calc_pitch();
     } else {
+        plane.update_fbwb_speed_height();
         plane.calc_nav_roll();
         plane.calc_nav_pitch();
         plane.calc_throttle();
@@ -134,6 +138,11 @@ void ModeTakeoff::update()
 
 void ModeTakeoff::navigate()
 {
-    // Zero indicates to use WP_LOITER_RAD
-    plane.update_loiter(0);
+    // update the WP alt from the global target adjusted by update_fbwb_speed_height
+    plane.next_WP_loc.set_alt_cm(plane.target_altitude.amsl_cm, Location::AltFrame::ABSOLUTE);
+
+    // manual loiter radius and direction control
+    plane.update_loiter_radius_and_direction();
+
+    plane.update_loiter(lrintf(plane.loiter.radius));
 }
