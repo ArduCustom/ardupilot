@@ -1765,7 +1765,7 @@ class AutoTestPlane(AutoTest):
         self.arm_vehicle()
         # simulate the effect of a blocked pitot tube
         self.set_parameter("ARSPD_RATIO", 0.1)
-        self.delay_sim_time(10)
+        self.delay_sim_time(20)
         if (self.get_parameter("ARSPD_USE") == 0):
             self.progress("Faulty Sensor Disabled")
         else:
