@@ -115,6 +115,8 @@ private:
         TUNING_ELEVATOR_DIFF =                91,
 
         TUNING_Q_TRIM_PITCH =                 92,
+
+        TUNING_THR_AUTO_SRATE =               93,
     };
 
     /*
@@ -138,7 +140,7 @@ private:
         TUNING_SET_AGL_ROLL =               15,
         TUNING_SET_AGL_PITCH =              16,
         TUNING_SET_MIXING =                 17,
-        TUNING_SET_THR_EXPO =               18,
+        TUNING_SET_THR =                    18,
         TUNING_SET_FLAP =                   19,
         TUNING_SET_FW_ROLL_PITCH =          20,
         TUNING_SET_FW_ROLL =                21,
@@ -168,7 +170,7 @@ private:
     static const uint8_t tuning_set_angle_roll[];
     static const uint8_t tuning_set_angle_pitch[];
     static const uint8_t tuning_set_mixing[];
-    static const uint8_t tuning_set_thr_expo[];
+    static const uint8_t tuning_set_thr[];
     static const uint8_t tuning_set_flap[];
     static const uint8_t tuning_set_fw_roll_pitch[];
     static const uint8_t tuning_set_fw_roll[];
