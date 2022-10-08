@@ -588,9 +588,9 @@ void AP_TECS::_update_height_demand(void)
 
     // Don't allow height demand to get too far ahead of the vehicles current height
     // if vehicle is unable to follow the demanded climb or descent
-    const bool max_climb_condition = (_pitch_dem_unc > _PITCHmaxf || _thr_clip_status == ThrClipStatus::MAX) &&
+    const bool max_climb_condition = (_pitch_dem_unc > _PITCHmaxf && _thr_clip_status == ThrClipStatus::MAX) &&
                                      !(_flight_stage == AP_Vehicle::FixedWing::FLIGHT_TAKEOFF || _flight_stage == AP_Vehicle::FixedWing::FLIGHT_ABORT_LAND);
-    const bool max_descent_condition = _pitch_dem_unc < _PITCHminf || _thr_clip_status == ThrClipStatus::MIN;
+    const bool max_descent_condition = _pitch_dem_unc < _PITCHminf && _thr_clip_status == ThrClipStatus::MIN;
     if (max_climb_condition && _hgt_dem > _hgt_dem_prev) {
         _hgt_dem = _hgt_dem_prev;
     } else if (max_descent_condition && _hgt_dem < _hgt_dem_prev) {
