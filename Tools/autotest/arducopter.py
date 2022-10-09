@@ -9061,8 +9061,8 @@ class AutoTestCopter(AutoTest):
              self.AltTypes,
              self.PAUSE_CONTINUE,
              self.PAUSE_CONTINUE_GUIDED,
-             self.RichenPower,
-             self.IE24,
+            #  self.RichenPower,
+            #  self.IE24,
              self.MAVLandedStateTakeoff,
         ])
         return ret
