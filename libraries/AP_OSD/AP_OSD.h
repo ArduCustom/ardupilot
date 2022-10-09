@@ -207,6 +207,7 @@ private:
     AP_OSD_Setting waypoint{false, 0, 0};
     AP_OSD_Setting xtrack_error{false, 0, 0};
     AP_OSD_Setting traveled_ground_distance{false,22,11};
+    AP_OSD_Setting persistent_traveled_ground_distance{false,22,11};
     AP_OSD_Setting stats{false,0,0};
     AP_OSD_Setting flightime{false, 23, 10};
     AP_OSD_Setting climbeff{false,0,0};
@@ -344,6 +345,7 @@ private:
     void draw_waypoint(uint8_t x, uint8_t y);
     void draw_xtrack_error(uint8_t x, uint8_t y);
     void draw_traveled_ground_distance(uint8_t x, uint8_t y);
+    void draw_persistent_traveled_ground_distance(uint8_t x, uint8_t y);
     void draw_stats(uint8_t x, uint8_t y);
     void draw_flightime(uint8_t x, uint8_t y);
     void draw_climbeff(uint8_t x, uint8_t y);
