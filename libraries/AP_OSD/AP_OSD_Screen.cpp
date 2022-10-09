@@ -1568,6 +1568,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info2[] = {
     AP_SUBGROUPINFO(loiter_radius, "LOIT_RAD", 35, AP_OSD_Screen, AP_OSD_Setting),
 #endif
 
+    // @Param: PGNDTRVL_EN
+    // @DisplayName: GNDTRVL_EN
+    // @Description: Displays persistent ground distance traveled
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: PGNDTRVL_X
+    // @DisplayName: GNDTRVL_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 29
+
+    // @Param: PGNDTRVL_Y
+    // @DisplayName: GNDTRVL_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 15
+    AP_SUBGROUPINFO(persistent_traveled_ground_distance, "PGNDTRVL", 34, AP_OSD_Screen, AP_OSD_Setting),
+
 
     AP_GROUPEND
 };
@@ -3170,6 +3186,14 @@ void AP_OSD_Screen::draw_traveled_ground_distance(uint8_t x, uint8_t y)
     draw_distance(x+1, y, ap_stats->get_boot_flying_ground_traveled_m(), true);
 }
 
+void AP_OSD_Screen::draw_persistent_traveled_ground_distance(uint8_t x, uint8_t y)
+{
+    backend->write(x, y, false, "%c", SYMBOL(SYM_DIST));
+    const auto ap_stats = AP::stats();
+    WITH_SEMAPHORE(ap_stats->get_semaphore());
+    draw_distance(x+1, y, ap_stats->get_total_flying_ground_traveled_m(), true);
+}
+
 void  AP_OSD_Screen::draw_flightime(uint8_t x, uint8_t y)
 {
     const auto ap_stats = AP::stats();
@@ -3894,6 +3918,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(pluscode);
 #endif
     DRAW_SETTING(traveled_ground_distance);
+    DRAW_SETTING(persistent_traveled_ground_distance);
     DRAW_SETTING(stats);
     DRAW_SETTING(climbeff);
     DRAW_SETTING(eff_ground);
