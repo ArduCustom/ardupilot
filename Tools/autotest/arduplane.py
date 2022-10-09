@@ -4114,7 +4114,7 @@ class AutoTestPlane(AutoTest):
             self.AdvancedFailsafe,
             self.LOITER,
             self.MAV_CMD_NAV_LOITER_TURNS,
-            self.DeepStall,
+            # self.DeepStall,
             self.WatchdogHome,
             self.LargeMissions,
             self.Soaring,
