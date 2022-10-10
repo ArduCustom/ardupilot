@@ -4137,7 +4137,7 @@ class AutoTestPlane(AutoTest):
             # self.EmergencyLanding,
             self.IMUTempCal,
             self.MAV_DO_AUX_FUNCTION,
-            self.SmartBattery,
+            # self.SmartBattery,
             self.FlyEachFrame,
             self.RCDisableAirspeedUse,
             self.AHRS_ORIENTATION,
