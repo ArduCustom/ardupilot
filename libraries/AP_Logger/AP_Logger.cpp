@@ -54,14 +54,19 @@ extern const AP_HAL::HAL& hal;
 #ifndef HAL_LOGGING_BACKENDS_DEFAULT
 # if HAL_LOGGING_FILESYSTEM_ENABLED && (CONFIG_HAL_BOARD == HAL_BOARD_SITL)
 #  define HAL_LOGGING_BACKENDS_DEFAULT Backend_Type::FILESYSTEM
+#  define LOG_DISARMED_DEFAULT 0
 # elif HAL_LOGGING_DATAFLASH_ENABLED
 #  define HAL_LOGGING_BACKENDS_DEFAULT Backend_Type::BLOCK
+#  define LOG_DISARMED_DEFAULT 0
 # elif HAL_LOGGING_FILESYSTEM_ENABLED
 #  define HAL_LOGGING_BACKENDS_DEFAULT Backend_Type::FILESYSTEM
+#  define LOG_DISARMED_DEFAULT 1
 # elif HAL_LOGGING_MAVLINK_ENABLED
 #  define HAL_LOGGING_BACKENDS_DEFAULT Backend_Type::MAVLINK
+#  define LOG_DISARMED_DEFAULT 0
 # else
 #  define HAL_LOGGING_BACKENDS_DEFAULT 0
+#  define LOG_DISARMED_DEFAULT 0
 # endif
 #endif
 
@@ -92,7 +97,7 @@ const AP_Param::GroupInfo AP_Logger::var_info[] = {
     // @Description: If LOG_DISARMED is set to 1 then logging will be enabled while disarmed. This can make for very large logfiles but can help a lot when tracking down startup issues
     // @Values: 0:Disabled,1:Enabled
     // @User: Standard
-    AP_GROUPINFO("_DISARMED",  2, AP_Logger, _params.log_disarmed,       0),
+    AP_GROUPINFO("_DISARMED",  2, AP_Logger, _params.log_disarmed,       LOG_DISARMED_DEFAULT),
 
     // @Param: _REPLAY
     // @DisplayName: Enable logging of information needed for Replay
