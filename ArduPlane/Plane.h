@@ -970,6 +970,7 @@ private:
     void Log_Write_RC(void);
     void Log_Write_Vehicle_Startup_Messages();
     void Log_Write_AETR();
+    void Log_Write_Distance();
     void log_init();
 
     // Parameters.cpp

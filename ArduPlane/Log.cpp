@@ -180,6 +180,36 @@ void Plane::Log_Write_Nav_Tuning()
     logger.WriteBlock(&pkt, sizeof(pkt));
 }
 
+void Plane::Log_Write_Distance()
+{
+    Location loc {};
+    Location home_loc;
+    bool home_is_set;
+    {
+        // minimize semaphore scope
+        AP_AHRS &ahrsx = AP::ahrs();
+        WITH_SEMAPHORE(ahrsx.get_semaphore());
+        home_is_set = ahrsx.get_location(loc) && ahrsx.home_is_set();
+        if (home_is_set) {
+            home_loc = ahrsx.get_home();
+        }
+    }
+
+    uint32_t ground_traveled_m;
+    {
+        const auto ap_stats = AP::stats();
+        WITH_SEMAPHORE(ap_stats->get_semaphore());
+        ground_traveled_m = ap_stats->get_boot_flying_ground_traveled_m();
+    }
+
+    const uint32_t home_distance_m = home_is_set ? lrintf(home_loc.get_distance(loc)) : 0;
+
+    AP::logger().Write("DIST", "TimeUS,Home,Trvl", "smm", "F00", "QII",
+                                        AP_HAL::micros64(),
+                                        home_distance_m,
+                                        ground_traveled_m);
+}
+
 struct PACKED log_Status {
     LOG_PACKET_HEADER;
     uint64_t time_us;

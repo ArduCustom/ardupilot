@@ -236,6 +236,7 @@ void Plane::update_logging10(void)
     } else if (log_faster) {
         ahrs.Write_AOA_SSA();
     } 
+    Log_Write_Distance();
 }
 
 /*
