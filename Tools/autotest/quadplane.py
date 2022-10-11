@@ -872,6 +872,7 @@ class AutoTestQuadPlane(AutoTest):
 
     def MidAirDisarmDisallowed(self):
         '''Check disarm behaviour in Q-mode'''
+        self.reboot_sitl()
         self.start_subtest("Basic arm in qloiter")
         self.set_parameter("FLIGHT_OPTIONS", 0)
         self.change_mode('QLOITER')
@@ -889,7 +890,7 @@ class AutoTestQuadPlane(AutoTest):
         self.start_subtest("Ensure no disarming mid-air")
         self.arm_vehicle()
         self.set_rc(3, 2000)
-        self.wait_altitude(5, 50, relative=True)
+        self.wait_altitude(20, 30, relative=True)
         self.set_rc(3, 1000)
         disarmed = False
         try:
@@ -903,7 +904,7 @@ class AutoTestQuadPlane(AutoTest):
             raise NotAchievedException("Disarmed when we shouldn't have")
 
         self.change_mode('QLAND')
-        self.wait_disarmed()
+        self.wait_disarmed(timeout=120)
 
         self.start_subtest("Check we can disarm after a short period on the ground")
         self.takeoff(5, 'QHOVER')
