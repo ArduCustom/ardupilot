@@ -759,7 +759,13 @@ void Plane::set_servos_controlled(void)
         SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, fwd_thr);
 #endif  // HAL_QUADPLANE_ENABLED
     }
-    
+
+    if (control_mode == &mode_takeoff && flight_stage == AP_Vehicle::FixedWing::FLIGHT_TAKEOFF) {
+        SRV_Channels::set_slew_rate(SRV_Channel::k_throttle, g.takeoff_throttle_slewrate, 100, G_Dt);
+        SRV_Channels::set_slew_rate(SRV_Channel::k_throttleLeft, g.takeoff_throttle_slewrate, 100, G_Dt);
+        SRV_Channels::set_slew_rate(SRV_Channel::k_throttleRight, g.takeoff_throttle_slewrate, 100, G_Dt);
+    }
+
     if (!control_mode->does_auto_throttle()) {
         TECS_controller.set_throttle_demand(square_expo_curve_100(SRV_Channels::get_slew_limited_output_scaled(SRV_Channel::k_throttle), g2.throttle_expo_auto));
     }
