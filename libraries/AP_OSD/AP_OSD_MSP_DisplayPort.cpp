@@ -131,4 +131,10 @@ AP_OSD_Backend *AP_OSD_MSP_DisplayPort::probe(AP_OSD &osd)
     }
     return backend;
 }
+
+float AP_OSD_MSP_DisplayPort::get_aspect_ratio_correction() const
+{
+    return 24.0f/36.0f;
+}
+
 #endif
