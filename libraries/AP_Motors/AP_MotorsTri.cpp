@@ -271,7 +271,7 @@ void AP_MotorsTri::output_armed_stabilizing()
 
     // scale pivot thrust to account for pivot angle
     // we should not need to check for divide by zero as _pivot_angle is constrained to the 5deg ~ 80 deg range
-    _thrust_rear = _thrust_rear / cosf(_pivot_angle);
+    _thrust_rear = _thrust_rear / _front_rear_throttle_balance_ratio / cosf(_pivot_angle);
 
     // constrain all outputs to 0.0f to 1.0f
     // test code should be run with these lines commented out as they should not do anything

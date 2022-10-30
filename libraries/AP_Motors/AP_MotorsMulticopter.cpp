@@ -215,6 +215,14 @@ const AP_Param::GroupInfo AP_MotorsMulticopter::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("SAFE_TIME", 42, AP_MotorsMulticopter, _safe_time, AP_MOTORS_SAFE_TIME_DEFAULT),
 
+    // @Param: FR_T_B_RATIO
+    // @DisplayName: Front/rear thrust balance ratio
+    // @Description: Front/rear thrust balance ratio. Higher than one will result in more throttle applied to the front motor(s) compared to the rear motor(s)Lower than one will result in more throttle applied to the rear motor(s) compared to the front motor(s). Only available for the TRI frame class for now.
+    // @Range: 0 1
+    // @Increment: 0.001
+    // @User: Advanced
+    AP_GROUPINFO("FRTB_RATIO", 63, AP_MotorsMulticopter, _front_rear_throttle_balance_ratio, 1.0f),
+
     AP_GROUPEND
 };
 
