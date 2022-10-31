@@ -54,7 +54,8 @@ public:
                                float load_factor,
                                float throttle_expo,
                                float max_climb_rate,
-                               float max_sin_rate);
+                               float max_sin_rate,
+                               float throttle_min);
 
     // demanded throttle in percentage
     // should return -100 to 100, usually positive unless reverse thrust is enabled via _THRminf < 0
@@ -164,7 +165,7 @@ public:
     }
 
     float throttle_min(void) {
-        return square_expo_curve_100(aparm.throttle_min.get(), _throttle_expo);
+        return square_expo_curve_100(_throttle_min, _throttle_expo);
     }
 
     float throttle_max(void) {
@@ -207,7 +208,8 @@ private:
     const uint32_t _log_bitmask;
 
     float _throttle_expo;
-    
+    float _throttle_min;
+
     // TECS tuning parameters
     AP_Float _hgtCompFiltOmega;
     AP_Float _spdCompFiltOmega;
