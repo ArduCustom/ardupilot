@@ -624,6 +624,12 @@ void Plane::update_alt()
                 break;
         }
 
+        float throttle_min = aparm.throttle_min.get();
+
+        if (!allow_reverse_thrust()) {
+            throttle_min = MAX(0, throttle_min);
+        }
+
         TECS_controller.update_pitch_throttle(tecs_target_alt_cm,
                                                  target_airspeed_cm,
                                                  flight_stage,
@@ -634,7 +640,8 @@ void Plane::update_alt()
                                                  aerodynamic_load_factor,
                                                  g2.throttle_expo_auto,
                                                  max_climb_rate,
-                                                 max_sink_rate);
+                                                 max_sink_rate,
+                                                 throttle_min);
     }
 }
 
