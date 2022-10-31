@@ -771,14 +771,25 @@ void AP_TECS::_update_throttle_with_airspeed(void)
 
         // Calculate integrator state, constraining state
         // Set integrator to a max throttle value during climbout
-        _integTHR_state = _integTHR_state + (_STE_error * _get_i_gain()) * _DT * K_STE2Thr;
+        const float integTHR_progress = _STE_error * _get_i_gain() * _DT * K_STE2Thr;
         if (_flight_stage == AP_Vehicle::FixedWing::FLIGHT_TAKEOFF || _flight_stage == AP_Vehicle::FixedWing::FLIGHT_ABORT_LAND) {
+            _integTHR_state += integTHR_progress;
             if (!_flags.reached_speed_takeoff) {
                 // ensure we run at full throttle until we reach the target airspeed
                 _throttle_dem = MAX(_throttle_dem, _THRmaxf - _integTHR_state);
             }
             _integTHR_state = integ_max;
         } else {
+            // prevent the integrator from growing if the throttle is already at min or max
+            const float throttle_dem = _throttle_dem + _integTHR_state;
+            if (throttle_dem <= _THRminf || throttle_dem >= _THRmaxf) {
+                if ((throttle_dem <= _THRminf && integTHR_progress > 0) || (throttle_dem >= _THRmaxf && integTHR_progress < 0)) {
+                    _integTHR_state += integTHR_progress;
+                }
+            } else {
+                _integTHR_state += integTHR_progress;
+            }
+
             _integTHR_state = constrain_float(_integTHR_state, integ_min, integ_max);
         }
 
@@ -1074,13 +1085,15 @@ void AP_TECS::update_pitch_throttle(int32_t hgt_dem_cm,
                                     float load_factor,
                                     float throttle_expo,
                                     float max_climb_rate,
-                                    float max_sink_rate)
+                                    float max_sink_rate,
+                                    float thr_min)
 {
     // Calculate time in seconds since last update
     uint64_t now = AP_HAL::micros64();
     _DT = (now - _update_pitch_throttle_last_usec) * 1.0e-6f;
     _update_pitch_throttle_last_usec = now;
 
+    _throttle_min = thr_min;
     _throttle_expo = throttle_expo;
 
     _max_climb_rate = is_zero(max_climb_rate) ? _maxClimbRate : MIN(max_climb_rate, _maxClimbRate);
