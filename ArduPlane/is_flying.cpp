@@ -18,12 +18,12 @@ void Plane::update_is_flying_5Hz(void)
     bool is_flying_bool = false;
     uint32_t now_ms = AP_HAL::millis();
 
-    uint32_t ground_speed_thresh_cm = (aparm.min_gndspeed_cm > 0) ? ((uint32_t)(aparm.min_gndspeed_cm*0.9f)) : GPS_IS_FLYING_SPEED_CMS;
+    const uint32_t ground_speed_thresh_cm = GPS_IS_FLYING_SPEED_CMS;
     bool gps_confirmed_movement = (gps.status() >= AP_GPS::GPS_OK_FIX_3D) &&
                                     (gps.ground_speed_cm() >= ground_speed_thresh_cm);
 
     // airspeed at least 75% of stall speed?
-    const float airspeed_threshold = MAX(aparm.airspeed_min,2)*0.75f;
+    const float airspeed_threshold = 25.0f/3.6f;
     bool airspeed_movement = ahrs.airspeed_estimate(aspeed) && (aspeed >= airspeed_threshold);
 
     if (gps.status() < AP_GPS::GPS_OK_FIX_2D && arming.is_armed() && !airspeed_movement && isFlyingProbability > 0.3) {
