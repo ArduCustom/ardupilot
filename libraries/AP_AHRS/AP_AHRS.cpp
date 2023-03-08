@@ -39,7 +39,7 @@
 #define ATTITUDE_CHECK_THRESH_YAW_RAD radians(20)
 
 #ifndef HAL_AHRS_EKF_TYPE_DEFAULT
-#define HAL_AHRS_EKF_TYPE_DEFAULT 3
+#define HAL_AHRS_EKF_TYPE_DEFAULT 2
 #endif
 
 // table of user settable parameters
