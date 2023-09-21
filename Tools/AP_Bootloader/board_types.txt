@@ -192,3 +192,4 @@ AP_HW_NeutronRC_H7_BT                2000
 # OpenDroneID enabled boards. Use 10000 + the base board ID
 AP_HW_CubeOrange_ODID               10140
 AP_HW_Pixhawk6_ODID                 10053
+AP_HW_SpeedyBeeF405WING              1106
