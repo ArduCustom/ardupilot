@@ -2489,12 +2489,16 @@ void AP_OSD_Screen::draw_sidebars(uint8_t x, uint8_t y)
     // render the altitude ladder
     // similar formula to above, but accounts for negative altitudes
     int alt_symbol_index = fmodf(fmodf(scaled_alt, alt_interval) + alt_interval, alt_interval) / alt_interval * total_sectors;
+    uint8_t sidebar_width = 16;
+    if(check_option(AP_OSD::OPTION_WIDE_SIDEBAR)){
+      sidebar_width=30;
+    }
     for (int i = 0; i < 7; i++){
         if (i == 3) {
             // the middle section of the ladder with the currrent altitude
-            backend->write(x+16, y+i, false, "%c%d%c", SYMBOL(SYM_SIDEBAR_L_ARROW), (int) scaled_alt, u_icon(ALTITUDE));
+            backend->write(x+sidebar_width, y+i, false, "%c%d%c", SYMBOL(SYM_SIDEBAR_L_ARROW), (int) scaled_alt, u_icon(ALTITUDE));
         } else {
-            backend->write(x+16, y+i, false,  "%c", SYMBOL(sidebar_sectors[alt_symbol_index]));
+            backend->write(x+sidebar_width, y+i, false,  "%c", SYMBOL(sidebar_sectors[alt_symbol_index]));
         }
         alt_symbol_index = (alt_symbol_index + 12) % 18;
     }
