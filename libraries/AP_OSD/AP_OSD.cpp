@@ -90,7 +90,7 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @Param: _OPTIONS
     // @DisplayName: OSD Options
     // @Description: This sets options that change the display
-    // @Bitmask: 0:UseDecimalPack, 1:InvertedWindPointer, 2:InvertedAHRoll, 3:Convert feet to miles at 5280ft instead of 10000ft, 4:DisableCrosshair, 19:Right justify TUNED_PN element, 20:Prefix LQ with RF Mode, 21:One decimal attitude, 22:One decimal throttle, 23:Shorten Pluscode 
+    // @Bitmask: 0:UseDecimalPack, 1:InvertedWindPointer, 2:InvertedAHRoll, 3:Convert feet to miles at 5280ft instead of 10000ft, 4:DisableCrosshair, 17:wide Sidebar, 18:Two decimal vertical speed, 19:Right justify TUNED_PN element, 20:Prefix LQ with RF Mode, 21:One decimal attitude, 22:One decimal throttle, 23:Shorten Pluscode
     // @User: Standard
     AP_GROUPINFO("_OPTIONS", 8, AP_OSD, options, OPTION_DECIMAL_PACK | OPTION_ONE_DECIMAL_ATTITUDE | OPTION_RF_MODE_ALONG_WITH_LQ | OPTION_RIGHT_JUSTIFY_TUNED_PN ),
 
