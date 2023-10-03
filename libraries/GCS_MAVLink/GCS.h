@@ -407,6 +407,7 @@ public:
     uint8_t get_last_txbuf() const { return last_txbuf; }
 
     MAV_RESULT set_message_interval(uint32_t msg_id, int32_t interval_us);
+    bool ftp_init(void);
 
 protected:
 
@@ -899,7 +900,6 @@ private:
     static int gen_dir_entry(char *dest, size_t space, const char * path, const struct dirent * entry); // FTP helper for emitting a dir response
     static void ftp_list_dir(struct pending_ftp &request, struct pending_ftp &response);
 
-    bool ftp_init(void);
     void handle_file_transfer_protocol(const mavlink_message_t &msg);
     void send_ftp_replies(void);
     void ftp_worker(void);

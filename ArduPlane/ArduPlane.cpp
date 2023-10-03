@@ -21,6 +21,8 @@
  */
 
 #include "Plane.h"
+#include <GCS_MAVLink/GCS.h>
+#include "GCS_Mavlink.h"
 
 #define SCHED_TASK(func, rate_hz, max_time_micros, priority) SCHED_TASK_CLASS(Plane, &plane, func, rate_hz, max_time_micros, priority)
 
@@ -294,6 +296,9 @@ extern AP_IOMCU iomcu;
 
 void Plane::one_second_loop()
 {
+    GCS_MAVLINK *chan = gcs().chan(0);
+    chan->ftp_init();
+
     // make it possible to change control channel ordering at runtime
     set_control_channels();
 
