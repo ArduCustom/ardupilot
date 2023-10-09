@@ -36,7 +36,7 @@ void Plane::throttle_slew_limit(SRV_Channel::Aux_servo_function_t func)
         return;
     }
 
-    uint8_t slewrate = aparm.throttle_slewrate;
+    float slewrate = aparm.throttle_slewrate;
 
     if (suppress_throttle() && ((control_mode == &mode_auto && flight_stage == AP_Vehicle::FixedWing::FLIGHT_NORMAL &&
                                 mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF) || control_mode == &mode_takeoff)) {
@@ -51,14 +51,14 @@ void Plane::throttle_slew_limit(SRV_Channel::Aux_servo_function_t func)
     } else {
 
         if (control_mode == &mode_auto) {
-            if (auto_state.takeoff_complete == false && g.takeoff_throttle_slewrate != 0) {
+            if (auto_state.takeoff_complete == false && !is_zero(g.takeoff_throttle_slewrate)) {
                 slewrate = g.takeoff_throttle_slewrate;
-            } else if (landing.get_throttle_slewrate() != 0 && flight_stage == AP_Vehicle::FixedWing::FLIGHT_LAND) {
+            } else if (!is_zero(landing.get_throttle_slewrate()) && flight_stage == AP_Vehicle::FixedWing::FLIGHT_LAND) {
                 slewrate = landing.get_throttle_slewrate();
             }
         }
 
-        if (g.takeoff_throttle_slewrate != 0 &&
+        if (!is_zero(g.takeoff_throttle_slewrate) &&
             (flight_stage == AP_Vehicle::FixedWing::FLIGHT_TAKEOFF ||
             flight_stage == AP_Vehicle::FixedWing::FLIGHT_VTOL)) {
             // for VTOL we use takeoff slewrate, which helps with transition
@@ -66,7 +66,7 @@ void Plane::throttle_slew_limit(SRV_Channel::Aux_servo_function_t func)
         }
 
         #if HAL_QUADPLANE_ENABLED
-        if (g.takeoff_throttle_slewrate != 0 && quadplane.in_transition()) {
+        if (!is_zero(g.takeoff_throttle_slewrate) && quadplane.in_transition()) {
             slewrate = g.takeoff_throttle_slewrate;
         }
         #endif
