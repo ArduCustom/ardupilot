@@ -38,8 +38,12 @@
 #define ATTITUDE_CHECK_THRESH_ROLL_PITCH_RAD radians(10)
 #define ATTITUDE_CHECK_THRESH_YAW_RAD radians(20)
 
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+#define HAL_AHRS_EKF_TYPE_DEFAULT 3
+#else
 #ifndef HAL_AHRS_EKF_TYPE_DEFAULT
 #define HAL_AHRS_EKF_TYPE_DEFAULT 2
+#endif
 #endif
 
 // table of user settable parameters

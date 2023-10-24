@@ -24,6 +24,11 @@
 #include <AP_HAL/AP_HAL_Boards.h>
 #include <AP_HAL/Semaphores.h>
 
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+#define HAL_NAVEKF2_AVAILABLE 1
+#define HAL_NAVEKF3_AVAILABLE 1
+#else
+
 #ifndef HAL_NAVEKF3_AVAILABLE
 // only default to EK2 enabled on boards with over 1M flash
 #define HAL_NAVEKF3_AVAILABLE (BOARD_FLASH_SIZE>1024)
@@ -31,6 +36,7 @@
 
 #ifndef HAL_NAVEKF2_AVAILABLE
 #define HAL_NAVEKF2_AVAILABLE 1
+#endif
 #endif
 
 #ifndef AP_AHRS_SIM_ENABLED
