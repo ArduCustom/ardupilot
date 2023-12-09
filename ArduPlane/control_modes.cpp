@@ -31,6 +31,9 @@ Mode *Plane::mode_from_mode_num(const enum Mode::Number num)
     case Mode::Number::COURSE_HOLD:
         ret = &mode_course_hold;
         break;
+    case Mode::Number::MODE_AUTO_TRIM:
+        ret = &mode_auto_trim;
+        break;
     case Mode::Number::CRUISE:
         ret = &mode_cruise;
         break;

@@ -53,6 +53,7 @@ public:
         LOITER_ALT_QLAND = 25,
 #endif
         COURSE_HOLD   = 26,
+        MODE_AUTO_TRIM     = 27,
     };
 
     // Constructor
@@ -433,6 +434,20 @@ public:
 protected:
 
     bool _enter() override;
+};
+
+class ModeAutoTrim : public ModeCourseHold
+{
+public:
+
+    Number mode_number() const override { return Number::MODE_AUTO_TRIM; }
+    const char *name() const override { return "AUTO TRIM"; }
+    const char *name4() const override { return "ATRM"; }
+
+protected:
+
+    bool _enter() override;
+    void _exit() override;
 };
 
 class ModeCruise : public ModeCourseHold

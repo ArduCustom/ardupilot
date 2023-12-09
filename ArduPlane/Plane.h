@@ -270,6 +270,7 @@ private:
     ModeFBWA mode_fbwa;
     ModeFBWB mode_fbwb;
     ModeCourseHold mode_course_hold;
+    ModeAutoTrim mode_auto_trim;
     ModeCruise mode_cruise;
     ModeAutoTune mode_autotune;
     ModeAuto mode_auto;
@@ -1322,7 +1323,7 @@ public:
     bool is_auto_throttle_gliding(void) const override { return auto_thr_gliding_state == ATGS_GLIDING; }
 
     bool get_course_hold_heading(uint16_t &locked_heading) const override {
-        if (control_mode != &mode_cruise && control_mode != &mode_course_hold) {
+        if (control_mode != &mode_cruise && control_mode != &mode_course_hold && control_mode != &mode_auto_trim) {
             return false;
         }
 

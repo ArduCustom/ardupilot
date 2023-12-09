@@ -731,6 +731,7 @@ void Plane::set_servos_controlled(void)
                control_mode == &mode_acro ||
                control_mode == &mode_fbwa ||
                control_mode == &mode_course_hold ||
+               control_mode == &mode_auto_trim ||
                control_mode == &mode_autotune) {
         // a manual throttle mode
         if (!rc().has_valid_input()) {
@@ -1336,7 +1337,7 @@ bool Plane::servos_auto_trim_set(const Plane::ServoTrimSetEntry *const trim_set,
 void Plane::servos_auto_trim(void)
 {
     // only in auto modes and FBWA
-    if ((!control_mode->does_auto_throttle() || control_mode == &mode_takeoff || control_mode == &mode_auto) && control_mode != &mode_course_hold && control_mode != &mode_fbwa) {
+    if ((!control_mode->does_auto_throttle() || control_mode == &mode_takeoff || control_mode == &mode_auto) && control_mode != &mode_course_hold && control_mode != &mode_auto_trim && control_mode != &mode_fbwa) {
         return;
     }
     if (!hal.util->get_soft_armed()) {

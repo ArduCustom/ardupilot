@@ -52,6 +52,7 @@ void GCS_Plane::update_vehicle_sensor_status_flags(void)
 #endif  // HAL_QUADPLANE_ENABLED
     case Mode::Number::FLY_BY_WIRE_B:
     case Mode::Number::COURSE_HOLD:
+    case Mode::Number::MODE_AUTO_TRIM:
     case Mode::Number::CRUISE:
         rate_controlled = true;
         attitude_stabilized = true;
