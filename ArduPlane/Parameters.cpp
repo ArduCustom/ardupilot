@@ -1411,6 +1411,13 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_SUBGROUPINFO(follow, "FOLL", 33, ParametersG2, AP_Follow),
 #endif
 
+    // @Param: SAT_FINISHTHRESH
+    // @DisplayName: Number of microseconds of servo trim adjustment during 10s under which the auto trim is considered finished
+    // @Description: Number of microseconds of servo trim adjustment during 10s under which the auto trim is considered finished
+    // @Range: 0 255
+    // @User: Advanced
+    AP_GROUPINFO("SAT_FINISHTHRESH", 43, ParametersG2, servos_auto_trim_finished_threshold, 20),
+
     // @Param: ARMING_MODE_SW
     // @DisplayName: Selects what mode to switch to after arming
     // @Description: Selects what mode to switch to after arming

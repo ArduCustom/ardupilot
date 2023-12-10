@@ -1400,22 +1400,23 @@ void Plane::servos_auto_trim(void)
     } else if (now - auto_trim.last_trim_save > 10000) {
 
         if (g2.servo_channels.auto_trim_mode() == SRV_Channels::SERVO_AUTO_TRIM_ONCE) {
-            if (!SERVOS_TRIM_SET_STATUS(aileron).finished && abs(SERVOS_TRIM_SET_STATUS(aileron).adjustment) < 4) {
+            if (!SERVOS_TRIM_SET_STATUS(aileron).finished && abs(SERVOS_TRIM_SET_STATUS(aileron).adjustment) < g2.servos_auto_trim_finished_threshold) {
                 SERVOS_TRIM_SET_STATUS(aileron).finished = true;
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Ailerons trim finished");
             }
 
-            if (!SERVOS_TRIM_SET_STATUS(elevator).finished && abs(SERVOS_TRIM_SET_STATUS(elevator).adjustment) < 4) {
+            if (!SERVOS_TRIM_SET_STATUS(elevator).finished && abs(SERVOS_TRIM_SET_STATUS(elevator).adjustment) < g2.servos_auto_trim_finished_threshold) {
                 SERVOS_TRIM_SET_STATUS(elevator).finished = true;
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Elevator trim finished");
             }
 
-            if (!SERVOS_TRIM_SET_STATUS(elevon).finished && abs(SERVOS_TRIM_SET_STATUS(elevon).adjustment) < 4) {
+            if (!SERVOS_TRIM_SET_STATUS(elevon).finished && abs(SERVOS_TRIM_SET_STATUS(elevon).adjustment) < g2.servos_auto_trim_finished_threshold) {
                 SERVOS_TRIM_SET_STATUS(elevon).finished = true;
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Elevons trim finished");
             }
 
-            if (!SERVOS_TRIM_SET_STATUS(dspoiler_finished) && abs(SERVOS_TRIM_SET_STATUS(dspoiler_outer).adjustment) < 4 && abs(SERVOS_TRIM_SET_STATUS(dspoiler_inner).adjustment) < 4) {
+            if (!SERVOS_TRIM_SET_STATUS(dspoiler_finished) && abs(SERVOS_TRIM_SET_STATUS(dspoiler_outer).adjustment) < g2.servos_auto_trim_finished_threshold &&
+                                                                abs(SERVOS_TRIM_SET_STATUS(dspoiler_inner).adjustment) < g2.servos_auto_trim_finished_threshold) {
                 SERVOS_TRIM_SET_STATUS(dspoiler_inner).finished = true;
                 SERVOS_TRIM_SET_STATUS(dspoiler_outer).finished = true;
                 SERVOS_TRIM_SET_STATUS(dspoiler_finished) = true;

@@ -600,6 +600,7 @@ public:
     AP_Int8 flight_mode12;
 
     AP_Int8 arming_mode_sw;
+    AP_Int8 servos_auto_trim_finished_threshold;
 
     // plane throws diff
     AP_Float ailerons_diff;
