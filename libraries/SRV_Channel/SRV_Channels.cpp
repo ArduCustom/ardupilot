@@ -408,7 +408,7 @@ void SRV_Channels::init(uint32_t motor_mask, AP_HAL::RCOutput::output_mode mode)
 
 void SRV_Channels::disable_autotrim_if_temporary_enabled()
 {
-    if (auto_trim == SRV_Channels::SERVO_AUTO_TRIM_ONCE) {
+    if (auto_trim != SRV_Channels::SERVO_AUTO_TRIM_PERMANENT) {
         auto_trim.set_and_save(SRV_Channels::SERVO_AUTO_TRIM_DISABLED);
     }
 }
