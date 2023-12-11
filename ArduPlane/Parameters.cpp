@@ -1530,8 +1530,8 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_GROUPINFO("THR_EXPO_MANUAL", 56, ParametersG2, throttle_expo_manual, 0),
     
     // @Param: FLTMODE_EXT
-    // @DisplayName: Enable extra modes
-    // @Description: This enables 14 extra modes. Be careful when enabling this on PPM/analog, as each mode channel is only 45 usec wide (starting from 1050, then 1095, and so on).
+    // @DisplayName: Extended mode switch
+    // @Description: Setting this parameter to one allow to have up to 12 flight modes selectable with the flight mode channel instead of 6. Mode ranges: 901-1125, 1126-1200, 1201-1275, 1276-1350, 1351-1425, 1426-1500, 1501-1575, 1576-1650, 1651-1725, 1726-1800, 1801-1875, 1876-2199
     // @Values: 0:Disabled,1:Enabled
     // @User: Advanced
     AP_GROUPINFO("FLTMODE_EXT", 57, ParametersG2, fltmode_ext, 0),
