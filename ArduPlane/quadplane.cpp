@@ -4340,8 +4340,8 @@ void QuadPlane::setup_rp_fw_angle_gains(void)
 {
     const float mc_angR = attitude_control->get_angle_roll_p().kP();
     const float mc_angP = attitude_control->get_angle_pitch_p().kP();
-    const float fw_angR = 2;
-    const float fw_angP = 2;
+    const float fw_angR = 1.0f/plane.rollController.tau();
+    const float fw_angP = 1.0f/plane.pitchController.tau();
 
     if (!is_positive(mc_angR) || !is_positive(mc_angP)) {
         // bad configuration, don't scale

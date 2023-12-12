@@ -526,13 +526,19 @@ void AP_PitchController::convert_pid()
 void AP_PitchController::autotune_start(void)
 {
     if (autotune == nullptr) {
-        autotune = new AP_AutoTune(gains, AP_AutoTune::AUTOTUNE_PITCH, aparm, rate_pid);
+        angle_i_backup = angle_pid.kI();
+        angle_fltt_backup = angle_pid.filt_T_hz();
+        gains.tau = tau();
+        autotune = new AP_AutoTune(gains, &kP(), AP_AutoTune::AUTOTUNE_PITCH, aparm, rate_pid);
         if (autotune == nullptr) {
             if (!failed_autotune_alloc) {
                 GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "AutoTune: failed pitch allocation");
             }
             failed_autotune_alloc = true;
         }
+        angle_pid.kI(0);
+        angle_pid.kD().set_and_save_ifchanged(0);
+        angle_pid.filt_T_hz(0);
     }
     if (autotune != nullptr) {
         autotune->start();
@@ -546,5 +552,7 @@ void AP_PitchController::autotune_restore(void)
 {
     if (autotune != nullptr) {
         autotune->stop();
+        angle_pid.kI(angle_i_backup);
+        angle_pid.filt_T_hz(angle_fltt_backup);
     }
 }

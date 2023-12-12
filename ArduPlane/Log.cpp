@@ -345,7 +345,7 @@ const struct LogStructure Plane::log_structure[] = {
 // @Field: Action: action taken
 // @Field: RMAX: Rate maximum
     { LOG_ATRP_MSG, sizeof(AP_AutoTune::log_ATRP),
-      "ATRP", "QBBffffffffBf", "TimeUS,Axis,State,Sur,PSlew,DSlew,FF0,FF,P,I,D,Action,RMAX", "s#-dkk------k", "F--00000000-0" , true },
+      "ATRP", "QBBffffffffBff", "TimeUS,Axis,State,Sur,PSlew,DSlew,FF0,FF,P,I,D,Action,RMAX,TAU", "s#-dkk------ks", "F--00000000-00" , true },
 
 // @LoggerMessage: STAT
 // @Description: Current status of the aircraft

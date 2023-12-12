@@ -63,6 +63,7 @@ public:
     AP_Float &kD(void) { return rate_pid.kD(); }
     AP_Float &kFF(void) { return rate_pid.ff(); }
     AP_Float &rollFF(void) { return _roll_ff; }
+    float tau(void) { return 1.0f/kP(); }
 
     AP_Float &angle_kP(void) { return angle_pid.kP(); }
     AP_Float &angle_kI(void) { return angle_pid.kI(); }
@@ -83,6 +84,9 @@ private:
     AC_PID angle_pid{PITCH_ANGLE_PID_P_DEFAULT, PITCH_ANGLE_PID_I_DEFAULT, PITCH_ANGLE_PID_D_DEFAULT, 0, PITCH_ANGLE_PID_IMAX_DEFAULT, PITCH_ANGLE_PID_TARGET_FILTER_DEFAULT, 0, PITCH_ANGLE_PID_D_FILTER_DEFAULT, 0.02, PITCH_ANGLE_PID_SMAX_DEFAULT, 1};
 
     float angle_err_deg;
+
+    float angle_i_backup;
+    float angle_fltt_backup;
 
     AP_PIDInfo _pid_info;
     AP_PIDInfo _angle_pid_info;

@@ -61,6 +61,7 @@ public:
     void kFF(float v) {rate_pid.ff().set(v); }
 
     AP_Float &kP(void) { return rate_pid.kP(); }
+    float tau(void) { return 1.0f/kP(); }
     AP_Float &kI(void) { return rate_pid.kI(); }
     AP_Float &kD(void) { return rate_pid.kD(); }
     AP_Float &kFF(void) { return rate_pid.ff(); }
@@ -81,6 +82,9 @@ private:
     AC_PID rate_pid{0.08, 0.15, 0, 0.345, 0.666, 3, 0, 12, 0.02, 150, 1};
     AC_PID angle_pid{ROLL_ANGLE_PID_P_DEFAULT, ROLL_ANGLE_PID_I_DEFAULT, ROLL_ANGLE_PID_D_DEFAULT, 0, ROLL_ANGLE_PID_IMAX_DEFAULT, ROLL_ANGLE_PID_TARGET_FILTER_DEFAULT, 0, ROLL_ANGLE_PID_D_FILTER_DEFAULT, 0.02, ROLL_ANGLE_PID_SMAX_DEFAULT, 1};
     float angle_err_deg;
+
+    float angle_i_backup;
+    float angle_fltt_backup;
 
     AP_PIDInfo _pid_info;
     AP_PIDInfo _angle_pid_info;

@@ -10,6 +10,7 @@ class AP_AutoTune
 {
 public:
     struct ATGains {
+        float tau;
         AP_Int16 rmax_pos;
         AP_Int16 rmax_neg;
         float FF, P, I, D, IMAX;
@@ -37,11 +38,12 @@ public:
         float D;
         uint8_t action;
         float rmax;
+        float tau;
     };
 
 
     // constructor
-    AP_AutoTune(ATGains &_gains, ATType type, const AP_Vehicle::FixedWing &parms, class AC_PID &rpid);
+    AP_AutoTune(ATGains &_gains, AP_Float *_pidP, ATType type, const AP_Vehicle::FixedWing &parms, class AC_PID &rpid);
 
     // called when autotune mode is entered
     void start(void);
@@ -60,6 +62,7 @@ public:
 private:
     // the current gains
     ATGains &current;
+    AP_Float *pidP;
     class AC_PID &rpid;
 
     // what type of autotune is this

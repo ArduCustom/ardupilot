@@ -178,7 +178,6 @@ protected:
     void _exit() override;
 };
 
-
 class ModeAutoTune : public Mode
 {
 public:
