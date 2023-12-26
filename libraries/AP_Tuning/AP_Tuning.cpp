@@ -83,7 +83,7 @@ void AP_Tuning::check_selector_switch(void)
             selector_start_ms = AP_HAL::millis();
         }
         uint32_t hold_time = AP_HAL::millis() - selector_start_ms;
-        if (hold_time > 5000 && changed) {
+        if (hold_time > 3000 && changed) {
             // save tune
             save_parameters();
             re_center();
@@ -96,13 +96,13 @@ void AP_Tuning::check_selector_switch(void)
         // low selector
         if (selector_start_ms != 0) {
             uint32_t hold_time = AP_HAL::millis() - selector_start_ms;
-            if (hold_time < 200) {
+            if (hold_time < 50) {
                 // debounce!
-            } else if (hold_time < 2000) {
+            } else if (hold_time < 500) {
                 // re-center the value
                 re_center();
                 gcs().send_text(MAV_SEVERITY_INFO, "Tuning: recentered %s", get_tuning_name(current_parm));
-            } else if (hold_time < 5000) {
+            } else if (hold_time < 1000) {
                 // change parameter
                 next_parameter();
             }
