@@ -8,7 +8,7 @@ const AP_Param::GroupInfo AP_Tuning_Plane::var_info[] = {
     // @Param: PARAM
     // @DisplayName: Transmitter tuning parameter or set of parameters
     // @Description: This sets which parameter or set of parameters will be tuned. Values greater than 100 indicate a set of parameters rather than a single parameter. Parameters less than 50 are for QuadPlane vertical lift motors only.
-    // @Values: 0:None,1:RateRollPI,2:RateRollP,3:RateRollI,4:RateRollD,5:RatePitchPI,6:RatePitchP,7:RatePitchI,8:RatePitchD,9:RateYawPI,10:RateYawP,11:RateYawI,12:RateYawD,13:AngleRollP,14:AnglePitchP,15:AngleYawP,16:PosXYP,17:PosZP,18:VelXYP,19:VelXYI,20:VelZP,21:AccelZP,22:AccelZI,23:AccelZD,24:RatePitchFF,25:RateRollFF,26:RateYawFF,50:FixedWingRollP,51:FixedWingRollI,52:FixedWingRollD,53:FixedWingRollFF,54:FixedWingPitchP,55:FixedWingPitchI,56:FixedWingPitchD,57:FixedWingPitchFF,58:TRIM_THROTTLE,59:TRIM_PITCH,60:KFF_THRAT2PTCH,61:FBWA max pitch down comp,62:FBWA max pitch down comp thr,63:FWBA pitch down comp curve,64:FBWA max pitch up comp,65:FBWA max pitch up comp thr,66:FWBA pitch up comp curve,67:RLL2PTCH,68:KFF_RDDRMIX,69:TECSTFFDAMP,70:TECSTFF_FILT,71:FWAglRollP,72:FWAglRollI,73:AglRollD,74:AglRollFLTT,75:FWAglPitchP,76:FWAglPitchI,77:AglPitchD,78:AglPitchFLTT,79:MixingDiff,80:MixingOffset,81:THR EXPO MANUAL,82:THR EXPO AUTO,83:FLAP_RETED_SPD,84:FLAP_EXTED_SPD,85:FLAP_EXTED_PCT,86:KFF_THRAT2ELEV,87:MIX_THRAT2ELEVCV,88:KFF_FLAP2ELEV,89:MIX_FLAP2ELEVCV,90:Ailerons diff,91:Elevator diff,92:Q pitch trim,93:THR_AUTO_SRATE,101:Set_RateRollPitch (RATE_ROLL_D / RATE_ROLL_PI / RATE_PITCH_D / RATE_PITCH_PI),102:Set_RateRoll (RATE_ROLL_D / RATE_ROLL_PI),103:Set_RatePitch(RATE_PITCH_D / RATE_PITCH_PI),104:Set_RateYaw (RATE_YAW_P / RATE_YAW_I / RATE_YAW_D),105:Set_AngleRollPitch (ANG_ROLL_P / ANG_PITCH_P),106:Set_VelXY (VXY_P / VXY_I),107:Set_AccelZ (AZ_P / AZ_I / AZ_D),108:Set_RatePitchDP (RATE_PITCH_D / RATE_PITCH_P),109:Set_RateRollDP (RATE_ROLL_D / RATE_ROLL_P),110:Set_RateYawDP (RATE_YAW_D / RATE_YAW_P),111:Set_THR2PTCH (TRIM_THROTTLE / TRIM_PITCH / KFF_THRAT2PTCH / FBWA_PITCH_DOWN / FBWA_MXPTCHD_THR / FBWA_PTCHDN_CRV / FBWA_PITCH_UP / FBWA_MXPTCHU_THR / FBWA_PTCHUP_CRV),112:Set turn coordination (RLL2PTCH / KFF_RDDRMIX),113:TECS THR FF (TECS_THR_FF_DAMP / TECS_THR_FF_FILT),114:Set_AglRollPitch (AGL_ROLL_P / AGL_ROLL_D / AGL_ROLL_FLTT / AGL_PITCH_P / AGL_PITCH_D / AGL_PITCH_FLTT),115:Set_AglRoll (AGL_ROLL_D / AGL_ROLL_P / AGL_ROLL_FLTT),116:Set_AglPitch (AGL_PITCH_D / AGL_PITCH_P / AGL_PITCH_FLTT),117:Set_Mixing (MIXING_DIFF / AILERONS_DIFF / ELEVATOR_DIFF / MIXING_OFFSET / MIX_THRAT2ELEV / MIX_THRAT2ELEVCV / MIX_FLAP2ELEV / MIX_FLAP2ELEVCV),118:Set_THR (THR_EXPO_MANUAL / THR_EXPO_AUTO / THR_AUTO_SRATE),119:Set_flap (FLAP_RETED_SPD / FLAP_EXTED_SPD / FLAP_EXTED_PCT),120:Set_FW_Roll_Pitch (RATE_ROLL_D / RATE_ROLL_P / RATE_ROLL_I / RATE_PITCH_D / RATE_PITCH_P / RATE_PITCH_I),121:Set_FW_Roll (RATE_ROLL_D / RATE_ROLL_P / RATE_ROLL_I),122:Set_FW_Pitch (RATE_PITCH_D / RATE_PITCH_P / RATE_PITCH_I)
+    // @Values: 0:None,1:RateRollPI,2:RateRollP,3:RateRollI,4:RateRollD,5:RatePitchPI,6:RatePitchP,7:RatePitchI,8:RatePitchD,9:RateYawPI,10:RateYawP,11:RateYawI,12:RateYawD,13:AngleRollP,14:AnglePitchP,15:AngleYawP,16:PosXYP,17:PosZP,18:VelXYP,19:VelXYI,20:VelZP,21:AccelZP,22:AccelZI,23:AccelZD,24:RatePitchFF,25:RateRollFF,26:RateYawFF,50:FixedWingRollP,51:FixedWingRollI,52:FixedWingRollD,53:FixedWingRollFF,54:FixedWingPitchP,55:FixedWingPitchI,56:FixedWingPitchD,57:FixedWingPitchFF,58:TRIM_THROTTLE,59:TRIM_PITCH,60:KFF_THRAT2PTCH,61:FBWA max pitch down comp,62:FBWA max pitch down comp thr,63:FWBA pitch down comp curve,64:FBWA max pitch up comp,65:FBWA max pitch up comp thr,66:FWBA pitch up comp curve,67:RLL2PTCH,68:KFF_RDDRMIX,69:TECSTFFDAMP,70:TECSTFF_FILT,71:FWAglRollP,72:FWAglRollI,73:AglRollD,74:AglRollFLTT,75:FWAglPitchP,76:FWAglPitchI,77:AglPitchD,78:AglPitchFLTT,79:MixingDiff,80:MixingOffset,81:THR EXPO MANUAL,82:THR EXPO AUTO,83:FLAP_RETED_SPD,84:FLAP_EXTED_SPD,85:FLAP_EXTED_PCT,86:KFF_THRAT2ELEV,87:MIX_THRAT2ELEVCV,88:KFF_FLAP2ELEV,89:MIX_FLAP2ELEVCV,90:Ailerons diff,91:Elevator diff,92:Q pitch trim,93:THR_AUTO_SRATE,101:Set_RateRollPitch (RATE_ROLL_D / RATE_ROLL_PI / RATE_PITCH_D / RATE_PITCH_PI),102:Set_RateRoll (RATE_ROLL_D / RATE_ROLL_PI),103:Set_RatePitch(RATE_PITCH_D / RATE_PITCH_PI),104:Set_RateYaw (RATE_YAW_P / RATE_YAW_I / RATE_YAW_D),105:Set_AngleRollPitch (ANG_ROLL_P / ANG_PITCH_P),106:Set_VelXY (VXY_P / VXY_I),107:Set_AccelZ (AZ_P / AZ_I / AZ_D),108:Set_RatePitchDP (RATE_PITCH_D / RATE_PITCH_P),109:Set_RateRollDP (RATE_ROLL_D / RATE_ROLL_P),110:Set_RateYawDP (RATE_YAW_D / RATE_YAW_P),111:Set_THR2PTCH (TRIM_THROTTLE / TRIM_PITCH / KFF_THRAT2PTCH / FBWA_PITCH_DOWN / FBWA_MXPTCHD_THR / FBWA_PTCHDN_CRV),112:Set_THR2PTCH_full (TRIM_THROTTLE / TRIM_PITCH / KFF_THRAT2PTCH / FBWA_PITCH_DOWN / FBWA_MXPTCHD_THR / FBWA_PTCHDN_CRV / FBWA_PITCH_UP / FBWA_MXPTCHU_THR / FBWA_PTCHUP_CRV),113:Set turn coordination (RLL2PTCH / KFF_RDDRMIX),114:TECS THR FF (TECS_THR_FF_DAMP / TECS_THR_FF_FILT),115:Set_AglRollPitch (AGL_ROLL_P / AGL_ROLL_D / AGL_ROLL_FLTT / AGL_PITCH_P / AGL_PITCH_D / AGL_PITCH_FLTT),116:Set_AglPitch (AGL_PITCH_D / AGL_PITCH_P / AGL_PITCH_FLTT),117:Set_AglRoll (AGL_ROLL_D / AGL_ROLL_P / AGL_ROLL_FLTT),118:Set_Mixing (MIXING_DIFF / AILERONS_DIFF / ELEVATOR_DIFF / MIXING_OFFSET / MIX_THRAT2ELEV / MIX_THRAT2ELEVCV / MIX_FLAP2ELEV / MIX_FLAP2ELEVCV),119:Set_THR (THR_EXPO_MANUAL / THR_EXPO_AUTO / THR_AUTO_SRATE),120:Set_flap (FLAP_RETED_SPD / FLAP_EXTED_SPD / FLAP_EXTED_PCT),121:Set_FW_Roll_Pitch (RATE_ROLL_D / RATE_ROLL_P / RATE_ROLL_I / RATE_PITCH_D / RATE_PITCH_P / RATE_PITCH_I),122:Set_FW_Pitch (RATE_PITCH_D / RATE_PITCH_P / RATE_PITCH_I),123:Set_FW_Roll (RATE_ROLL_D / RATE_ROLL_P / RATE_ROLL_I),124:Set_FW_Pitch_Roll_PIDS (TUNING_PIT_D / TUNING_PIT_P / TUNING_PIT_I / TUNING_AGL_PITCH_P / TUNING_AGL_PITCH_D / TUNING_AGL_PITCH_FLTT / TUNING_RLL_D / TUNING_RLL_P / TUNING_RLL_I / TUNING_AGL_ROLL_P / TUNING_AGL_ROLL_D / TUNING_AGL_ROLL_FLTT)
     // @User: Standard
     AP_GROUPINFO("PARAM", 1, AP_Tuning_Plane, parmset, 0),
 
@@ -34,22 +34,32 @@ const uint8_t AP_Tuning_Plane::tuning_set_rate_pitchDP[]=      { TUNING_RATE_PIT
 const uint8_t AP_Tuning_Plane::tuning_set_rate_rollDP[]=       { TUNING_RATE_ROLL_D, TUNING_RATE_ROLL_P };
 const uint8_t AP_Tuning_Plane::tuning_set_rate_yawDP[]=        { TUNING_RATE_YAW_D, TUNING_RATE_YAW_P };
 const uint8_t AP_Tuning_Plane::tuning_set_trim_thr_pitch[] =   { TUNING_TRIM_THROTTLE, TUNING_TRIM_PITCH, TUNING_KFF_THRAT2PTCH,
+                                                                TUNING_FBWA_PITCH_DOWN, TUNING_FBWA_MXPTCHD_THR, TUNING_FBWA_PTCHDN_CRV };
+const uint8_t AP_Tuning_Plane::tuning_set_trim_thr_pitch_full[] = {
+                                                                TUNING_TRIM_THROTTLE, TUNING_TRIM_PITCH, TUNING_KFF_THRAT2PTCH,
                                                                 TUNING_FBWA_PITCH_DOWN, TUNING_FBWA_MXPTCHD_THR, TUNING_FBWA_PTCHDN_CRV,
-                                                                TUNING_FBWA_PITCH_UP, TUNING_FBWA_MXPTCHU_THR, TUNING_FBWA_PTCHUP_CRV };
+                                                                TUNING_FBWA_PITCH_UP, TUNING_FBWA_MXPTCHU_THR, TUNING_FBWA_PTCHUP_CRV
+                                                               };
 const uint8_t AP_Tuning_Plane::tuning_set_coordination[] =     { TUNING_RLL2PTCH, TUNING_KFF_RDDRMIX };
 const uint8_t AP_Tuning_Plane::tuning_set_tecs_thr_ff[] =      { TUNING_TECS_THR_FF_DAMP, TUNING_TECS_THR_FF_FILT };
-const uint8_t AP_Tuning_Plane::tuning_set_angle_roll_pitch[] = { TUNING_AGL_ROLL_P, TUNING_AGL_ROLL_D, TUNING_AGL_ROLL_FLTT,
-                                                                 TUNING_AGL_PITCH_P, TUNING_AGL_PITCH_D, TUNING_AGL_PITCH_FLTT };
-const uint8_t AP_Tuning_Plane::tuning_set_angle_roll[] =       { TUNING_AGL_ROLL_D, TUNING_AGL_ROLL_P, TUNING_AGL_ROLL_FLTT };
+const uint8_t AP_Tuning_Plane::tuning_set_angle_pitch_roll[] = { TUNING_AGL_PITCH_P, TUNING_AGL_PITCH_D, TUNING_AGL_PITCH_FLTT,
+                                                                 TUNING_AGL_ROLL_P, TUNING_AGL_ROLL_D, TUNING_AGL_ROLL_FLTT };
 const uint8_t AP_Tuning_Plane::tuning_set_angle_pitch[] =      { TUNING_AGL_PITCH_D, TUNING_AGL_PITCH_P, TUNING_AGL_PITCH_FLTT };
+const uint8_t AP_Tuning_Plane::tuning_set_angle_roll[] =       { TUNING_AGL_ROLL_D, TUNING_AGL_ROLL_P, TUNING_AGL_ROLL_FLTT };
 const uint8_t AP_Tuning_Plane::tuning_set_mixing[] =           { TUNING_MIXING_DIFF, TUNING_AILERONS_DIFF, TUNING_ELEVATOR_DIFF, TUNING_MIXING_OFFSET,
                                                                 TUNING_MIX_THRAT2ELEV, TUNING_MIX_THRAT2ELEVCV, TUNING_MIX_FLAP2ELEV, TUNING_MIX_FLAP2ELEVCV };
 const uint8_t AP_Tuning_Plane::tuning_set_thr[] =              { TUNING_THR_EXPO_MANUAL, TUNING_THR_EXPO_AUTO, TUNING_THR_AUTO_SRATE };
 const uint8_t AP_Tuning_Plane::tuning_set_flap[] =             { TUNING_FLAP_RETED_SPD, TUNING_FLAP_EXTED_SPD, TUNING_FLAP_EXTED_PCT };
-const uint8_t AP_Tuning_Plane::tuning_set_fw_roll_pitch[] =    { TUNING_RLL_D, TUNING_RLL_P, TUNING_RLL_I,
+const uint8_t AP_Tuning_Plane::tuning_set_fw_pitch_roll[] =    { TUNING_RLL_D, TUNING_RLL_P, TUNING_RLL_I,
                                                                  TUNING_PIT_D, TUNING_PIT_P, TUNING_PIT_I };
-const uint8_t AP_Tuning_Plane::tuning_set_fw_roll[] =          { TUNING_RLL_D, TUNING_RLL_P, TUNING_RLL_I };
 const uint8_t AP_Tuning_Plane::tuning_set_fw_pitch[] =         { TUNING_PIT_D, TUNING_PIT_P, TUNING_PIT_I };
+const uint8_t AP_Tuning_Plane::tuning_set_fw_roll[] =          { TUNING_RLL_D, TUNING_RLL_P, TUNING_RLL_I };
+const uint8_t AP_Tuning_Plane::tuning_set_fw_pitch_roll_pids[] = {
+                                                                TUNING_PIT_D, TUNING_PIT_P, TUNING_PIT_I,
+                                                                TUNING_AGL_PITCH_P, TUNING_AGL_PITCH_D, TUNING_AGL_PITCH_FLTT,
+                                                                TUNING_RLL_D, TUNING_RLL_P, TUNING_RLL_I,
+                                                                TUNING_AGL_ROLL_P, TUNING_AGL_ROLL_D, TUNING_AGL_ROLL_FLTT
+                                                               };
 
 // macro to prevent getting the array length wrong
 #define TUNING_ARRAY(v) ARRAY_SIZE(v), v
@@ -67,17 +77,19 @@ const AP_Tuning_Plane::tuning_set AP_Tuning_Plane::tuning_sets[] = {
     { TUNING_SET_RATE_ROLLDP,           TUNING_ARRAY(tuning_set_rate_rollDP) },
     { TUNING_SET_RATE_YAWDP,            TUNING_ARRAY(tuning_set_rate_yawDP) },
     { TUNING_SET_TRIM_THR_PTCH,         TUNING_ARRAY(tuning_set_trim_thr_pitch) },
+    { TUNING_SET_TRIM_THR_PTCH_FULL,    TUNING_ARRAY(tuning_set_trim_thr_pitch_full) },
     { TUNING_SET_COORDINATION,          TUNING_ARRAY(tuning_set_coordination) },
     { TUNING_SET_TECS_THR_FF,           TUNING_ARRAY(tuning_set_tecs_thr_ff) },
-    { TUNING_SET_AGL_ROLL_PITCH,        TUNING_ARRAY(tuning_set_angle_roll_pitch) },
+    { TUNING_SET_AGL_ROLL_PITCH,        TUNING_ARRAY(tuning_set_angle_pitch_roll) },
     { TUNING_SET_AGL_ROLL,              TUNING_ARRAY(tuning_set_angle_roll) },
     { TUNING_SET_AGL_PITCH,             TUNING_ARRAY(tuning_set_angle_pitch) },
     { TUNING_SET_MIXING,                TUNING_ARRAY(tuning_set_mixing) },
     { TUNING_SET_THR,                   TUNING_ARRAY(tuning_set_thr) },
     { TUNING_SET_FLAP,                  TUNING_ARRAY(tuning_set_flap) },
-    { TUNING_SET_FW_ROLL_PITCH,         TUNING_ARRAY(tuning_set_fw_roll_pitch) },
+    { TUNING_SET_FW_ROLL_PITCH,         TUNING_ARRAY(tuning_set_fw_pitch_roll) },
     { TUNING_SET_FW_ROLL,               TUNING_ARRAY(tuning_set_fw_roll) },
     { TUNING_SET_FW_PITCH,              TUNING_ARRAY(tuning_set_fw_pitch) },
+    { TUNING_SET_FW_PITCH_ROLL_PIDS,    TUNING_ARRAY(tuning_set_fw_pitch_roll_pids) },
     { 0, 0, nullptr }
 };
 

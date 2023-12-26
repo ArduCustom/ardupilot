@@ -134,17 +134,19 @@ private:
         TUNING_SET_RATE_ROLLDP =             9,
         TUNING_SET_RATE_YAWDP =             10,
         TUNING_SET_TRIM_THR_PTCH =          11,
-        TUNING_SET_COORDINATION =           12,
-        TUNING_SET_TECS_THR_FF =            13,
-        TUNING_SET_AGL_ROLL_PITCH =         14,
-        TUNING_SET_AGL_ROLL =               15,
+        TUNING_SET_TRIM_THR_PTCH_FULL =     12,
+        TUNING_SET_COORDINATION =           13,
+        TUNING_SET_TECS_THR_FF =            14,
+        TUNING_SET_AGL_ROLL_PITCH =         15,
         TUNING_SET_AGL_PITCH =              16,
-        TUNING_SET_MIXING =                 17,
-        TUNING_SET_THR =                    18,
-        TUNING_SET_FLAP =                   19,
-        TUNING_SET_FW_ROLL_PITCH =          20,
-        TUNING_SET_FW_ROLL =                21,
+        TUNING_SET_AGL_ROLL =               17,
+        TUNING_SET_MIXING =                 18,
+        TUNING_SET_THR =                    19,
+        TUNING_SET_FLAP =                   20,
+        TUNING_SET_FW_ROLL_PITCH =          21,
         TUNING_SET_FW_PITCH =               22,
+        TUNING_SET_FW_ROLL =                23,
+        TUNING_SET_FW_PITCH_ROLL_PIDS =     24,
     };
 
     AP_Float *get_param_pointer(uint8_t parm) override;
@@ -164,17 +166,19 @@ private:
     static const uint8_t tuning_set_rate_rollDP[];
     static const uint8_t tuning_set_rate_yawDP[];
     static const uint8_t tuning_set_trim_thr_pitch[];
+    static const uint8_t tuning_set_trim_thr_pitch_full[];
     static const uint8_t tuning_set_coordination[];
     static const uint8_t tuning_set_tecs_thr_ff[];
-    static const uint8_t tuning_set_angle_roll_pitch[];
+    static const uint8_t tuning_set_angle_pitch_roll[];
     static const uint8_t tuning_set_angle_roll[];
     static const uint8_t tuning_set_angle_pitch[];
     static const uint8_t tuning_set_mixing[];
     static const uint8_t tuning_set_thr[];
     static const uint8_t tuning_set_flap[];
-    static const uint8_t tuning_set_fw_roll_pitch[];
+    static const uint8_t tuning_set_fw_pitch_roll[];
     static const uint8_t tuning_set_fw_roll[];
     static const uint8_t tuning_set_fw_pitch[];
+    static const uint8_t tuning_set_fw_pitch_roll_pids[];
 
     // mask of what params have been set
     uint64_t have_set;
