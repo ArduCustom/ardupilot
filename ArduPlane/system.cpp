@@ -149,6 +149,8 @@ void Plane::init_ardupilot()
 #if AP_GRIPPER_ENABLED
     g2.gripper.init();
 #endif
+
+    tuning.init();
 }
 
 //********************************************************************************

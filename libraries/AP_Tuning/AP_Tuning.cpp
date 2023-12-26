@@ -102,7 +102,7 @@ void AP_Tuning::check_selector_switch(void)
                 // re-center the value
                 re_center();
                 gcs().send_text(MAV_SEVERITY_INFO, "Tuning: recentered %s", get_tuning_name(current_parm));
-            } else if (hold_time < 1000) {
+            } else if (hold_time < 3000) {
                 // change parameter
                 next_parameter();
             }
@@ -128,7 +128,7 @@ void AP_Tuning::re_center(void)
  */
 void AP_Tuning::check_input(uint8_t flightmode)
 {
-    if (channel <= 0 || parmset <= 0) {
+    if (channel <= 0 || current_parmset <= 0) {
         // disabled
         return;
     }
@@ -166,10 +166,10 @@ void AP_Tuning::check_input(uint8_t flightmode)
     }
 
     // cope with user changing parmset while tuning
-    if (current_set != parmset) {
+    if (current_set != current_parmset) {
         re_center();
     }
-    current_set = parmset;
+    current_set = current_parmset;
     
     check_selector_switch();
 
@@ -241,7 +241,7 @@ void AP_Tuning::Log_Write_Parameter_Tuning(float value)
 // @Field: CenterValue: Center value (startpoint of current modifications) of parameter being tuned
     AP::logger().Write("PRTN", "TimeUS,Set,Parm,Value,CenterValue", "QBBff",
                                            AP_HAL::micros64(),
-                                           parmset,
+                                           current_parmset,
                                            current_parm,
                                            (double)value,
                                            (double)center_value);
@@ -252,7 +252,7 @@ void AP_Tuning::Log_Write_Parameter_Tuning(float value)
  */
 void AP_Tuning::save_parameters(void)
 {
-    uint8_t set = (uint8_t)parmset.get();
+    uint8_t set = current_parmset;
     if (set < set_base) {
         // single parameter tuning
         save_value(set);
@@ -275,7 +275,7 @@ void AP_Tuning::save_parameters(void)
  */
 void AP_Tuning::revert_parameters(void)
 {
-    uint8_t set = (uint8_t)parmset.get();
+    uint8_t set = current_parmset;
     if (set < set_base) {
         // single parameter tuning
         reload_value(set);
@@ -299,7 +299,7 @@ void AP_Tuning::revert_parameters(void)
  */
 void AP_Tuning::next_parameter(void)
 {
-    uint8_t set = (uint8_t)parmset.get();
+    uint8_t set = current_parmset;
     if (set < set_base) {
         // nothing to do but re-center
         current_parm = set;
@@ -313,6 +313,27 @@ void AP_Tuning::next_parameter(void)
             } else {
                 current_parm_index = (current_parm_index + 1) % tuning_sets[i].num_parms;
             }
+            current_parm = tuning_sets[i].parms[current_parm_index];
+            re_center();
+            gcs().send_text(MAV_SEVERITY_INFO, "Tuning: started %s", get_tuning_name(current_parm));
+            AP_Notify::events.tune_next = current_parm_index+1;
+            break;
+        }
+    }
+}
+
+void AP_Tuning::set_current_parmset(int16_t value)
+{
+    current_parmset = value;
+    if (current_parmset < set_base) {
+        // nothing to do but re-center
+        current_parm = current_parmset;
+        re_center();
+        return;
+    }
+    for (uint8_t i=0; tuning_sets[i].num_parms != 0; i++) {
+        if (tuning_sets[i].set+set_base == current_parmset) {
+            current_parm_index = 0;
             current_parm = tuning_sets[i].parms[current_parm_index];
             re_center();
             gcs().send_text(MAV_SEVERITY_INFO, "Tuning: started %s", get_tuning_name(current_parm));

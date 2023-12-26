@@ -27,7 +27,9 @@ public:
         tuning_names(names) {
         AP_Param::setup_object_defaults(this, var_info);
     }
-    
+
+    void init() { set_current_parmset(get_parmset1()); }
+
     // var_info for holding Parameter information
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -39,6 +41,11 @@ public:
 
     const char *get_tuning_name() { return get_tuning_name(current_parm); }
     AP_Float *get_param_pointer() { return get_param_pointer(current_parm); };
+
+    int16_t get_parmset1() { return parmset.get(); }
+    int16_t get_parmset2() { return parmset2.get(); }
+    int16_t get_parmset3() { return parmset3.get(); }
+    void set_current_parmset(int16_t value);
 
 private:
     AP_Int8 channel;
@@ -100,6 +107,10 @@ protected:
     virtual void reload_value(uint8_t parm) = 0;
     virtual void set_value(uint8_t parm, float value) = 0;
 
+    int16_t current_parmset = 0;
+
     // parmset is in vehicle subclass var table
     AP_Int16 parmset;
+    AP_Int16 parmset2;
+    AP_Int16 parmset3;
 };
