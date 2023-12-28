@@ -480,12 +480,6 @@ void RC_Channel::init_aux_function(const aux_func_t ch_option, const AuxSwitchPo
     case AUX_FUNC::DO_NOTHING:
     case AUX_FUNC::LANDING_GEAR:
     case AUX_FUNC::LOST_VEHICLE_SOUND:
-    case AUX_FUNC::RELAY:
-    case AUX_FUNC::RELAY2:
-    case AUX_FUNC::RELAY3:
-    case AUX_FUNC::RELAY4:
-    case AUX_FUNC::RELAY5:
-    case AUX_FUNC::RELAY6:
     case AUX_FUNC::VISODOM_ALIGN:
     case AUX_FUNC::EKF_LANE_SWITCH:
     case AUX_FUNC::EKF_YAW_RESET:
@@ -539,6 +533,24 @@ void RC_Channel::init_aux_function(const aux_func_t ch_option, const AuxSwitchPo
     case AUX_FUNC::CAMERA_MANUAL_FOCUS:
     case AUX_FUNC::CAMERA_AUTO_FOCUS:
         run_aux_function(ch_option, ch_flag, AuxFuncTriggerSource::INIT);
+        break;
+    case AUX_FUNC::RELAY:
+        do_aux_function_relay(0, reversed);
+        break;
+    case AUX_FUNC::RELAY2:
+        do_aux_function_relay(1, reversed);
+        break;
+    case AUX_FUNC::RELAY3:
+        do_aux_function_relay(2, reversed);
+        break;
+    case AUX_FUNC::RELAY4:
+        do_aux_function_relay(3, reversed);
+        break;
+    case AUX_FUNC::RELAY5:
+        do_aux_function_relay(4, reversed);
+        break;
+    case AUX_FUNC::RELAY6:
+        do_aux_function_relay(5, reversed);
         break;
     default:
         gcs().send_text(MAV_SEVERITY_WARNING, "Failed to init: RC%u_OPTION: %u\n",
