@@ -511,11 +511,6 @@ public:
         return get_singleton() != nullptr && (_options & uint32_t(Option::CRSF_CUSTOM_TELEMETRY));
     }
 
-    // should a channel reverse option affect aux switches
-    bool switch_reverse_allowed(void) const {
-        return get_singleton() != nullptr && (_options & uint32_t(Option::ALLOW_SWITCH_REV));
-    }
-
     bool ignore_overrides() const {
         return _options & uint32_t(Option::IGNORE_OVERRIDES);
     }
@@ -623,7 +618,6 @@ protected:
         LOG_DATA                = (1U << 4), // log rc input bytes
         ARMING_CHECK_THROTTLE   = (1U << 5), // run an arming check for neutral throttle
         ARMING_SKIP_CHECK_RPY   = (1U << 6), // skip the an arming checks for the roll/pitch/yaw channels
-        ALLOW_SWITCH_REV        = (1U << 7), // honor the reversed flag on switches
         CRSF_CUSTOM_TELEMETRY   = (1U << 8), // use passthrough data for crsf telemetry
         SUPPRESS_CRSF_MESSAGE   = (1U << 9), // suppress CRSF mode/rate message for ELRS systems
         MULTI_RECEIVER_SUPPORT  = (1U << 10), // allow multiple receivers

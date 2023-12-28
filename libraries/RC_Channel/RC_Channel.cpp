@@ -668,9 +668,8 @@ bool RC_Channel::read_aux()
             return false;
         }
 
-        const bool switch_reversed = reversed && rc().switch_reverse_allowed();
         const bool in_range = in >= radio_min && in <= radio_max;
-        const bool high = switch_reversed ? !in_range : in_range;
+        const bool high = reversed ? !in_range : in_range;
         new_position = high ? AuxSwitchPos::HIGH : AuxSwitchPos::LOW;
 
         run_aux_function(_option, new_position, AuxFuncTriggerSource::RC);
@@ -1455,13 +1454,10 @@ bool RC_Channel::read_3pos_switch(RC_Channel::AuxSwitchPos &ret) const
         return false;
     }
     
-    // switch is reversed if 'reversed' option set on channel and switches reverse is allowed by RC_OPTIONS
-    bool switch_reversed = reversed && rc().switch_reverse_allowed();
-    
     if (in < AUX_SWITCH_PWM_TRIGGER_LOW) {
-        ret = switch_reversed ? AuxSwitchPos::HIGH : AuxSwitchPos::LOW;
+        ret = reversed ? AuxSwitchPos::HIGH : AuxSwitchPos::LOW;
     } else if (in > AUX_SWITCH_PWM_TRIGGER_HIGH) {
-        ret = switch_reversed ? AuxSwitchPos::LOW : AuxSwitchPos::HIGH;
+        ret = reversed ? AuxSwitchPos::LOW : AuxSwitchPos::HIGH;
     } else {
         ret = AuxSwitchPos::MIDDLE;
     }
