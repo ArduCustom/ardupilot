@@ -637,6 +637,7 @@ const char *RC_Channel::string_for_aux_pos(AuxSwitchPos pos) const
  */
 bool RC_Channel::read_aux()
 {
+    AuxSwitchPos new_position;
     const aux_func_t _option = (aux_func_t)option.get();
     if (_option == AUX_FUNC::DO_NOTHING) {
         // may wish to add special cases for other "AUXSW" things
@@ -649,9 +650,21 @@ bool RC_Channel::read_aux()
             return true;
         }
         return false;
+    } else if (_option == AUX_FUNC::RELAY || (_option >= AUX_FUNC::RELAY2 && _option <= AUX_FUNC::RELAY4) || (_option >= AUX_FUNC::RELAY5 && _option <= AUX_FUNC::RELAY6)) {
+        const uint16_t in = get_radio_in();
+        if (in <= RC_MIN_LIMIT_PWM || in >= RC_MAX_LIMIT_PWM) {
+            return false;
+        }
+
+        const bool switch_reversed = reversed && rc().switch_reverse_allowed();
+        const bool in_range = in >= radio_min && in <= radio_max;
+        const bool high = switch_reversed ? !in_range : in_range;
+        new_position = high ? AuxSwitchPos::HIGH : AuxSwitchPos::LOW;
+
+        run_aux_function(_option, new_position, AuxFuncTriggerSource::RC);
+        return true;
     }
 
-    AuxSwitchPos new_position;
     if (!read_3pos_switch(new_position)) {
         return false;
     }
@@ -1071,22 +1084,22 @@ bool RC_Channel::do_aux_function(const aux_func_t ch_option, const AuxSwitchPos 
         break;
 
     case AUX_FUNC::RELAY:
-        do_aux_function_relay(0, ch_flag != AuxSwitchPos::LOW);
+        do_aux_function_relay(0, ch_flag == AuxSwitchPos::HIGH);
         break;
     case AUX_FUNC::RELAY2:
-        do_aux_function_relay(1, ch_flag != AuxSwitchPos::LOW);
+        do_aux_function_relay(1, ch_flag == AuxSwitchPos::HIGH);
         break;
     case AUX_FUNC::RELAY3:
-        do_aux_function_relay(2, ch_flag != AuxSwitchPos::LOW);
+        do_aux_function_relay(2, ch_flag == AuxSwitchPos::HIGH);
         break;
     case AUX_FUNC::RELAY4:
-        do_aux_function_relay(3, ch_flag != AuxSwitchPos::LOW);
+        do_aux_function_relay(3, ch_flag == AuxSwitchPos::HIGH);
         break;
     case AUX_FUNC::RELAY5:
-        do_aux_function_relay(4, ch_flag != AuxSwitchPos::LOW);
+        do_aux_function_relay(4, ch_flag == AuxSwitchPos::HIGH);
         break;
     case AUX_FUNC::RELAY6:
-        do_aux_function_relay(5, ch_flag != AuxSwitchPos::LOW);
+        do_aux_function_relay(5, ch_flag == AuxSwitchPos::HIGH);
         break;
 
     case AUX_FUNC::RUNCAM_CONTROL:
