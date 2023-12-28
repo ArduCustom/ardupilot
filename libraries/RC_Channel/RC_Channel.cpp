@@ -1071,22 +1071,22 @@ bool RC_Channel::do_aux_function(const aux_func_t ch_option, const AuxSwitchPos 
         break;
 
     case AUX_FUNC::RELAY:
-        do_aux_function_relay(0, ch_flag == AuxSwitchPos::HIGH);
+        do_aux_function_relay(0, ch_flag != AuxSwitchPos::LOW);
         break;
     case AUX_FUNC::RELAY2:
-        do_aux_function_relay(1, ch_flag == AuxSwitchPos::HIGH);
+        do_aux_function_relay(1, ch_flag != AuxSwitchPos::LOW);
         break;
     case AUX_FUNC::RELAY3:
-        do_aux_function_relay(2, ch_flag == AuxSwitchPos::HIGH);
+        do_aux_function_relay(2, ch_flag != AuxSwitchPos::LOW);
         break;
     case AUX_FUNC::RELAY4:
-        do_aux_function_relay(3, ch_flag == AuxSwitchPos::HIGH);
+        do_aux_function_relay(3, ch_flag != AuxSwitchPos::LOW);
         break;
     case AUX_FUNC::RELAY5:
-        do_aux_function_relay(4, ch_flag == AuxSwitchPos::HIGH);
+        do_aux_function_relay(4, ch_flag != AuxSwitchPos::LOW);
         break;
     case AUX_FUNC::RELAY6:
-        do_aux_function_relay(5, ch_flag == AuxSwitchPos::HIGH);
+        do_aux_function_relay(5, ch_flag != AuxSwitchPos::LOW);
         break;
 
     case AUX_FUNC::RUNCAM_CONTROL:
