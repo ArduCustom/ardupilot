@@ -186,7 +186,6 @@ void RC_Channel_Plane::init_aux_function(const RC_Channel::aux_func_t ch_option,
     case AUX_FUNC::SERVOS_AUTO_TRIM:
     case AUX_FUNC::EMERGENCY_LANDING_EN:
     case AUX_FUNC::FW_AUTOTUNE:
-    case AUX_FUNC::TUNE_PARAM_SELECT:
         break;
 
     case AUX_FUNC::SOARING:
@@ -435,21 +434,6 @@ bool RC_Channel_Plane::do_aux_function(const aux_func_t ch_option, const AuxSwit
     case AUX_FUNC::ARMDISARM:
         do_aux_function_armdisarm(ch_flag);
         break;
-
-    case AUX_FUNC::TUNE_PARAM_SELECT: {
-        switch (ch_flag) {
-            case AuxSwitchPos::LOW:
-                plane.tuning.set_current_parmset(plane.tuning.get_parmset1());
-                break;
-            case AuxSwitchPos::MIDDLE:
-                plane.tuning.set_current_parmset(plane.tuning.get_parmset2());
-                break;
-            case AuxSwitchPos::HIGH:
-                plane.tuning.set_current_parmset(plane.tuning.get_parmset3());
-                break;
-        }
-        break;
-    }
 
     default:
         return RC_Channel::do_aux_function(ch_option, ch_flag);

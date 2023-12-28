@@ -77,6 +77,33 @@ void AP_Tuning::check_selector_switch(void)
         return;
     }
     uint16_t selector_in = selchan->get_radio_in();
+
+    int8_t parmset_switch_pos = -1;
+    if (selector_in < 1200) {
+        parmset_switch_pos = 0;
+    } else if (selector_in < 1400) {
+        parmset_switch_pos = 1;
+    } else if (selector_in < 1600) {
+        parmset_switch_pos = 2;
+    }
+
+    if (parmset_switch_pos > -1 && parmset_switch_pos != prev_parmset_switch_pos) {
+        int16_t new_parmset;
+        switch (parmset_switch_pos) {
+            case 0:
+                new_parmset = get_parmset1();
+                break;
+            case 1:
+                new_parmset = get_parmset2();
+                break;
+            case 2:
+                new_parmset = get_parmset3();
+                break;
+        }
+        set_current_parmset(new_parmset);
+        prev_parmset_switch_pos = parmset_switch_pos;
+    }
+
     if (selector_in >= RC_Channel::AUX_PWM_TRIGGER_HIGH) {
         // high selector
         if (selector_start_ms == 0) {
@@ -92,7 +119,7 @@ void AP_Tuning::check_selector_switch(void)
             changed = false;
             need_revert = 0;
         }
-    } else if (selector_in <= RC_Channel::AUX_PWM_TRIGGER_LOW) {
+    } else if (selector_in < RC_Channel::AUX_PWM_TRIGGER_HIGH) {
         // low selector
         if (selector_start_ms != 0) {
             uint32_t hold_time = AP_HAL::millis() - selector_start_ms;

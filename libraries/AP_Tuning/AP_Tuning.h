@@ -75,6 +75,8 @@ private:
     // the parameter we are tuning
     uint8_t current_parm;
 
+    int8_t prev_parmset_switch_pos = -1;
+
     // current index into the parameter set
     uint8_t current_parm_index;
 
