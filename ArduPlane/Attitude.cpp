@@ -605,6 +605,27 @@ void Plane::calc_nav_yaw_ground(void)
         int32_t yaw_error_cd = -ToDeg(steer_state.locked_course_err)*100;
         steering_control.steering = steerController.get_steering_out_angle_error(yaw_error_cd);
     }
+
+    Vector2f v;
+    float yaw;
+    {
+        WITH_SEMAPHORE(ahrs.get_semaphore());
+        v = ahrs.groundspeed_vector();
+        yaw = ahrs.yaw;
+    }
+
+    float angle = 0;
+    const float gspd = v.length();
+    bool reversing = reversed_throttle;
+    if (gspd > 0.5f) {
+        angle = ToDeg(wrap_2PI(atan2f(v.y, v.x) - yaw));
+        reversing = angle >= 90 && angle <= 270;
+    }
+
+    if (reversing) {
+        steering_control.steering = -steering_control.steering;
+    }
+
     steering_control.steering = constrain_int16(steering_control.steering, -4500, 4500);
 }
 
