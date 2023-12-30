@@ -2382,13 +2382,12 @@ void AP_OSD_Screen::draw_home(uint8_t x, uint8_t y)
     if (home_is_set) {
         // const Location &home_loc = ahrs.get_home();
         float distance = home_loc.get_distance(loc);
-        int32_t angle = wrap_360_cd(loc.get_bearing_to(home_loc) - yaw_sensor);
-        int32_t interval = 36000 / SYMBOL(SYM_ARROW_COUNT);
+        int32_t angle_cd = loc.get_bearing_to(home_loc) - yaw_sensor;
         if (distance < 2.0f) {
             //avoid fast rotating arrow at small distances
-            angle = 0;
+            angle_cd = 0;
         }
-        char arrow = SYMBOL(SYM_ARROW_START) + ((angle + interval / 2) / interval) % SYMBOL(SYM_ARROW_COUNT);
+        char arrow = get_arrow_font_index(angle_cd);
         backend->write(x, y, false, "%c%c", SYMBOL(SYM_HOME), arrow);
         draw_distance(x+2, y, distance, true);
     } else {
@@ -2954,13 +2953,13 @@ void AP_OSD_Screen::draw_waypoint(uint8_t x, uint8_t y)
         WITH_SEMAPHORE(ahrs.get_semaphore());
         yaw_sensor = ahrs.yaw_sensor;
     }
-    int32_t angle = wrap_360_cd(osd->nav_info.wp_bearing - yaw_sensor);
-    int32_t interval = 36000 / SYMBOL(SYM_ARROW_COUNT);
+    
+    int32_t angle_cd = osd->nav_info.wp_bearing - yaw_sensor;
     if (osd->nav_info.wp_distance < 2.0f) {
         //avoid fast rotating arrow at small distances
-        angle = 0;
+        angle_cd = 0;
     }
-    char arrow = SYMBOL(SYM_ARROW_START) + ((angle + interval / 2) / interval) % SYMBOL(SYM_ARROW_COUNT);
+    char arrow = get_arrow_font_index(angle_cd);
     backend->write(x,y, false, "%c%2u%c",SYMBOL(SYM_WPNO), osd->nav_info.wp_number, arrow);
     draw_distance(x+4, y, osd->nav_info.wp_distance, true);
 }
