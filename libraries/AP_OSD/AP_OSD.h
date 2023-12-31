@@ -314,11 +314,14 @@ private:
 #if HAL_PLUSCODE_ENABLE
     void draw_pluscode(uint8_t x, uint8_t y);
 #endif
+
     //helper functions
     void draw_speed(uint8_t x, uint8_t y, bool available, float magnitude = 0, bool blink = false);
     void draw_speed_with_arrow(uint8_t x, uint8_t y, float angle_rad, float magnitude, bool blink = false);
     void draw_distance(uint8_t x, uint8_t y, float distance, bool can_only_be_positive = true, bool available = true);
     void draw_temperature(uint8_t x, uint8_t y, bool available, float value = 0, bool blink = false);
+    char get_arrow_font_index (int32_t angle_cd);
+
 #if HAL_WITH_ESC_TELEM
     void draw_highest_esc_temp(uint8_t x, uint8_t y);
     void draw_rpm(uint8_t x, uint8_t y, float rpm); // helper
@@ -631,6 +634,7 @@ public:
         OPTION_INVERTED_AH_ROLL = 1U<<2,
         OPTION_IMPERIAL_MILES = 1U<<3,
         OPTION_DISABLE_CROSSHAIR = 1U<<4,
+        OPTION_BF_ARROWS = 1U<<5,
         OPTION_WIDE_SIDEBAR = 1U<<17,
         OPTION_TWO_DECIMALS_VERTICAL_SPEED = 1U<<18,
         OPTION_RIGHT_JUSTIFY_TUNED_PN = 1U<<19,

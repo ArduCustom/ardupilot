@@ -2202,11 +2202,22 @@ void AP_OSD_Screen::draw_speed(uint8_t x, uint8_t y, bool available, float magni
     backend->write(x+spaces, y, blink, fmt, magnitude_scaled, u_icon(SPEED));
 }
 
+char AP_OSD_Screen::get_arrow_font_index(int32_t angle_cd)
+{
+    uint32_t interval = 36000 / SYMBOL(SYM_ARROW_COUNT);
+    angle_cd = wrap_360_cd(angle_cd);
+    // if using BF font table must translate arrows
+    if (check_option(AP_OSD::OPTION_BF_ARROWS)) {
+        angle_cd = angle_cd > 18000? 54000 - angle_cd : 18000- angle_cd;
+    }
+    return SYMBOL(SYM_ARROW_START) + ((angle_cd + interval / 2) / interval) % SYMBOL(SYM_ARROW_COUNT);
+}
+
 // draw a arrow at the given angle, and print the given magnitude
 void AP_OSD_Screen::draw_speed_with_arrow(uint8_t x, uint8_t y, float angle_rad, float magnitude, bool blink)
 {
-    static const int32_t arrow_interval = 36000 / SYMBOL(SYM_ARROW_COUNT);
-    char arrow = SYMBOL(SYM_ARROW_START) + ((int32_t(angle_rad*DEGX100) + arrow_interval / 2) / arrow_interval) % SYMBOL(SYM_ARROW_COUNT);
+    int32_t angle_cd = angle_rad * DEGX100;
+    char arrow = get_arrow_font_index(angle_cd);
     backend->write(x, y, false, "%c", arrow);
     draw_speed(x+1, y, true, magnitude, blink);
 }
