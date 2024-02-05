@@ -14,28 +14,28 @@ int8_t RC_Channels_Copter::flight_mode_channel_number() const
     return copter.g.flight_mode_chan.get();
 }
 
-void RC_Channel_Copter::mode_switch_changed(modeswitch_pos_t new_pos)
-{
-    if (new_pos < 0 || (uint8_t)new_pos > copter.num_flight_modes) {
-        // should not have been called
-        return;
-    }
+// void RC_Channel_Copter::mode_switch_changed(modeswitch_pos_t new_pos)
+// {
+//     if (new_pos < 0 || (uint8_t)new_pos > copter.num_flight_modes) {
+//         // should not have been called
+//         return;
+//     }
 
-    if (!copter.set_mode((Mode::Number)copter.flight_modes[new_pos].get(), ModeReason::RC_COMMAND)) {
-        return;
-    }
+//     if (!copter.set_mode((Mode::Number)copter.flight_modes[new_pos].get(), ModeReason::RC_COMMAND)) {
+//         return;
+//     }
 
-    if (!rc().find_channel_for_option(AUX_FUNC::SIMPLE_MODE) &&
-        !rc().find_channel_for_option(AUX_FUNC::SUPERSIMPLE_MODE)) {
-        // if none of the Aux Switches are set to Simple or Super Simple Mode then
-        // set Simple Mode using stored parameters from EEPROM
-        if (BIT_IS_SET(copter.g.super_simple, new_pos)) {
-            copter.set_simple_mode(Copter::SimpleMode::SUPERSIMPLE);
-        } else {
-            copter.set_simple_mode(BIT_IS_SET(copter.g.simple_modes, new_pos) ? Copter::SimpleMode::SIMPLE : Copter::SimpleMode::NONE);
-        }
-    }
-}
+//     if (!rc().find_channel_for_option(AUX_FUNC::SIMPLE_MODE) &&
+//         !rc().find_channel_for_option(AUX_FUNC::SUPERSIMPLE_MODE)) {
+//         // if none of the Aux Switches are set to Simple or Super Simple Mode then
+//         // set Simple Mode using stored parameters from EEPROM
+//         if (BIT_IS_SET(copter.g.super_simple, new_pos)) {
+//             copter.set_simple_mode(Copter::SimpleMode::SUPERSIMPLE);
+//         } else {
+//             copter.set_simple_mode(BIT_IS_SET(copter.g.simple_modes, new_pos) ? Copter::SimpleMode::SIMPLE : Copter::SimpleMode::NONE);
+//         }
+//     }
+// }
 
 bool RC_Channels_Copter::has_valid_input() const
 {
@@ -144,7 +144,7 @@ void RC_Channel_Copter::do_aux_function_change_mode(const Mode::Number mode,
         // return to flight mode switch's flight mode if we are currently
         // in this mode
         if (copter.flightmode->mode_number() == mode) {
-            rc().reset_mode_switch();
+            copter.reset_control_switch();
         }
     }
 }

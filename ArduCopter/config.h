@@ -369,6 +369,24 @@
 #ifndef FLIGHT_MODE_6
  # define FLIGHT_MODE_6                  Mode::Number::STABILIZE
 #endif
+#if !defined(FLIGHT_MODE_7)
+ # define FLIGHT_MODE_7                  Mode::Number::STABILIZE
+#endif
+#if !defined(FLIGHT_MODE_8)
+ # define FLIGHT_MODE_8                  Mode::Number::STABILIZE
+#endif
+#if !defined(FLIGHT_MODE_9)
+ # define FLIGHT_MODE_9                  Mode::Number::STABILIZE
+#endif
+#if !defined(FLIGHT_MODE_10)
+ # define FLIGHT_MODE_10                  Mode::Number::STABILIZE
+#endif
+#if !defined(FLIGHT_MODE_11)
+ # define FLIGHT_MODE_11                  Mode::Number::STABILIZE
+#endif
+#if !defined(FLIGHT_MODE_12)
+ # define FLIGHT_MODE_12                  Mode::Number::STABILIZE
+#endif
 
 
 //////////////////////////////////////////////////////////////////////////////

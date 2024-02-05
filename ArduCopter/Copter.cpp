@@ -446,7 +446,7 @@ void Copter::rc_loop()
     // Read radio and 3-position switch on radio
     // -----------------------------------------
     read_radio();
-    rc().read_mode_switch();
+    read_control_switch();
 }
 
 // throttle_loop - should be run at 50 hz

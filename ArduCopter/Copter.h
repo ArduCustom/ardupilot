@@ -249,7 +249,13 @@ private:
 
     // flight modes convenience array
     AP_Int8 *flight_modes;
+    AP_Int8 *flight_modes2 = &g2.flight_mode7;
     const uint8_t num_flight_modes = 6;
+
+    uint8_t oldSwitchPosition = 254;
+    void read_control_switch();
+    uint8_t readSwitch(void) const;
+    void reset_control_switch();
 
     struct RangeFinderState {
         bool enabled:1;
