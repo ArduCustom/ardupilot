@@ -98,6 +98,9 @@ static const float GYRO_SCALE = (0.0174532f / 16.4f);
 #define INV3REG_MREG1_FIFO_CONFIG5 0x1
 #define INV3REG_MREG1_SENSOR_CONFIG3 0x06
 
+// ICM42688 specific registers
+#define INV3REG_42688_INTF_CONFIG1  0x4d
+
 // WHOAMI values
 #define INV3_ID_ICM40605      0x33
 #define INV3_ID_ICM40609      0x3b
@@ -701,6 +704,10 @@ bool AP_InertialSensor_Invensensev3::hardware_init(void)
         
         // little-endian, fifo count in records
         register_write(INV3REG_70_INTF_CONFIG0, 0x40, true);
+    } else if (inv3_type == Invensensev3_Type::ICM42688) {
+        // fix for the "stuck gyro" issue
+        const uint8_t v = register_read(INV3REG_42688_INTF_CONFIG1);
+        register_write(INV3REG_42688_INTF_CONFIG1, (v & 0x3F) | 0x40);
     }
 
     return true;
